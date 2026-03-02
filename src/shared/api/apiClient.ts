@@ -3,19 +3,11 @@ import { API_BASE_URL } from "../config";
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true, // Send cookies with cross-origin requests
     headers: {
         "Content-Type": "application/json",
+        "x-platform": "web"
     },
-});
-
-apiClient.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-        const token = localStorage.getItem("access_token");
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-    }
-    return config;
 });
 
 apiClient.interceptors.response.use(
@@ -27,30 +19,15 @@ apiClient.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== "/auth/refresh-token") {
             originalRequest._retry = true;
             try {
-                const accessToken = localStorage.getItem("access_token");
+                // Request to refresh token using the HttpOnly cookie automatically sent by withCredentials
+                await apiClient.post(`/auth/refresh-token`);
 
-                // Request to refresh token using the current access_token as requested
-                const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-                    access_token: accessToken,
-                });
-
-                // Save new tokens
-                localStorage.setItem("access_token", data.access_token);
-                if (data.refresh_token) {
-                    localStorage.setItem("refresh_token", data.refresh_token);
-                }
-
-                // Update headers for the retry request
-                originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
-
-                // Retry the original request
+                // Retry the original request (New cookie is automatically attached)
                 return apiClient(originalRequest);
             } catch (refreshError) {
-                // If refresh fails, clear tokens and redirect to login
+                // If refresh fails, redirect to login
                 if (typeof window !== "undefined") {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    window.location.href = "/auth/login"; // Or /login depending on the actual route
+                    window.location.href = "/auth/login";
                 }
                 return Promise.reject(refreshError);
             }

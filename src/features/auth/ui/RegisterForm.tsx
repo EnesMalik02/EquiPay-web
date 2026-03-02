@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "../api/authApi";
 import Link from "next/link";
@@ -12,13 +12,9 @@ export const RegisterForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // Check if user is already logged in
-    useEffect(() => {
-        const token = localStorage.getItem("access_token");
-        if (token) {
-            router.push("/home");
-        }
-    }, [router]);
+    // Check if user is already logged in (This should ideally be handled by middleware or server component now)
+    // For now we can do a quick check by hitting /me API on mount if needed, or rely on Server Actions/Middleware.
+    // Client-side cookie reading is impossible if HttpOnly!
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,9 +22,7 @@ export const RegisterForm = () => {
         setError("");
 
         try {
-            const tokenData = await authApi.register(name, phone);
-            localStorage.setItem("access_token", tokenData.access_token);
-            localStorage.setItem("refresh_token", tokenData.refresh_token);
+            await authApi.register(name, phone);
 
             await authApi.me();
 

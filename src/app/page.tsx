@@ -1,18 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      router.push("/home");
-    }
-  }, [router]);
 
   return (
     <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center text-gray-900 px-4">
