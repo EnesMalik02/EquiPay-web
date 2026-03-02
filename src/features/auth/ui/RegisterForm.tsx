@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "../api/authApi";
 import Link from "next/link";
+import "react-phone-number-input/style.css";
+import PhoneInput from "react-phone-number-input";
 
 export const RegisterForm = () => {
     const router = useRouter();
@@ -27,8 +29,9 @@ export const RegisterForm = () => {
             await authApi.me();
 
             router.push("/home"); // Redirect to Dashboard
-        } catch (err: any) { // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setError(err.response?.data?.detail || err.message || "Kayıt olurken bir hata oluştu.");
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { detail?: string } }, message?: string };
+            setError(e.response?.data?.detail || e.message || "Kayıt olurken bir hata oluştu.");
         } finally {
             setLoading(false);
         }
@@ -67,13 +70,13 @@ export const RegisterForm = () => {
                     <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="phone">
                         Telefon Numarası
                     </label>
-                    <input
+                    <PhoneInput
                         id="phone"
-                        type="tel"
+                        defaultCountry="TR"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
-                        placeholder="555 123 4567"
+                        onChange={(val) => setPhone(val || "")}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4 [&_.PhoneInputCountryIcon]:shadow-sm"
+                        placeholder="(505) 123 45 67"
                         required
                     />
                 </div>
