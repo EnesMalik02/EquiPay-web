@@ -1,5 +1,6 @@
 import axios from "axios";
-import { API_BASE_URL } from "../config";
+
+const API_BASE_URL = "/api";
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -16,11 +17,11 @@ apiClient.interceptors.response.use(
         const originalRequest = error.config;
 
         // Check if error is 401, we haven't retried yet, and we are not trying to refresh token itself
-        if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== "/auth/refresh-token") {
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/auth/refresh")) {
             originalRequest._retry = true;
             try {
                 // Request to refresh token using the HttpOnly cookie automatically sent by withCredentials
-                await apiClient.post(`/auth/refresh-token`);
+                await apiClient.post(`/auth/refresh`);
 
                 // Retry the original request (New cookie is automatically attached)
                 return apiClient(originalRequest);
