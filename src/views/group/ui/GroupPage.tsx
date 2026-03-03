@@ -1,43 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Settings, ShoppingCart, Zap, Utensils, Sparkles, ChevronRight, UserPlus } from "lucide-react";
+import { ArrowLeft, Plus, Settings, Receipt, ChevronRight, UserPlus, Users, CalendarDays, FileText, Wallet } from "lucide-react";
 import { Navbar } from "@/widgets/navbar/ui/Navbar";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
+import { expenseApi } from "@/entities/expense/api/expenseApi";
+import { ExpenseResponse } from "@/entities/expense/model/types";
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
 
 type Tab = "expenses" | "members";
 
-// Placeholder — expense API entegrasyonu gelince doldurulacak
-interface Expense {
-    id: string;
-    title: string;
-    paidBy: string;
-    date: string;
-    amount: number;
-    userShare: number | null;
-    shareType: "debt" | "credit" | "paid";
-    icon: "cart" | "bolt" | "food" | "clean";
-}
-interface ExpenseGroup {
-    label: string;
-    items: Expense[];
-}
-
-const PLACEHOLDER_EXPENSES: ExpenseGroup[] = [];
-
-const CategoryIcon = ({ icon }: { icon: Expense["icon"] }) => {
-    const cls = "w-5 h-5";
-    switch (icon) {
-        case "cart":  return <ShoppingCart className={cls} />;
-        case "bolt":  return <Zap className={cls} />;
-        case "food":  return <Utensils className={cls} />;
-        case "clean": return <Sparkles className={cls} />;
+function groupExpensesByMonth(expenses: ExpenseResponse[]): { label: string; items: ExpenseResponse[] }[] {
+    const map = new Map<string, ExpenseResponse[]>();
+    for (const exp of expenses) {
+        const [year, month] = exp.expense_date.split("-");
+        const date = new Date(Number(year), Number(month) - 1);
+        const label = date.toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
+        if (!map.has(label)) map.set(label, []);
+        map.get(label)!.push(exp);
     }
-};
+    return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
+}
 
 interface GroupPageProps {
     groupId: string;
@@ -47,20 +33,47 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const router = useRouter();
     const [group, setGroup] = useState<GroupResponse | null>(null);
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
+    const [expenses, setExpenses] = useState<ExpenseResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
     const [showAddMember, setShowAddMember] = useState(false);
 
+    // Detail panel
+    const [selectedExpense, setSelectedExpense] = useState<ExpenseResponse | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [panelOpen, setPanelOpen] = useState(false);
+    const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const openExpense = useCallback(async (expenseId: string) => {
+        setDetailLoading(true);
+        setSelectedExpense(null);
+        setPanelOpen(true);
+        try {
+            const detail = await expenseApi.getById(expenseId);
+            setSelectedExpense(detail);
+        } finally {
+            setDetailLoading(false);
+        }
+    }, []);
+
+    const closePanel = useCallback(() => {
+        setPanelOpen(false);
+        if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = setTimeout(() => setSelectedExpense(null), 350);
+    }, []);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [groupData, membersData] = await Promise.all([
+                const [groupData, membersData, expensesData] = await Promise.all([
                     groupApi.get(groupId),
                     groupApi.listMembers(groupId),
+                    expenseApi.listByGroup(groupId, { limit: 20, offset: 0 }),
                 ]);
                 setGroup(groupData);
                 setMembers(membersData);
+                setExpenses(expensesData);
             } catch {
                 setError("Grup bilgileri yüklenemedi.");
             } finally {
@@ -132,7 +145,8 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
 
     /* ── RENDER ──────────────────────────────────────────────── */
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans pb-32">
+        <div className="min-h-screen bg-white text-gray-900 font-sans pb-32 overflow-hidden">
+
             {showAddMember && (
                 <AddMemberModal
                     groupId={groupId}
@@ -145,7 +159,17 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
             )}
             <Navbar />
 
-            <main className="max-w-5xl mx-auto px-6 pt-8">
+            {/* Sliding pages */}
+            <div className="overflow-hidden">
+                <div
+                    className={`flex transition-transform duration-300 ease-in-out ${
+                        panelOpen ? "-translate-x-full" : "translate-x-0"
+                    }`}
+                >
+
+                {/* ── Slide 1: Group ─────────────────── */}
+                <div className="w-full shrink-0">
+                <main className="max-w-5xl mx-auto px-6 pt-8">
 
                 {/* Back */}
                 <button
@@ -204,7 +228,10 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-2 shrink-0">
-                        <button className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors">
+                        <button
+                            onClick={() => router.push(`/groups/${groupId}/expenses/new`)}
+                            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+                        >
                             <Plus className="w-4 h-4" />
                             Harcama Ekle
                         </button>
@@ -234,7 +261,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                 {/* ── Tab: Harcamalar ──────────────────────────── */}
                 {activeTab === "expenses" && (
                     <div>
-                        {PLACEHOLDER_EXPENSES.length === 0 ? (
+                        {expenses.length === 0 ? (
                             <div className="py-16 text-center">
                                 <p className="text-gray-400 text-sm font-medium">Henüz harcama yok.</p>
                                 <p className="text-gray-300 text-xs mt-1">
@@ -242,49 +269,44 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 </p>
                             </div>
                         ) : (
-                            PLACEHOLDER_EXPENSES.map((expenseGroup) => (
-                                <div key={expenseGroup.label} className="mb-8">
+                            groupExpensesByMonth(expenses).map((group) => (
+                                <div key={group.label} className="mb-8">
                                     <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-4">
-                                        {expenseGroup.label}
+                                        {group.label}
                                     </p>
                                     <div className="divide-y divide-gray-50">
-                                        {expenseGroup.items.map((expense) => (
-                                            <div
-                                                key={expense.id}
-                                                className="flex items-center gap-4 py-3.5 cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded-xl transition-colors group"
-                                            >
-                                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-                                                    <CategoryIcon icon={expense.icon} />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-sm text-black truncate">
-                                                        {expense.title}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400 mt-0.5">
-                                                        {expense.paidBy} ödedi • {expense.date}
-                                                    </p>
-                                                </div>
-                                                <div className="text-right shrink-0">
-                                                    <p className="font-bold text-sm text-black">
-                                                        ₺{expense.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                                    </p>
-                                                    {expense.shareType === "debt" && expense.userShare !== null && (
-                                                        <p className="text-[11px] font-bold text-red-500 mt-0.5">
-                                                            Payın: ₺{expense.userShare.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                        {group.items.map((expense) => {
+                                            const payer = members.find((m) => m.user_id === expense.paid_by);
+                                            const payerName = payer?.name ?? payer?.username ?? "Bilinmeyen";
+                                            return (
+                                                <div
+                                                    key={expense.id}
+                                                    onClick={() => openExpense(expense.id)}
+                                                    className="flex items-center gap-4 py-3.5 cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded-xl transition-colors group"
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                                                        <Receipt className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-sm text-black truncate">
+                                                            {expense.title}
                                                         </p>
-                                                    )}
-                                                    {expense.shareType === "credit" && expense.userShare !== null && (
-                                                        <p className="text-[11px] font-bold text-[#00d186] mt-0.5">
-                                                            Alacağın: ₺{expense.userShare.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                        <p className="text-xs text-gray-400 mt-0.5">
+                                                            {payerName} ödedi • {expense.expense_date}
                                                         </p>
-                                                    )}
-                                                    {expense.shareType === "paid" && (
-                                                        <p className="text-[11px] font-medium text-gray-400 mt-0.5">Ödendi</p>
-                                                    )}
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        <p className="font-bold text-sm text-black">
+                                                            ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                        </p>
+                                                        {expense.notes && (
+                                                            <p className="text-[11px] text-gray-400 mt-0.5 max-w-[120px] truncate">{expense.notes}</p>
+                                                        )}
+                                                    </div>
+                                                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors shrink-0" />
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors shrink-0" />
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ))
@@ -330,6 +352,126 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                 )}
 
             </main>
+                </div>{/* end Slide 1 */}
+
+                {/* ── Slide 2: Expense Detail ───────── */}
+                <div className="w-full shrink-0">
+                    <main className="max-w-5xl mx-auto px-6 pt-8 pb-12">
+
+                        {/* Back */}
+                        <button
+                            onClick={closePanel}
+                            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-semibold mb-8 transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Geri Dön
+                        </button>
+
+                        {detailLoading ? (
+                            <div className="space-y-5">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-100 animate-pulse shrink-0" />
+                                    <div className="space-y-2 flex-1">
+                                        <div className="h-6 w-48 bg-gray-100 rounded-full animate-pulse" />
+                                        <div className="h-3 w-24 bg-gray-100 rounded-full animate-pulse" />
+                                    </div>
+                                </div>
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="h-14 bg-gray-50 rounded-2xl animate-pulse" />
+                                ))}
+                            </div>
+                        ) : selectedExpense ? (
+                            <div>
+                                {/* Amount hero */}
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-14 h-14 rounded-2xl bg-[#f0fdf4] flex items-center justify-center text-[#00d186] shrink-0">
+                                        <Receipt className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-extrabold text-black tracking-tight">
+                                            ₺{parseFloat(selectedExpense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                        </p>
+                                        <p className="text-sm text-gray-400 font-medium mt-0.5">{selectedExpense.title}</p>
+                                    </div>
+                                </div>
+
+                                {/* Meta rows */}
+                                <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-8">
+                                    <div className="flex items-center gap-3 px-4 py-3.5">
+                                        <Wallet className="w-4 h-4 text-gray-400 shrink-0" />
+                                        <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Ödeyen</span>
+                                        <span className="text-sm font-bold text-black truncate">
+                                            {(() => {
+                                                const p = members.find((m) => m.user_id === selectedExpense.paid_by);
+                                                return p?.name ?? p?.username ?? selectedExpense.paid_by;
+                                            })()}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3 px-4 py-3.5">
+                                        <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
+                                        <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Tarih</span>
+                                        <span className="text-sm font-bold text-black">{selectedExpense.expense_date}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 px-4 py-3.5">
+                                        <span className="w-4 h-4 text-gray-400 text-xs font-black flex items-center justify-center shrink-0">₺</span>
+                                        <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Para Birimi</span>
+                                        <span className="text-sm font-bold text-black">{selectedExpense.currency}</span>
+                                    </div>
+                                    {selectedExpense.notes && (
+                                        <div className="flex items-start gap-3 px-4 py-3.5">
+                                            <FileText className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                                            <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Not</span>
+                                            <span className="text-sm font-medium text-gray-700">{selectedExpense.notes}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Splits */}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Users className="w-4 h-4 text-gray-400" />
+                                        <p className="text-xs font-bold tracking-widest uppercase text-gray-400">Paylaşım</p>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100">
+                                        {selectedExpense.splits.map((split) => {
+                                            const member = members.find((m) => m.user_id === split.user_id);
+                                            const name = member?.name ?? member?.username ?? split.user_id;
+                                            const owed = parseFloat(split.owed_amount);
+                                            const paid = parseFloat(split.paid_amount);
+                                            const settled = paid >= owed;
+                                            return (
+                                                <div key={split.id} className="flex items-center gap-3 px-4 py-3.5">
+                                                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
+                                                        {name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <span className="flex-1 text-sm font-semibold text-black truncate">{name}</span>
+                                                    <div className="text-right shrink-0">
+                                                        <p className="text-sm font-bold text-black">
+                                                            ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                        </p>
+                                                        {settled ? (
+                                                            <p className="text-[10px] font-semibold text-[#00d186] mt-0.5">Ödendi</p>
+                                                        ) : paid > 0 ? (
+                                                            <p className="text-[10px] font-semibold text-orange-400 mt-0.5">
+                                                                ₺{paid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödendi
+                                                            </p>
+                                                        ) : (
+                                                            <p className="text-[10px] font-semibold text-red-400 mt-0.5">Bekliyor</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
+
+                    </main>
+                </div>{/* end Slide 2 */}
+
+                </div>{/* end flex */}
+            </div>{/* end overflow-hidden */}
 
             <BottomNav />
         </div>

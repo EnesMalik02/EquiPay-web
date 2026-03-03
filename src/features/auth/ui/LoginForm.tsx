@@ -30,8 +30,13 @@ export const LoginForm = () => {
 
             router.push("/home"); // Redirect to Dashboard
         } catch (err: unknown) {
-            const e = err as { response?: { data?: { detail?: string } }, message?: string };
-            setError(e.response?.data?.detail || e.message || "Giriş yapılırken bir hata oluştu.");
+            const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
+            const detail = e.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail.map((d) => (typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d))).join(", "));
+            } else {
+                setError((detail as string | undefined) || e.message || "Giriş yapılırken bir hata oluştu.");
+            }
         } finally {
             setLoading(false);
         }

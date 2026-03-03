@@ -9,7 +9,7 @@ import PhoneInput from "react-phone-number-input";
 
 export const RegisterForm = () => {
     const router = useRouter();
-    const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
     const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -24,14 +24,19 @@ export const RegisterForm = () => {
         setError("");
 
         try {
-            await authApi.register(name, phone);
+            await authApi.register(username, phone);
 
             await authApi.me();
 
             router.push("/home"); // Redirect to Dashboard
         } catch (err: unknown) {
-            const e = err as { response?: { data?: { detail?: string } }, message?: string };
-            setError(e.response?.data?.detail || e.message || "Kayıt olurken bir hata oluştu.");
+            const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
+            const detail = e.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail.map((d) => (typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d))).join(", "));
+            } else {
+                setError((detail as string | undefined) || e.message || "Kayıt olurken bir hata oluştu.");
+            }
         } finally {
             setLoading(false);
         }
@@ -52,14 +57,14 @@ export const RegisterForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="name">
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="username">
                         Ad Soyad
                     </label>
                     <input
-                        id="name"
+                        id="username"
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
                         placeholder="Örn. Ahmet Yılmaz"
                         required

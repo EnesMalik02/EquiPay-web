@@ -2,8 +2,8 @@ import { apiClient } from "@/shared/api/apiClient";
 import { TokenResponse, User } from "../model/types";
 
 export const authApi = {
-    async register(name: string, phone: string): Promise<TokenResponse> {
-        const { data } = await apiClient.post<TokenResponse>("/auth/register", { name, phone });
+    async register(username: string, phone: string): Promise<TokenResponse> {
+        const { data } = await apiClient.post<TokenResponse>("/auth/register", { username, phone });
         return data;
     },
 
