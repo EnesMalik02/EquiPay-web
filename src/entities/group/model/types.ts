@@ -21,7 +21,7 @@ export interface GroupUpdate {
 }
 
 export interface GroupMemberAdd {
-    user_id: string;
+    phone: string;
 }
 
 export interface GroupMemberResponse {
@@ -29,6 +29,7 @@ export interface GroupMemberResponse {
     group_id: string;
     user_id: string;
     name: string;
+    username?: string;
     phone?: string;
     joined_at: string;
 }

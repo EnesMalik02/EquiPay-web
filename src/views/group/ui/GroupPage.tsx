@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Settings, ShoppingCart, Zap, Utensils, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowLeft, Plus, Settings, ShoppingCart, Zap, Utensils, Sparkles, ChevronRight, UserPlus } from "lucide-react";
 import { Navbar } from "@/widgets/navbar/ui/Navbar";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
+import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
 
 type Tab = "expenses" | "members";
 
@@ -49,6 +50,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
+    const [showAddMember, setShowAddMember] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -131,6 +133,16 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     /* ── RENDER ──────────────────────────────────────────────── */
     return (
         <div className="min-h-screen bg-white text-gray-900 font-sans pb-32">
+            {showAddMember && (
+                <AddMemberModal
+                    groupId={groupId}
+                    onClose={() => setShowAddMember(false)}
+                    onAdded={(member) => {
+                        setMembers((prev) => [...prev, member]);
+                        setShowAddMember(false);
+                    }}
+                />
+            )}
             <Navbar />
 
             <main className="max-w-5xl mx-auto px-6 pt-8">
@@ -283,9 +295,21 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                 {/* ── Tab: Üyeler ──────────────────────────────── */}
                 {activeTab === "members" && (
                     <div>
+                        {/* Add Member button */}
+                        <div className="flex justify-end mb-5">
+                            <button
+                                onClick={() => setShowAddMember(true)}
+                                className="flex items-center gap-2 text-sm font-bold text-[#00d186] hover:text-[#00b070] transition-colors"
+                            >
+                                <UserPlus className="w-4 h-4" />
+                                Üye Ekle
+                            </button>
+                        </div>
+
                         {members.length === 0 ? (
-                            <div className="py-16 text-center">
+                            <div className="py-12 text-center">
                                 <p className="text-gray-400 text-sm font-medium">Henüz üye yok.</p>
+                                <p className="text-gray-300 text-xs mt-1">Üye eklemek için yukarıdaki butonu kullan.</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-50">
@@ -295,10 +319,8 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                             {member.name?.charAt(0).toUpperCase() ?? "?"}
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-sm text-black">{member.name ?? "—"}</p>
-                                            {member.phone && (
-                                                <p className="text-xs text-gray-400 mt-0.5">{member.phone}</p>
-                                            )}
+                                            <p className="font-semibold text-sm text-black">{member.username ?? "—"}</p>
+                                            <p className="text-xs text-gray-400 mt-0.5">@{member.username}</p>
                                         </div>
                                     </div>
                                 ))}
