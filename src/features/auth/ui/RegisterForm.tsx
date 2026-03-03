@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "../api/authApi";
+import { useAuthStore } from "@/shared/store/authStore";
 import Link from "next/link";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 
 export const RegisterForm = () => {
     const router = useRouter();
+    const fetchUser = useAuthStore((s) => s.fetchUser);
     const [username, setUsername] = useState("");
     const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ export const RegisterForm = () => {
         try {
             await authApi.register(username, phone);
 
-            await authApi.me();
+            await fetchUser();
 
             router.push("/home"); // Redirect to Dashboard
         } catch (err: unknown) {

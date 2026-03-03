@@ -5,7 +5,8 @@ export interface TokenResponse {
 }
 
 export interface User {
-    id?: string | number;
+    id: string;
     name: string;
     phone: string;
+    username?: string;
 }

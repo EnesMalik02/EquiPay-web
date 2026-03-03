@@ -1,5 +1,5 @@
 import { apiClient } from "@/shared/api/apiClient";
-import { ExpenseCreate, ExpenseResponse, ListExpensesParams } from "../model/types";
+import { ExpenseCreate, ExpenseResponse, ExpenseSplitResponse, ListExpensesParams } from "../model/types";
 
 export const expenseApi = {
     async create(payload: ExpenseCreate): Promise<ExpenseResponse> {
@@ -20,6 +20,13 @@ export const expenseApi = {
 
     async getById(expenseId: string): Promise<ExpenseResponse> {
         const { data } = await apiClient.get<ExpenseResponse>(`/expenses/${expenseId}`);
+        return data;
+    },
+
+    async paySplit(expenseId: string, splitId: string): Promise<ExpenseSplitResponse> {
+        const { data } = await apiClient.patch<ExpenseSplitResponse>(
+            `/expenses/${expenseId}/splits/${splitId}/pay`,
+        );
         return data;
     },
 };

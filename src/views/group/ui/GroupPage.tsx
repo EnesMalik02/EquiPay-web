@@ -10,6 +10,7 @@ import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { ExpenseResponse } from "@/entities/expense/model/types";
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
+import { useAuthStore } from "@/shared/store/authStore";
 
 type Tab = "expenses" | "members";
 
@@ -31,6 +32,7 @@ interface GroupPageProps {
 
 export const GroupPage = ({ groupId }: GroupPageProps) => {
     const router = useRouter();
+    const currentUserId = useAuthStore((s) => s.user?.id ?? null);
     const [group, setGroup] = useState<GroupResponse | null>(null);
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
     const [expenses, setExpenses] = useState<ExpenseResponse[]>([]);
@@ -38,6 +40,9 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
     const [showAddMember, setShowAddMember] = useState(false);
+
+    // Tracks split IDs currently being paid
+    const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
 
     // Detail panel
     const [selectedExpense, setSelectedExpense] = useState<ExpenseResponse | null>(null);
@@ -383,17 +388,59 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                         ) : selectedExpense ? (
                             <div>
                                 {/* Amount hero */}
-                                <div className="flex items-center gap-4 mb-8">
-                                    <div className="w-14 h-14 rounded-2xl bg-[#f0fdf4] flex items-center justify-center text-[#00d186] shrink-0">
-                                        <Receipt className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-2xl font-extrabold text-black tracking-tight">
-                                            ₺{parseFloat(selectedExpense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                        </p>
-                                        <p className="text-sm text-gray-400 font-medium mt-0.5">{selectedExpense.title}</p>
-                                    </div>
-                                </div>
+                                {(() => {
+                                    const mySplit = selectedExpense.splits.find((s) => s.user_id === currentUserId);
+                                    const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
+                                    const myPaid = mySplit ? parseFloat(mySplit.paid_amount) : 0;
+                                    const mySettled = myOwed > 0 && myPaid >= myOwed;
+                                    const myPaying = mySplit ? payingIds.has(mySplit.id) : false;
+
+                                    const handleMyPay = async () => {
+                                        if (!mySplit || myPaying || mySettled) return;
+                                        setPayingIds((prev) => new Set(prev).add(mySplit.id));
+                                        try {
+                                            const updated = await expenseApi.paySplit(selectedExpense.id, mySplit.id);
+                                            setSelectedExpense((prev) =>
+                                                prev
+                                                    ? { ...prev, splits: prev.splits.map((s) => s.id === mySplit.id ? updated : s) }
+                                                    : prev,
+                                            );
+                                        } finally {
+                                            setPayingIds((prev) => { const n = new Set(prev); n.delete(mySplit.id); return n; });
+                                        }
+                                    };
+
+                                    return (
+                                        <div className="flex items-center justify-between gap-4 mb-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-14 h-14 rounded-2xl bg-[#f0fdf4] flex items-center justify-center text-[#00d186] shrink-0">
+                                                    <Receipt className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-2xl font-extrabold text-black tracking-tight">
+                                                        ₺{parseFloat(selectedExpense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    </p>
+                                                    <p className="text-sm text-gray-400 font-medium mt-0.5">{selectedExpense.title}</p>
+                                                </div>
+                                            </div>
+                                            {mySplit && myOwed > 0 && (
+                                                mySettled ? (
+                                                    <span className="shrink-0 text-sm font-bold text-[#00d186] bg-[#f0fdf4] px-4 py-2 rounded-xl">
+                                                        Borç Ödendi
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleMyPay}
+                                                        disabled={myPaying}
+                                                        className="shrink-0 text-sm font-bold text-white bg-[#00d186] hover:bg-[#00c07c] disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-xl shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95"
+                                                    >
+                                                        {myPaying ? "Ödeniyor..." : "Borcumu Öde"}
+                                                    </button>
+                                                )
+                                            )}
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Meta rows */}
                                 <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-8">
@@ -439,6 +486,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                             const owed = parseFloat(split.owed_amount);
                                             const paid = parseFloat(split.paid_amount);
                                             const settled = paid >= owed;
+
                                             return (
                                                 <div key={split.id} className="flex items-center gap-3 px-4 py-3.5">
                                                     <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
