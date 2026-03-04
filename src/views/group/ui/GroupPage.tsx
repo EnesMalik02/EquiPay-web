@@ -184,7 +184,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                     {members.slice(0, 3).map((m) => (
                                         <UserAvatar
                                             key={m.id}
-                                            name={m.name}
+                                            name={m.name || m.username}
                                             size="xs"
                                             ring
                                             bg="#e5e7eb"
@@ -282,7 +282,8 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                 {activeTab === "members" && (
                     <div>
                         {/* Add Member button */}
-                        <div className="flex justify-end mb-5">
+                        <div className="flex items-center justify-between mb-5">
+                            <h3 className="text-base font-bold text-black">Grup Üyeleri</h3>
                             <button
                                 onClick={() => setShowAddMember(true)}
                                 className="flex items-center gap-2 text-sm font-bold text-[#00d186] hover:text-[#00b070] transition-colors"
@@ -302,7 +303,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 {members.map((member) => (
                                     <div key={member.id} className="flex items-center gap-4 py-3.5">
                                         <UserAvatar
-                                            name={member.name}
+                                            name={member.username}
                                             size="md"
                                         />
                                         <div>
