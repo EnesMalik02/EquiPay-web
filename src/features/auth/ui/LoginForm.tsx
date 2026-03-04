@@ -3,21 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "../api/authApi";
-import { useAuthStore } from "@/shared/store/authStore";
 import Link from "next/link";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 
 export const LoginForm = () => {
     const router = useRouter();
-    const fetchUser = useAuthStore((s) => s.fetchUser);
     const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
-    // Check if user is already logged in (This should ideally be handled by middleware or server component now)
-    // For now we can do a quick check by hitting /me API on mount if needed, or rely on Server Actions/Middleware.
-    // Client-side cookie reading is impossible if HttpOnly!
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,10 +20,8 @@ export const LoginForm = () => {
 
         try {
             await authApi.login(phone);
-
-            await fetchUser();
-
-            router.push("/home"); // Redirect to Dashboard
+            router.refresh();
+            router.push("/home");
         } catch (err: unknown) {
             const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
             const detail = e.response?.data?.detail;
