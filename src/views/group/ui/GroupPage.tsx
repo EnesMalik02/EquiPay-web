@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Settings, Receipt, ChevronRight, UserPlus } from "lucide-react";
+import { ArrowLeft, Plus, Settings, UserPlus } from "lucide-react";
+import { UserAvatar, ExpenseListItem, PrimaryButton } from "@/shared/ui";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
@@ -160,11 +161,11 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                 </button>
 
                 {/* ── Group Header ─────────────────────────────── */}
-                <div className="flex items-start justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                     <div className="flex items-center gap-5">
                         {/* Icon */}
-                        <div className="w-16 h-16 rounded-2xl bg-[#f0fdf4] flex items-center justify-center text-[#00d186] shrink-0">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <div className="w-20 h-20 rounded-3xl bg-[#f0fdf4] flex items-center justify-center text-[#00d186] shrink-0">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect width="7" height="7" x="3"  y="3"  rx="1" />
                                 <rect width="7" height="7" x="14" y="3"  rx="1" />
                                 <rect width="7" height="7" x="3"  y="14" rx="1" />
@@ -181,12 +182,14 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 {/* Mini avatars */}
                                 <div className="flex -space-x-2">
                                     {members.slice(0, 3).map((m) => (
-                                        <div
+                                        <UserAvatar
                                             key={m.id}
-                                            className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[9px] font-bold text-gray-600"
-                                        >
-                                            {m.name?.charAt(0).toUpperCase() ?? "?"}
-                                        </div>
+                                            name={m.name}
+                                            size="xs"
+                                            ring
+                                            bg="#e5e7eb"
+                                            color="#4b5563"
+                                        />
                                     ))}
                                     {members.length > 3 && (
                                         <div className="w-6 h-6 rounded-full bg-[#f0fdf4] border-2 border-white flex items-center justify-center text-[9px] font-bold text-[#00d186]">
@@ -206,14 +209,13 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex items-center gap-2 shrink-0">
-                        <button
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                        <PrimaryButton
                             onClick={() => router.push(`/groups/${groupId}/expenses/new`)}
-                            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+                            icon={<Plus className="w-4 h-4" />}
                         >
-                            <Plus className="w-4 h-4" />
                             Harcama Ekle
-                        </button>
+                        </PrimaryButton>
                         <button
                             onClick={() => setShowSettings(true)}
                             className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
@@ -261,32 +263,12 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                             const payer = members.find((m) => m.user_id === expense.paid_by);
                                             const payerName = payer?.name ?? payer?.username ?? "Bilinmeyen";
                                             return (
-                                                <div
+                                                <ExpenseListItem
                                                     key={expense.id}
+                                                    expense={expense}
+                                                    payerName={payerName}
                                                     onClick={() => router.push(`/groups/${groupId}/expenses/${expense.id}`)}
-                                                    className="flex items-center gap-4 py-3.5 cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded-xl transition-colors group"
-                                                >
-                                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-                                                        <Receipt className="w-5 h-5" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-semibold text-sm text-black truncate">
-                                                            {expense.title}
-                                                        </p>
-                                                        <p className="text-xs text-gray-400 mt-0.5">
-                                                            {payerName} ödedi • {expense.expense_date}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right shrink-0">
-                                                        <p className="font-bold text-sm text-black">
-                                                            ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                                        </p>
-                                                        {expense.notes && (
-                                                            <p className="text-[11px] text-gray-400 mt-0.5 max-w-[120px] truncate">{expense.notes}</p>
-                                                        )}
-                                                    </div>
-                                                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors shrink-0" />
-                                                </div>
+                                                />
                                             );
                                         })}
                                     </div>
@@ -319,9 +301,10 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                             <div className="divide-y divide-gray-50">
                                 {members.map((member) => (
                                     <div key={member.id} className="flex items-center gap-4 py-3.5">
-                                        <div className="w-10 h-10 rounded-full bg-[#f0fdf4] flex items-center justify-center text-[#00d186] font-bold text-sm shrink-0">
-                                            {member.name?.charAt(0).toUpperCase() ?? "?"}
-                                        </div>
+                                        <UserAvatar
+                                            name={member.name}
+                                            size="md"
+                                        />
                                         <div>
                                             <p className="font-semibold text-sm text-black">{member.username ?? "—"}</p>
                                             <p className="text-xs text-gray-400 mt-0.5">@{member.username}</p>

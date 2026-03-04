@@ -5,12 +5,26 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { groupApi, GroupResponse, GroupCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
+import { PrimaryButton } from "@/shared/ui";
 
-export const GroupList = () => {
+interface GroupListProps {
+    /** When provided, called instead of opening the internal modal (e.g. parent owns the button) */
+    onNewGroup?: () => void;
+}
+
+export const GroupList = ({ onNewGroup }: GroupListProps) => {
     const router = useRouter();
     const [groups, setGroups] = useState<GroupResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+
+    const openCreate = () => {
+        if (onNewGroup) {
+            onNewGroup();
+        } else {
+            setShowCreateModal(true);
+        }
+    };
 
     useEffect(() => {
         groupApi
@@ -36,12 +50,16 @@ export const GroupList = () => {
             )}
 
             <div className="mb-14">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-black">Aktif Gruplar</h3>
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+                        Aktif Gruplar
+                    </h3>
                     <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="text-[#00d186] font-semibold text-sm hover:underline"
+                        onClick={openCreate}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                        style={{ background: "var(--foreground)", color: "#fff" }}
                     >
+                        <Plus className="w-3.5 h-3.5" />
                         Yeni Grup
                     </button>
                 </div>
@@ -55,31 +73,29 @@ export const GroupList = () => {
                             />
                         ))
                     ) : groups.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center w-full py-12 text-center">
-                            <p className="text-gray-400 text-sm font-medium mb-4">Henüz grup yok.</p>
+                        <div className="flex flex-col items-center justify-center w-full py-12 text-center gap-3">
+                            <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                                Henüz grup yok.
+                            </p>
+                            <PrimaryButton
+                                variant="outline"
+                                size="sm"
+                                icon={<Plus className="w-3.5 h-3.5" />}
+                                onClick={openCreate}
+                            >
+                                İlk grubu oluştur
+                            </PrimaryButton>
                         </div>
                     ) : (
                         groups.map((group) => (
-                            <GroupCard
-                                key={group.id}
-                                group={group}
-                                onClick={() => router.push(`/groups/${group.id}`)}
-                            />
+                            <div key={group.id} className="min-w-[240px] w-[240px] shrink-0">
+                                <GroupCard
+                                    group={group}
+                                    onClick={() => router.push(`/groups/${group.id}`)}
+                                />
+                            </div>
                         ))
                     )}
-
-                    {/* New Group Card */}
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="min-w-[150px] bg-white border-2 border-dashed border-gray-100 rounded-3xl p-6 flex flex-col items-center justify-center hover:border-[#00d186]/40 transition-colors group"
-                    >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-400 group-hover:bg-[#f0fdf4] group-hover:text-[#00d186] flex items-center justify-center mb-3 transition-colors">
-                            <Plus className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-bold text-gray-400 group-hover:text-[#00d186] transition-colors">
-                            Yeni Grup
-                        </span>
-                    </button>
                 </div>
             </div>
         </>

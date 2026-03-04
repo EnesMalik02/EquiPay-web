@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Users, Plus, User } from "lucide-react";
+import { LayoutDashboard, Users, Plus, User, CreditCard } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateGroupModal } from "@/features/create-group";
@@ -40,12 +40,13 @@ export const BottomNav = () => {
                 <nav
                     className="
                         pointer-events-auto
-                        flex items-center gap-2
+                        flex items-center justify-center gap-1
                         bg-white/90 backdrop-blur-md
                         border border-[var(--border-light)]
                         rounded-[var(--radius-xl)]
                         shadow-[var(--shadow-lg)]
-                        px-4 py-2
+                        px-3 py-2
+                        w-full max-w-sm
                     "
                 >
                     {/* Panel */}
@@ -68,7 +69,7 @@ export const BottomNav = () => {
                     <button
                         onClick={() => setShowCreate(true)}
                         className="
-                            mx-2 w-12 h-12
+                            mx-1 w-12 h-12 shrink-0
                             bg-[var(--foreground)] hover:bg-[#222]
                             text-white rounded-full
                             flex items-center justify-center
@@ -79,6 +80,15 @@ export const BottomNav = () => {
                     >
                         <Plus className="w-5 h-5" />
                     </button>
+
+                    {/* Ödemeler – inactive */}
+                    <NavButton
+                        label="Ödemeler"
+                        icon={CreditCard}
+                        active={false}
+                        disabled
+                        onClick={() => {}}
+                    />
 
                     {/* Profil */}
                     <NavButton
@@ -98,28 +108,33 @@ function NavButton({
     label,
     icon: Icon,
     active,
+    disabled = false,
     onClick,
 }: {
     label: string;
     icon: React.ElementType;
     active: boolean;
+    disabled?: boolean;
     onClick: () => void;
 }) {
     return (
         <button
             onClick={onClick}
+            disabled={disabled}
             className={`
                 flex flex-col items-center justify-center gap-1
-                w-16 py-2 rounded-[var(--radius-md)]
+                flex-1 min-w-0 py-2 rounded-[var(--radius-md)]
                 transition-all duration-150 active:scale-95
-                ${active
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                ${disabled
+                    ? "opacity-35 cursor-not-allowed"
+                    : active
+                        ? "text-[var(--primary)]"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                 }
             `}
         >
             <Icon className={`w-5 h-5 ${active ? "stroke-[2.5px]" : "stroke-2"}`} />
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? "" : "font-semibold"}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider truncate w-full text-center ${active ? "" : "font-semibold"}`}>
                 {label}
             </span>
         </button>

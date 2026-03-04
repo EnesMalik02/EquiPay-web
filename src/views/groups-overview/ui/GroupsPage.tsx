@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Plus, Search, ChevronRight } from "lucide-react";
+import { Users, Plus, Search } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupResponse } from "@/entities/group/model/types";
+import { GroupCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
+import { PrimaryButton } from "@/shared/ui";
 
 export const GroupsPage = () => {
     const router = useRouter();
@@ -33,17 +35,6 @@ export const GroupsPage = () => {
         g.name.toLowerCase().includes(query.toLowerCase()),
     );
 
-    /* colour palette for group avatars */
-    const palette = [
-        { bg: "var(--primary-light)", text: "var(--primary)" },
-        { bg: "#eff6ff",              text: "#3b82f6" },
-        { bg: "#fef3c7",              text: "#d97706" },
-        { bg: "#fdf2f8",              text: "#db2777" },
-        { bg: "#f0fdf4",              text: "#16a34a" },
-        { bg: "#fef2f2",              text: "#ef4444" },
-    ];
-    const colorFor = (idx: number) => palette[idx % palette.length];
-
     return (
         <>
             {showCreate && (
@@ -69,17 +60,12 @@ export const GroupsPage = () => {
                             </h1>
                         </div>
 
-                        <button
+                        <PrimaryButton
                             onClick={() => setShowCreate(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95"
-                            style={{
-                                background: "var(--foreground)",
-                                color: "#fff",
-                            }}
+                            icon={<Plus className="w-4 h-4" />}
                         >
-                            <Plus className="w-4 h-4" />
                             Yeni Grup
-                        </button>
+                        </PrimaryButton>
                     </div>
 
                     {/* ── Search ───────────────────────────────── */}
@@ -139,11 +125,11 @@ export const GroupsPage = () => {
 
                     {/* ── List ─────────────────────────────────── */}
                     {loading ? (
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {Array.from({ length: 4 }).map((_, i) => (
                                 <div
                                     key={i}
-                                    className="h-20 rounded-2xl animate-pulse"
+                                    className="h-[220px] rounded-3xl animate-pulse"
                                     style={{ background: "var(--surface-muted)" }}
                                 />
                             ))}
@@ -170,61 +156,14 @@ export const GroupsPage = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="space-y-2.5">
-                            {filtered.map((group, idx) => {
-                                const { bg, text } = colorFor(idx);
-                                return (
-                                    <button
-                                        key={group.id}
-                                        onClick={() => router.push(`/groups/${group.id}`)}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl border transition-all active:scale-[0.98] text-left"
-                                        style={{
-                                            background: "var(--surface)",
-                                            borderColor: "var(--border-light)",
-                                            boxShadow: "var(--shadow-sm)",
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.borderColor = "var(--border)";
-                                            e.currentTarget.style.boxShadow = "var(--shadow-md)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.borderColor = "var(--border-light)";
-                                            e.currentTarget.style.boxShadow = "var(--shadow-sm)";
-                                        }}
-                                    >
-                                        {/* Avatar */}
-                                        <div
-                                            className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shrink-0"
-                                            style={{ background: bg, color: text }}
-                                        >
-                                            {group.name.charAt(0).toUpperCase()}
-                                        </div>
-
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <p
-                                                className="font-bold text-sm truncate"
-                                                style={{ color: "var(--foreground)" }}
-                                            >
-                                                {group.name}
-                                            </p>
-                                            {group.description && (
-                                                <p
-                                                    className="text-xs truncate mt-0.5"
-                                                    style={{ color: "var(--text-muted)" }}
-                                                >
-                                                    {group.description}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <ChevronRight
-                                            className="w-4 h-4 shrink-0"
-                                            style={{ color: "var(--text-muted)" }}
-                                        />
-                                    </button>
-                                );
-                            })}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {filtered.map((group) => (
+                                <GroupCard
+                                    key={group.id}
+                                    group={group}
+                                    onClick={() => router.push(`/groups/${group.id}`)}
+                                />
+                            ))}
                         </div>
                     )}
                 </main>

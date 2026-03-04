@@ -38,7 +38,7 @@ export const CreateGroupModal = ({ onClose, onCreated }: CreateGroupModalProps) 
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/30 backdrop-blur-sm"
@@ -46,7 +46,7 @@ export const CreateGroupModal = ({ onClose, onCreated }: CreateGroupModalProps) 
             />
 
             {/* Modal */}
-            <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 animate-fade-in-up">
+            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 animate-fade-in-up">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-extrabold text-black tracking-tight">Yeni Grup Oluştur</h2>

@@ -1,12 +1,30 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
 import { ArrowUpRight, Utensils, ShoppingBag } from "lucide-react";
+import { CreateGroupModal } from "@/features/create-group";
+import { GroupResponse } from "@/entities/group/model/types";
 
 export const HomePage = () => {
+    const router = useRouter();
+    const [showCreate, setShowCreate] = useState(false);
+
+    const handleCreated = (group: GroupResponse) => {
+        setShowCreate(false);
+        router.push(`/groups/${group.id}`);
+    };
+
     return (
         <div className="min-h-screen font-sans" style={{ background: "var(--background)", color: "var(--foreground)" }}>
+            {showCreate && (
+                <CreateGroupModal
+                    onClose={() => setShowCreate(false)}
+                    onCreated={handleCreated}
+                />
+            )}
 
             <main className="max-w-5xl mx-auto px-6 pt-10">
                 {/* Balance Section */}
@@ -38,7 +56,7 @@ export const HomePage = () => {
                 </div>
 
                 {/* Active Groups */}
-                <GroupList />
+                <GroupList onNewGroup={() => setShowCreate(true)} />
 
                 {/* Recent Transactions */}
                 <div>
