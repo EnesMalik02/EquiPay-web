@@ -10,6 +10,7 @@ import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { ExpenseResponse } from "@/entities/expense/model/types";
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
+import { GroupSettingsModal } from "@/features/manage-group/ui/GroupSettingsModal";
 import { useAuthStore } from "@/shared/store/authStore";
 
 type Tab = "expenses" | "members";
@@ -40,6 +41,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
     const [showAddMember, setShowAddMember] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
     // Tracks split IDs currently being paid
     const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
@@ -162,6 +164,17 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                     }}
                 />
             )}
+            {showSettings && group && (() => {
+                const me = members.find((m) => m.user_id === currentUserId);
+                return (
+                    <GroupSettingsModal
+                        groupId={groupId}
+                        groupName={group.name}
+                        isAdmin={me?.role === "admin"}
+                        onClose={() => setShowSettings(false)}
+                    />
+                );
+            })()}
             <Navbar />
 
             {/* Sliding pages */}
@@ -240,7 +253,10 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                             <Plus className="w-4 h-4" />
                             Harcama Ekle
                         </button>
-                        <button className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">
+                        <button
+                            onClick={() => setShowSettings(true)}
+                            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
+                        >
                             <Settings className="w-4 h-4" />
                         </button>
                     </div>

@@ -31,5 +31,7 @@ export interface GroupMemberResponse {
     name: string;
     username?: string;
     phone?: string;
+    role?: "admin" | "member";
     joined_at: string;
+    left_at?: string | null;
 }
