@@ -4,9 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
-import { ArrowUpRight, Utensils, ShoppingBag } from "lucide-react";
+import { Utensils, ShoppingBag } from "lucide-react";
 import { CreateGroupModal } from "@/features/create-group";
 import { GroupResponse } from "@/entities/group/model/types";
+
+// TODO: replace with real API value
+const NET_BALANCE = 1250.40;
 
 export const HomePage = () => {
     const router = useRouter();
@@ -16,6 +19,10 @@ export const HomePage = () => {
         setShowCreate(false);
         router.push(`/groups/${group.id}`);
     };
+
+    const isPositive = NET_BALANCE >= 0;
+    const balanceColor = isPositive ? "#00d186" : "#ef4444";
+    const balanceFormatted = `${isPositive ? "+" : "-"}₺${Math.abs(NET_BALANCE).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
 
     return (
         <div className="min-h-screen font-sans" style={{ background: "var(--background)", color: "var(--foreground)" }}>
@@ -33,23 +40,10 @@ export const HomePage = () => {
                        style={{ color: "var(--text-muted)" }}>
                         Net Durumun
                     </p>
-                    <div className="flex items-end gap-3 mb-3">
-                        <h1 className="text-5xl font-extrabold tracking-tight"
-                            style={{ color: "var(--foreground)" }}>
-                            ₺1.250,40
-                        </h1>
-                        <div
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1.5"
-                            style={{
-                                background: "var(--primary-light)",
-                                color: "var(--primary)",
-                                border: "1px solid var(--primary-border)",
-                            }}
-                        >
-                            <ArrowUpRight className="w-3 h-3" />
-                            Alacaklısın
-                        </div>
-                    </div>
+                    <h1 className="text-5xl font-extrabold tracking-tight mb-3"
+                        style={{ color: balanceColor }}>
+                        {balanceFormatted}
+                    </h1>
                     <p className="text-sm leading-relaxed max-w-sm" style={{ color: "var(--text-secondary)" }}>
                         4 aktif grupta toplam bakiyen bulunuyor.
                     </p>
