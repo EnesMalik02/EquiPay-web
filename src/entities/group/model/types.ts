@@ -24,6 +24,10 @@ export interface GroupMemberAdd {
     phone: string;
 }
 
+export interface GroupMemberRoleUpdate {
+    role: "admin" | "member";
+}
+
 export interface GroupMemberResponse {
     id: string;
     group_id: string;

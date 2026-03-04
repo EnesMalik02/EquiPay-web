@@ -3,6 +3,7 @@ import {
     GroupCreate,
     GroupMemberAdd,
     GroupMemberResponse,
+    GroupMemberRoleUpdate,
     GroupResponse,
     GroupUpdate,
 } from "../model/types";
@@ -34,6 +35,11 @@ export const groupApi = {
 
     async leave(groupId: string): Promise<void> {
         await apiClient.post(`/groups/${groupId}/leave`);
+    },
+
+    async updateMemberRole(groupId: string, userId: string, payload: GroupMemberRoleUpdate): Promise<GroupMemberResponse> {
+        const { data } = await apiClient.patch<GroupMemberResponse>(`/groups/${groupId}/members/${userId}/role`, payload);
+        return data;
     },
 
     async addMember(groupId: string, payload: GroupMemberAdd): Promise<GroupMemberResponse> {

@@ -171,6 +171,8 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                         groupId={groupId}
                         groupName={group.name}
                         isAdmin={me?.role === "admin"}
+                        currentUserId={currentUserId}
+                        members={members}
                         onClose={() => setShowSettings(false)}
                     />
                 );

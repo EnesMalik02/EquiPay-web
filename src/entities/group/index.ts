@@ -4,6 +4,7 @@ export type {
     GroupCreate,
     GroupUpdate,
     GroupMemberAdd,
+    GroupMemberRoleUpdate,
     GroupMemberResponse,
 } from "./model/types";
 
