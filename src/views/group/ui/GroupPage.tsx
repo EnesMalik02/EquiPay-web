@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Settings, Receipt, ChevronRight, UserPlus } from "lucide-react";
-import { Navbar } from "@/widgets/navbar/ui/Navbar";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
@@ -66,8 +65,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     /* ── LOADING ─────────────────────────────────────────────── */
     if (loading) {
         return (
-            <div className="min-h-screen bg-white text-gray-900 font-sans pb-32">
-                <Navbar />
+            <div className="min-h-screen bg-white text-gray-900 font-sans">
                 <main className="max-w-5xl mx-auto px-6 pt-8">
                     <div className="h-5 w-32 bg-gray-100 rounded-full animate-pulse mb-8" />
                     <div className="flex items-center gap-5 mb-10">
@@ -125,7 +123,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
 
     /* ── RENDER ──────────────────────────────────────────────── */
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans pb-32">
+        <div className="min-h-screen bg-white text-gray-900 font-sans">
 
             {showAddMember && (
                 <AddMemberModal
@@ -150,12 +148,11 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                     />
                 );
             })()}
-            <Navbar />
-                <main className="max-w-5xl mx-auto px-6 pt-8">
+            <main className="max-w-5xl mx-auto px-6 pt-8">
 
                 {/* Back */}
                 <button
-                    onClick={() => router.push("/home")}
+                    onClick={() => router.push("/groups")}
                     className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-semibold mb-8 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />

@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { authApi } from "../api/authApi";
+import { loginAction } from "../actions/authActions";
 import Link from "next/link";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 
 export const LoginForm = () => {
-    const router = useRouter();
     const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -18,21 +16,12 @@ export const LoginForm = () => {
         setLoading(true);
         setError("");
 
-        try {
-            await authApi.login(phone);
-            router.refresh();
-            router.push("/home");
-        } catch (err: unknown) {
-            const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
-            const detail = e.response?.data?.detail;
-            if (Array.isArray(detail)) {
-                setError(detail.map((d) => (typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d))).join(", "));
-            } else {
-                setError((detail as string | undefined) || e.message || "Giriş yapılırken bir hata oluştu.");
-            }
-        } finally {
+        const result = await loginAction(phone);
+        if (result?.error) {
+            setError(result.error);
             setLoading(false);
         }
+        // on success loginAction redirects, no further action needed
     };
 
     return (

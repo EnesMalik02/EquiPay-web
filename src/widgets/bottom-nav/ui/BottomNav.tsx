@@ -1,37 +1,127 @@
 "use client";
 
-import { LayoutDashboard, Users, Plus, BarChart2, User } from "lucide-react";
+import { LayoutDashboard, Users, Plus, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { CreateGroupModal } from "@/features/create-group";
+import { GroupResponse } from "@/entities/group/model/types";
 
 export const BottomNav = () => {
+    const pathname = usePathname();
+    const router = useRouter();
+    const [showCreate, setShowCreate] = useState(false);
+
+    const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+    const navItems = [
+        { href: "/home",    label: "Panel",   icon: LayoutDashboard },
+        { href: "/groups",  label: "Gruplar", icon: Users },
+        { href: "/profile", label: "Profil",  icon: User },
+    ];
+
+    const handleCreated = (group: GroupResponse) => {
+        setShowCreate(false);
+        router.push(`/groups/${group.id}`);
+    };
+
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <div className="bg-white px-8 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 flex items-center gap-8">
+        <>
+            {showCreate && (
+                <CreateGroupModal
+                    onClose={() => setShowCreate(false)}
+                    onCreated={handleCreated}
+                />
+            )}
 
-                <button className="flex flex-col items-center gap-1 group">
-                    <LayoutDashboard className="w-6 h-6 text-[#00d186]" />
-                    <span className="text-[10px] font-bold text-[#00d186] uppercase tracking-wider">Panel</span>
-                </button>
+            {/* Safe-area spacer so content doesn't sit under the nav */}
+            <div className="h-28" aria-hidden />
 
-                <button className="flex flex-col items-center gap-1 group">
-                    <Users className="w-6 h-6 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                    <span className="text-[10px] font-semibold text-gray-400 group-hover:text-gray-600 uppercase tracking-wider transition-colors">Gruplar</span>
-                </button>
+            <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-5 px-4 pointer-events-none">
+                <nav
+                    className="
+                        pointer-events-auto
+                        flex items-center gap-2
+                        bg-white/90 backdrop-blur-md
+                        border border-[var(--border-light)]
+                        rounded-[var(--radius-xl)]
+                        shadow-[var(--shadow-lg)]
+                        px-4 py-2
+                    "
+                >
+                    {/* Panel */}
+                    <NavButton
+                        label={navItems[0].label}
+                        icon={navItems[0].icon}
+                        active={isActive(navItems[0].href)}
+                        onClick={() => router.push(navItems[0].href)}
+                    />
 
-                <button className="w-12 h-12 bg-black hover:bg-gray-800 transition-colors rounded-full flex items-center justify-center text-white shadow-lg transform active:scale-95">
-                    <Plus className="w-6 h-6" />
-                </button>
+                    {/* Gruplar */}
+                    <NavButton
+                        label={navItems[1].label}
+                        icon={navItems[1].icon}
+                        active={isActive(navItems[1].href)}
+                        onClick={() => router.push(navItems[1].href)}
+                    />
 
-                <button className="flex flex-col items-center gap-1 group">
-                    <BarChart2 className="w-6 h-6 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                    <span className="text-[10px] font-semibold text-gray-400 group-hover:text-gray-600 uppercase tracking-wider transition-colors">Özet</span>
-                </button>
+                    {/* Center FAB */}
+                    <button
+                        onClick={() => setShowCreate(true)}
+                        className="
+                            mx-2 w-12 h-12
+                            bg-[var(--foreground)] hover:bg-[#222]
+                            text-white rounded-full
+                            flex items-center justify-center
+                            shadow-lg active:scale-90
+                            transition-all duration-150
+                        "
+                        aria-label="Yeni grup oluştur"
+                    >
+                        <Plus className="w-5 h-5" />
+                    </button>
 
-                <button className="flex flex-col items-center gap-1 group">
-                    <User className="w-6 h-6 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                    <span className="text-[10px] font-semibold text-gray-400 group-hover:text-gray-600 uppercase tracking-wider transition-colors">Profil</span>
-                </button>
-
+                    {/* Profil */}
+                    <NavButton
+                        label={navItems[2].label}
+                        icon={navItems[2].icon}
+                        active={isActive(navItems[2].href)}
+                        onClick={() => router.push(navItems[2].href)}
+                    />
+                </nav>
             </div>
-        </div>
+        </>
     );
 };
+
+/* ── Helper ─────────────────────────────────────────────────── */
+function NavButton({
+    label,
+    icon: Icon,
+    active,
+    onClick,
+}: {
+    label: string;
+    icon: React.ElementType;
+    active: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`
+                flex flex-col items-center justify-center gap-1
+                w-16 py-2 rounded-[var(--radius-md)]
+                transition-all duration-150 active:scale-95
+                ${active
+                    ? "text-[var(--primary)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                }
+            `}
+        >
+            <Icon className={`w-5 h-5 ${active ? "stroke-[2.5px]" : "stroke-2"}`} />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? "" : "font-semibold"}`}>
+                {label}
+            </span>
+        </button>
+    );
+}

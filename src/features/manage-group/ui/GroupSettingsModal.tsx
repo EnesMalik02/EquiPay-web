@@ -37,7 +37,7 @@ export const GroupSettingsModal = ({
         setError("");
         try {
             await groupApi.leave(groupId);
-            router.push("/home");
+            router.push("/groups");
         } catch (err: unknown) {
             const e = err as { response?: { data?: { detail?: string } }; message?: string };
             setError(e.response?.data?.detail ?? e.message ?? "");
@@ -50,7 +50,7 @@ export const GroupSettingsModal = ({
         setError("");
         try {
             await groupApi.remove(groupId);
-            router.push("/home");
+            router.push("/groups");
         } catch (err: unknown) {
             const e = err as { response?: { data?: { detail?: string } }; message?: string };
             setError(e.response?.data?.detail ?? e.message ?? "");

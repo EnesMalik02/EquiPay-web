@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Receipt, CalendarDays, FileText, Wallet, Users } from "lucide-react";
-import { Navbar } from "@/widgets/navbar/ui/Navbar";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { groupApi } from "@/entities/group/api/groupApi";
@@ -49,8 +48,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     };
 
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans pb-32">
-            <Navbar />
+        <div className="min-h-screen bg-white text-gray-900 font-sans">
             <main className="max-w-5xl mx-auto px-6 pt-8 pb-12">
 
                 <button

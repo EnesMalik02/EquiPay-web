@@ -1,8 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
+  /* ── Surfaces ─────────────────────────────────────── */
+  --background:       #f8f9fb;
+  --surface:          #ffffff;
+  --surface-muted:    #f3f4f6;
+  --surface-hover:    #f9fafb;
+
+  /* ── Brand / Primary ──────────────────────────────── */
+  --primary:          #00d186;
+  --primary-hover:    #00b874;
+  --primary-light:    #e6fff5;
+  --primary-border:   #b3ffe0;
+
+  /* ── Danger / Error ───────────────────────────────── */
+  --danger:           #ef4444;
+  --danger-light:     #fef2f2;
+
+  /* ── Text ─────────────────────────────────────────── */
+  --foreground:       #0a0a0a;
+  --text-secondary:   #6b7280;
+  --text-muted:       #9ca3af;
+  --text-placeholder: #d1d5db;
+
+  /* ── Border ───────────────────────────────────────── */
+  --border:           #e5e7eb;
+  --border-light:     #f3f4f6;
+
+  /* ── Shadow ───────────────────────────────────────── */
+  --shadow-sm:        0 1px 4px rgb(0 0 0 / 0.06);
+  --shadow-md:        0 4px 16px rgb(0 0 0 / 0.08);
+  --shadow-lg:        0 8px 32px rgb(0 0 0 / 0.10);
+
+  /* ── Radius ───────────────────────────────────────── */
+  --radius-sm:        8px;
+  --radius-md:        14px;
+  --radius-lg:        20px;
+  --radius-xl:        28px;
+  --radius-full:      9999px;
 }
 
 @theme inline {
@@ -15,7 +50,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

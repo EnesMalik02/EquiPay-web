@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { authApi } from "../api/authApi";
+import { registerAction } from "../actions/authActions";
 import Link from "next/link";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 
 export const RegisterForm = () => {
-    const router = useRouter();
     const [username, setUsername] = useState("");
     const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
@@ -19,21 +17,12 @@ export const RegisterForm = () => {
         setLoading(true);
         setError("");
 
-        try {
-            await authApi.register(username, phone);
-            router.refresh();
-            router.push("/home");
-        } catch (err: unknown) {
-            const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
-            const detail = e.response?.data?.detail;
-            if (Array.isArray(detail)) {
-                setError(detail.map((d) => (typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d))).join(", "));
-            } else {
-                setError((detail as string | undefined) || e.message || "Kayıt olurken bir hata oluştu.");
-            }
-        } finally {
+        const result = await registerAction(username, phone);
+        if (result?.error) {
+            setError(result.error);
             setLoading(false);
         }
+        // on success registerAction redirects, no further action needed
     };
 
     return (

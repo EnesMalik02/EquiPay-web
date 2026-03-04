@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Equal, AlertCircle } from "lucide-react";
-import { Navbar } from "@/widgets/navbar/ui/Navbar";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
@@ -114,9 +113,8 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
     /* ── Loading ──────────────────────────────────────────────── */
     if (dataLoading) {
         return (
-            <div className="min-h-screen bg-white font-sans pb-32">
-                <Navbar />
-                <main className="max-w-2xl mx-auto px-6 pt-8">
+            <div className="min-h-screen bg-white font-sans">
+                <main className="max-w-5xl mx-auto px-6 pt-8">
                     <div className="h-5 w-32 bg-gray-100 rounded-full animate-pulse mb-10" />
                     <div className="space-y-5">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -131,10 +129,9 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
     /* ── Render ───────────────────────────────────────────────── */
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans pb-32">
-            <Navbar />
+        <div className="min-h-screen bg-white text-gray-900 font-sans">
 
-            <main className="max-w-2xl mx-auto px-6 pt-8">
+            <main className="max-w-5xl mx-auto px-6 pt-8">
 
                 {/* Back */}
                 <button
