@@ -252,29 +252,49 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                     İlk harcamayı eklemek için yukarıdaki butonu kullan.
                                 </p>
                             </div>
-                        ) : (
-                            groupExpensesByMonth(expenses).map((group) => (
-                                <div key={group.label} className="mb-8">
-                                    <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-4">
-                                        {group.label}
-                                    </p>
-                                    <div className="divide-y divide-gray-50">
-                                        {group.items.map((expense) => {
-                                            const payer = members.find((m) => m.user_id === expense.paid_by);
-                                            const payerName = payer?.name ?? payer?.username ?? "Bilinmeyen";
-                                            return (
-                                                <ExpenseListItem
-                                                    key={expense.id}
-                                                    expense={expense}
-                                                    payerName={payerName}
-                                                    onClick={() => router.push(`/groups/${groupId}/expenses/${expense.id}`)}
-                                                />
-                                            );
-                                        })}
+                        ) : (() => {
+                            const unpaid = expenses.filter((e) => !e.is_fully_paid);
+                            const paid = expenses.filter((e) => e.is_fully_paid);
+                            const renderGroup = (items: ExpenseResponse[]) =>
+                                groupExpensesByMonth(items).map((group) => (
+                                    <div key={group.label} className="mb-8">
+                                        <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-4">
+                                            {group.label}
+                                        </p>
+                                        <div className="divide-y divide-gray-50">
+                                            {group.items.map((expense) => {
+                                                const payer = members.find((m) => m.user_id === expense.paid_by);
+                                                const payerName = payer?.name ?? payer?.username ?? "Bilinmeyen";
+                                                return (
+                                                    <ExpenseListItem
+                                                        key={expense.id}
+                                                        expense={expense}
+                                                        payerName={payerName}
+                                                        onClick={() => router.push(`/groups/${groupId}/expenses/${expense.id}`)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            ))
-                        )}
+                                ));
+                            return (
+                                <>
+                                    {renderGroup(unpaid)}
+                                    {paid.length > 0 && (
+                                        <>
+                                            <div className="flex items-center gap-3 my-6">
+                                                <div className="h-px flex-1 bg-gray-100" />
+                                                <span className="text-[11px] font-bold tracking-widest uppercase text-gray-300">
+                                                    Ödenenler
+                                                </span>
+                                                <div className="h-px flex-1 bg-gray-100" />
+                                            </div>
+                                            {renderGroup(paid)}
+                                        </>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </div>
                 )}
 

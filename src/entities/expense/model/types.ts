@@ -38,7 +38,8 @@ export interface ExpenseResponse {
     created_by: string;
     created_at: string;
     updated_at: string;
-    splits: ExpenseSplitResponse[];
+    is_fully_paid: boolean;
+    splits?: ExpenseSplitResponse[];
 }
 
 export interface ListExpensesParams {

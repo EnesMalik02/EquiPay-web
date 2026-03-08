@@ -15,19 +15,26 @@ interface ExpenseListItemProps {
  * Use this everywhere an expense needs to be shown in a list.
  */
 export const ExpenseListItem = ({ expense, payerName, onClick }: ExpenseListItemProps) => {
+    const isPaid = expense.is_fully_paid;
+    const formattedAmount = `₺${parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+
     return (
         <div
             onClick={onClick}
             className="flex items-center gap-4 py-3.5 cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded-xl transition-colors group"
         >
             {/* Icon */}
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                isPaid ? "bg-gray-100 text-gray-400" : "bg-emerald-50 text-emerald-700"
+            }`}>
                 <Receipt className="w-5 h-5" />
             </div>
 
             {/* Title + meta */}
             <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-black truncate">{expense.title}</p>
+                <p className={`font-semibold text-sm truncate ${isPaid ? "text-gray-400" : "text-black"}`}>
+                    {expense.title}
+                </p>
                 <p className="text-xs text-gray-400 mt-0.5">
                     {payerName} ödedi • {expense.expense_date}
                 </p>
@@ -35,17 +42,23 @@ export const ExpenseListItem = ({ expense, payerName, onClick }: ExpenseListItem
 
             {/* Amount */}
             <div className="text-right shrink-0">
-                <p className="font-bold text-sm text-black">
-                    ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                </p>
-                {expense.notes && (
-                    <p className="text-[11px] text-gray-400 mt-0.5 max-w-[120px] truncate">
-                        {expense.notes}
+                {isPaid ? (
+                    <>
+                        <p className="font-bold text-sm text-gray-400 line-through">
+                            {formattedAmount}
+                        </p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">Ödendi</p>
+                    </>
+                ) : (
+                    <p className="font-bold text-sm text-black">
+                        {formattedAmount}
                     </p>
                 )}
             </div>
 
-            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors shrink-0" />
+            <ChevronRight className={`w-4 h-4 transition-colors shrink-0 ${
+                isPaid ? "text-gray-200" : "text-gray-300 group-hover:text-gray-400"
+            }`} />
         </div>
     );
 };
