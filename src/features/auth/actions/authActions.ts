@@ -32,60 +32,61 @@ async function forwardCookies(res: Response) {
     });
 }
 
+async function parseError(res: Response, fallback: string): Promise<string> {
+    const body = await res.json().catch(() => ({}));
+    const detail = body?.detail;
+    if (Array.isArray(detail)) {
+        return detail.map((d: unknown) =>
+            typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d)
+        ).join(", ");
+    }
+    return (detail as string | undefined) ?? fallback;
+}
+
 /* ── Login ──────────────────────────────────────────────────── */
 export async function loginAction(
-    phone: string,
+    email: string,
+    password: string,
 ): Promise<{ error: string } | void> {
     let res: Response;
     try {
         res = await fetch(`${BASE_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "x-platform": "web" },
-            body: JSON.stringify({ phone }),
+            body: JSON.stringify({ email, password }),
             cache: "no-store",
         });
     } catch {
         return { error: "Sunucuya bağlanılamadı." };
     }
 
-    if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const detail = body?.detail;
-        if (Array.isArray(detail)) {
-            return { error: detail.map((d: unknown) => (typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d))).join(", ") };
-        }
-        return { error: (detail as string | undefined) ?? "Giriş yapılırken bir hata oluştu." };
-    }
+    if (!res.ok) return { error: await parseError(res, "Giriş yapılırken bir hata oluştu.") };
 
     await forwardCookies(res);
     redirect("/home");
 }
 
 /* ── Register ───────────────────────────────────────────────── */
-export async function registerAction(
-    username: string,
-    phone: string,
-): Promise<{ error: string } | void> {
+export async function registerAction(payload: {
+    email: string;
+    password: string;
+    display_name?: string;
+    username?: string;
+    phone?: string;
+}): Promise<{ error: string } | void> {
     let res: Response;
     try {
         res = await fetch(`${BASE_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "x-platform": "web" },
-            body: JSON.stringify({ username, phone }),
+            body: JSON.stringify(payload),
             cache: "no-store",
         });
     } catch {
         return { error: "Sunucuya bağlanılamadı." };
     }
 
-    if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const detail = body?.detail;
-        if (Array.isArray(detail)) {
-            return { error: detail.map((d: unknown) => (typeof d === "object" && d !== null && "msg" in d ? (d as { msg: string }).msg : String(d))).join(", ") };
-        }
-        return { error: (detail as string | undefined) ?? "Kayıt olurken bir hata oluştu." };
-    }
+    if (!res.ok) return { error: await parseError(res, "Kayıt olurken bir hata oluştu.") };
 
     await forwardCookies(res);
     redirect("/home");
@@ -95,7 +96,6 @@ export async function registerAction(
 export async function logoutAction(): Promise<void> {
     const cookieStore = await cookies();
 
-    // Best-effort: tell backend to invalidate tokens
     try {
         const accessToken  = cookieStore.get("access_token")?.value;
         const refreshToken = cookieStore.get("refresh_token")?.value;

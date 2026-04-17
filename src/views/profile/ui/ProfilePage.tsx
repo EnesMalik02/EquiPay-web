@@ -3,24 +3,30 @@
 import { useUser } from "@/shared/store/UserContext";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { logoutAction } from "@/features/auth/actions/authActions";
+import { useRouter } from "next/navigation";
 
 import {
     User,
     Phone,
     AtSign,
+    Mail,
     LogOut,
     ChevronRight,
     Bell,
     Shield,
     HelpCircle,
     Fingerprint,
+    Users,
 } from "lucide-react";
 
 export const ProfilePage = () => {
     const user = useUser();
+    const router = useRouter();
 
-    const initials = user?.name
-        ? user.name
+    const displayName = user?.display_name ?? user?.username ?? "—";
+
+    const initials = displayName !== "—"
+        ? displayName
               .split(" ")
               .map((w) => w[0])
               .join("")
@@ -39,6 +45,7 @@ export const ProfilePage = () => {
         {
             title: "Hesap",
             items: [
+                { icon: Users,       label: "Arkadaşlar",  onClick: () => router.push("/friends") },
                 { icon: Bell,        label: "Bildirimler" },
                 { icon: Shield,      label: "Gizlilik" },
                 { icon: Fingerprint, label: "Güvenlik" },
@@ -90,23 +97,30 @@ export const ProfilePage = () => {
                         boxShadow: "var(--shadow-sm)",
                     }}
                 >
-                    {/* Avatar circle */}
-                    <div
-                        className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-extrabold shrink-0"
-                        style={{
-                            background: "var(--primary-light)",
-                            color: "var(--primary)",
-                        }}
-                    >
-                        {initials}
-                    </div>
+                    {user?.avatar_url ? (
+                        <img
+                            src={user.avatar_url}
+                            alt={displayName}
+                            className="w-16 h-16 rounded-full object-cover shrink-0"
+                        />
+                    ) : (
+                        <div
+                            className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-extrabold shrink-0"
+                            style={{
+                                background: "var(--primary-light)",
+                                color: "var(--primary)",
+                            }}
+                        >
+                            {initials}
+                        </div>
+                    )}
 
                     <div className="flex-1 min-w-0">
                         <p
                             className="text-lg font-extrabold truncate"
                             style={{ color: "var(--foreground)" }}
                         >
-                            {user?.name ?? "—"}
+                            {displayName}
                         </p>
                         {user?.username && (
                             <p className="text-sm font-medium mt-0.5" style={{ color: "var(--text-muted)" }}>
@@ -125,9 +139,12 @@ export const ProfilePage = () => {
                         boxShadow: "var(--shadow-sm)",
                     }}
                 >
-                    <InfoRow icon={User}    label="Ad Soyad" value={user?.name ?? "—"} />
-                    <InfoRow icon={Phone}   label="Telefon"  value={user?.phone ?? "—"} />
-                    <InfoRow icon={AtSign}  label="Kullanıcı adı"  value={user?.username ? `@${user.username}` : "—"} />
+                    <InfoRow icon={User}   label="Ad Soyad"      value={user?.display_name ?? "—"} />
+                    <InfoRow icon={Mail}   label="E-posta"        value={user?.email ?? "—"} />
+                    <InfoRow icon={AtSign} label="Kullanıcı adı"  value={user?.username ? `@${user.username}` : "—"} />
+                    {user?.phone && (
+                        <InfoRow icon={Phone} label="Telefon" value={user.phone} />
+                    )}
                 </div>
 
                 {/* ── Settings ─────────────────────────────────── */}
@@ -160,7 +177,7 @@ export const ProfilePage = () => {
                                         (e.currentTarget.style.background = "transparent")
                                     }
                                 >
-                                    <item.icon className="w-4.5 h-4.5 shrink-0 w-5 h-5" />
+                                    <item.icon className="w-5 h-5 shrink-0" />
                                     <span className="flex-1 text-sm font-semibold">{item.label}</span>
                                     {!item.danger && (
                                         <ChevronRight

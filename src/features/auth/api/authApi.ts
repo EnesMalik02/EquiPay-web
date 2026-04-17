@@ -2,13 +2,19 @@ import { apiClient } from "@/shared/api/apiClient";
 import { TokenResponse, User } from "../model/types";
 
 export const authApi = {
-    async register(username: string, phone: string): Promise<TokenResponse> {
-        const { data } = await apiClient.post<TokenResponse>("/auth/register", { username, phone });
+    async register(payload: {
+        email: string;
+        password: string;
+        display_name?: string;
+        username?: string;
+        phone?: string;
+    }): Promise<TokenResponse> {
+        const { data } = await apiClient.post<TokenResponse>("/auth/register", payload);
         return data;
     },
 
-    async login(phone: string): Promise<TokenResponse> {
-        const { data } = await apiClient.post<TokenResponse>("/auth/login", { phone });
+    async login(email: string, password: string): Promise<TokenResponse> {
+        const { data } = await apiClient.post<TokenResponse>("/auth/login", { email, password });
         return data;
     },
 

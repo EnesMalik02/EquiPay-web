@@ -14,9 +14,10 @@ export const BottomNav = () => {
     const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
     const navItems = [
-        { href: "/home",    label: "Panel",   icon: LayoutDashboard },
-        { href: "/groups",  label: "Gruplar", icon: Users },
-        { href: "/profile", label: "Profil",  icon: User },
+        { href: "/home",        label: "Panel",    icon: LayoutDashboard },
+        { href: "/groups",      label: "Gruplar",  icon: Users },
+        { href: "/settlements", label: "Ödemeler", icon: CreditCard },
+        { href: "/profile",     label: "Profil",   icon: User },
     ];
 
     const handleCreated = (group: GroupResponse) => {
@@ -33,7 +34,6 @@ export const BottomNav = () => {
                 />
             )}
 
-            {/* Safe-area spacer so content doesn't sit under the nav */}
             <div className="h-28" aria-hidden />
 
             <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-5 px-4 pointer-events-none">
@@ -49,21 +49,15 @@ export const BottomNav = () => {
                         w-full max-w-sm
                     "
                 >
-                    {/* Panel */}
-                    <NavButton
-                        label={navItems[0].label}
-                        icon={navItems[0].icon}
-                        active={isActive(navItems[0].href)}
-                        onClick={() => router.push(navItems[0].href)}
-                    />
-
-                    {/* Gruplar */}
-                    <NavButton
-                        label={navItems[1].label}
-                        icon={navItems[1].icon}
-                        active={isActive(navItems[1].href)}
-                        onClick={() => router.push(navItems[1].href)}
-                    />
+                    {navItems.slice(0, 2).map((item) => (
+                        <NavButton
+                            key={item.href}
+                            label={item.label}
+                            icon={item.icon}
+                            active={isActive(item.href)}
+                            onClick={() => router.push(item.href)}
+                        />
+                    ))}
 
                     {/* Center FAB */}
                     <button
@@ -81,22 +75,15 @@ export const BottomNav = () => {
                         <Plus className="w-5 h-5" />
                     </button>
 
-                    {/* Ödemeler – inactive */}
-                    <NavButton
-                        label="Ödemeler"
-                        icon={CreditCard}
-                        active={false}
-                        disabled
-                        onClick={() => {}}
-                    />
-
-                    {/* Profil */}
-                    <NavButton
-                        label={navItems[2].label}
-                        icon={navItems[2].icon}
-                        active={isActive(navItems[2].href)}
-                        onClick={() => router.push(navItems[2].href)}
-                    />
+                    {navItems.slice(2).map((item) => (
+                        <NavButton
+                            key={item.href}
+                            label={item.label}
+                            icon={item.icon}
+                            active={isActive(item.href)}
+                            onClick={() => router.push(item.href)}
+                        />
+                    ))}
                 </nav>
             </div>
         </>
@@ -108,29 +95,21 @@ function NavButton({
     label,
     icon: Icon,
     active,
-    disabled = false,
     onClick,
 }: {
     label: string;
     icon: React.ElementType;
     active: boolean;
-    disabled?: boolean;
     onClick: () => void;
 }) {
     return (
         <button
             onClick={onClick}
-            disabled={disabled}
             className={`
                 flex flex-col items-center justify-center gap-1
                 flex-1 min-w-0 py-2 rounded-[var(--radius-md)]
                 transition-all duration-150 active:scale-95
-                ${disabled
-                    ? "opacity-35 cursor-not-allowed"
-                    : active
-                        ? "text-[var(--primary)]"
-                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                }
+                ${active ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"}
             `}
         >
             <Icon className={`w-5 h-5 ${active ? "stroke-[2.5px]" : "stroke-2"}`} />

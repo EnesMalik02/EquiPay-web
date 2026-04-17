@@ -6,7 +6,9 @@ export interface TokenResponse {
 
 export interface User {
     id: string;
-    name: string;
-    phone: string;
+    email: string;
+    display_name?: string;
+    avatar_url?: string;
     username?: string;
+    phone?: string;
 }

@@ -184,7 +184,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                     {members.slice(0, 3).map((m) => (
                                         <UserAvatar
                                             key={m.id}
-                                            name={m.name || m.username}
+                                            name={m.display_name ?? m.username ?? "?"}
                                             size="xs"
                                             ring
                                             bg="#e5e7eb"
@@ -264,7 +264,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                         <div className="divide-y divide-gray-50">
                                             {group.items.map((expense) => {
                                                 const payer = members.find((m) => m.user_id === expense.paid_by);
-                                                const payerName = payer?.name ?? payer?.username ?? "Bilinmeyen";
+                                                const payerName = payer?.display_name ?? payer?.username ?? "Bilinmeyen";
                                                 return (
                                                     <ExpenseListItem
                                                         key={expense.id}
@@ -323,12 +323,12 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 {members.map((member) => (
                                     <div key={member.id} className="flex items-center gap-4 py-3.5">
                                         <UserAvatar
-                                            name={member.username}
+                                            name={member.display_name ?? member.username ?? "?"}
                                             size="md"
                                         />
                                         <div>
-                                            <p className="font-semibold text-sm text-black">{member.username ?? "—"}</p>
-                                            <p className="text-xs text-gray-400 mt-0.5">@{member.username}</p>
+                                            <p className="font-semibold text-sm text-black">{member.display_name ?? member.username ?? "—"}</p>
+                                            {member.username && <p className="text-xs text-gray-400 mt-0.5">@{member.username}</p>}
                                         </div>
                                     </div>
                                 ))}

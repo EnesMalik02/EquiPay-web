@@ -122,7 +122,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                 <span className="text-sm font-bold text-black truncate">
                                     {(() => {
                                         const p = members.find((m) => String(m.user_id) === String(expense.paid_by));
-                                        return p?.name ?? p?.username ?? expense.paid_by;
+                                        return p?.display_name ?? p?.username ?? expense.paid_by;
                                     })()}
                                 </span>
                             </div>
@@ -154,7 +154,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                             <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100">
                                 {expense.splits.map((split) => {
                                     const member = members.find((m) => String(m.user_id) === String(split.user_id));
-                                    const name = member?.name ?? member?.username ?? split.user_id;
+                                    const name = member?.display_name ?? member?.username ?? String(split.user_id);
                                     const owed = parseFloat(split.owed_amount);
                                     const paid = parseFloat(split.paid_amount);
                                     const settled = paid >= owed;

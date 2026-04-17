@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { registerAction } from "../actions/authActions";
 import Link from "next/link";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
 
 export const RegisterForm = () => {
-    const [username, setUsername] = useState("");
-    const [phone, setPhone] = useState("");
+    const [displayName, setDisplayName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -17,20 +16,21 @@ export const RegisterForm = () => {
         setLoading(true);
         setError("");
 
-        const result = await registerAction(username, phone);
+        const result = await registerAction({
+            email,
+            password,
+            display_name: displayName.trim() || undefined,
+        });
         if (result?.error) {
             setError(result.error);
             setLoading(false);
         }
-        // on success registerAction redirects, no further action needed
     };
 
     return (
         <div className="w-full max-w-md bg-white border border-gray-100 p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-fade-in-up">
-            <h1 className="text-3xl font-extrabold tracking-tight mb-2 text-black">
-                Hesap Oluştur
-            </h1>
-            <p className="text-gray-500 text-sm mb-6">Paylaş&apos;a katıl ve ödemelerini kolayca yönet.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight mb-2 text-black">Hesap Oluştur</h1>
+            <p className="text-gray-500 text-sm mb-6">EquiPay&apos;e katıl ve ödemelerini kolayca yönet.</p>
 
             {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
@@ -40,32 +40,47 @@ export const RegisterForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="username">
-                        Ad Soyad
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="display_name">
+                        Ad Soyad <span className="text-gray-400 font-normal">(isteğe bağlı)</span>
                     </label>
                     <input
-                        id="username"
+                        id="display_name"
                         type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
                         placeholder="Örn. Ahmet Yılmaz"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="email">
+                        Email <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
+                        placeholder="ornek@email.com"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="phone">
-                        Telefon Numarası
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="password">
+                        Şifre <span className="text-red-400">*</span>
                     </label>
-                    <PhoneInput
-                        id="phone"
-                        defaultCountry="TR"
-                        value={phone}
-                        onChange={(val) => setPhone(val || "")}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4 [&_.PhoneInputCountryIcon]:shadow-sm"
-                        placeholder="(505) 123 45 67"
+                    <input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
+                        placeholder="••••••••"
                         required
+                        minLength={6}
                     />
                 </div>
 
