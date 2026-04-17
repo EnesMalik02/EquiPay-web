@@ -132,10 +132,12 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                     <GroupSettingsModal
                         groupId={groupId}
                         groupName={group.name}
+                        groupDescription={group.description}
                         isAdmin={me?.role === "admin"}
                         currentUserId={currentUserId}
                         members={members}
                         onClose={() => setShowSettings(false)}
+                        onUpdated={(updated) => setGroup(updated)}
                     />
                 );
             })()}

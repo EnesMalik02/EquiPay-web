@@ -4,15 +4,90 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
-import { Utensils, ShoppingBag, Users, Clock, Plus, TrendingUp } from "lucide-react";
+import { Clock, Plus, TrendingUp, Receipt, ArrowUpRight } from "lucide-react";
 import { CreateGroupModal } from "@/features/create-group";
 import { GroupResponse } from "@/entities/group/model/types";
+import { useRecentExpenses } from "@/entities/expense/hooks/useRecentExpenses";
+import { useUser } from "@/shared/store/UserContext";
+import { RecentExpenseResponse } from "@/entities/expense/model/types";
 
-const ACTIVE_GROUPS = 4;
+function formatRelativeDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Bugün";
+    if (diffDays === 1) return "Dün";
+    return `${diffDays} gün önce`;
+}
+
+function RecentExpenseCard({ expense, currentUserId, onClick }: {
+    expense: RecentExpenseResponse;
+    currentUserId: string | null;
+    onClick: () => void;
+}) {
+    const isPayer = String(expense.paid_by) === String(currentUserId);
+    const mySplit = expense.splits?.find((s) => String(s.user_id) === String(currentUserId));
+    const amount = `₺${parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+
+    return (
+        <div
+            onClick={onClick}
+            className="flex items-center gap-4 rounded-2xl px-4 py-3.5 cursor-pointer transition-transform active:scale-[0.99]"
+            style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                boxShadow: "var(--shadow-sm)",
+            }}
+        >
+            <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: isPayer ? "var(--primary-light)" : "var(--surface-muted)" }}
+            >
+                {isPayer ? (
+                    <Receipt className="w-5 h-5" style={{ color: "var(--primary)" }} />
+                ) : (
+                    <ArrowUpRight className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+                )}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm truncate" style={{ color: "var(--foreground)" }}>
+                    {expense.title}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                    <Clock className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                        {formatRelativeDate(expense.expense_date)}
+                        {expense.group_name ? ` · ${expense.group_name}` : ""}
+                    </p>
+                </div>
+            </div>
+            <div className="text-right shrink-0">
+                <p className="font-extrabold text-sm" style={{ color: "var(--foreground)" }}>{amount}</p>
+                {isPayer ? (
+                    <span
+                        className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5"
+                        style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+                    >
+                        Sen Ödedin
+                    </span>
+                ) : mySplit ? (
+                    <span
+                        className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5"
+                        style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
+                    >
+                        Payın: ₺{parseFloat(mySplit.owed_amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                    </span>
+                ) : null}
+            </div>
+        </div>
+    );
+}
 
 export const HomePage = () => {
     const router = useRouter();
+    const currentUser = useUser();
     const [showCreate, setShowCreate] = useState(false);
+    const { data: recentExpenses, isLoading } = useRecentExpenses(10);
 
     const handleCreated = (group: GroupResponse) => {
         setShowCreate(false);
@@ -44,23 +119,6 @@ export const HomePage = () => {
                         <h1 className="text-[34px] font-black leading-none tracking-tight" style={{ color: "var(--primary)" }}>
                             Takibi
                         </h1>
-                    </div>
-
-                    {/* Active groups pill */}
-                    <div
-                        className="flex flex-col items-center justify-center rounded-3xl px-4 py-3 mt-1 gap-0.5"
-                        style={{
-                            background: "var(--surface)",
-                            border: "1px solid var(--border-light)",
-                            boxShadow: "var(--shadow-sm)",
-                        }}
-                    >
-                        <span className="text-[28px] font-black leading-none" style={{ color: "var(--foreground)" }}>
-                            {ACTIVE_GROUPS}
-                        </span>
-                        <span className="text-[10px] font-semibold tracking-wide" style={{ color: "var(--text-muted)" }}>
-                            Aktif Grup
-                        </span>
                     </div>
                 </div>
 
@@ -124,6 +182,7 @@ export const HomePage = () => {
                             </h2>
                         </div>
                         <button
+                            onClick={() => router.push("/settlements")}
                             className="text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full transition-colors cursor-pointer"
                             style={{
                                 color: "var(--text-muted)",
@@ -135,116 +194,45 @@ export const HomePage = () => {
                     </div>
 
                     <div className="space-y-2.5">
-                        {/* Transaction 1 */}
-                        <div
-                            className="flex items-center gap-4 rounded-2xl px-4 py-3.5 cursor-pointer transition-transform active:scale-[0.99]"
-                            style={{
-                                background: "var(--surface)",
-                                border: "1px solid var(--border-light)",
-                                boxShadow: "var(--shadow-sm)",
-                            }}
-                        >
-                            <div
-                                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{ background: "var(--primary-light)" }}
-                            >
-                                <Utensils className="w-5 h-5" style={{ color: "var(--primary)" }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm truncate" style={{ color: "var(--foreground)" }}>
-                                    Burger King
-                                </p>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    <Clock className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Dün · Yemek Takımı
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                                <p className="font-extrabold text-sm" style={{ color: "var(--foreground)" }}>₺240,00</p>
-                                <span
-                                    className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5"
-                                    style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+                        {isLoading ? (
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="flex items-center gap-4 rounded-2xl px-4 py-3.5 animate-pulse"
+                                    style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
                                 >
-                                    Sen Ödedin
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Transaction 2 */}
-                        <div
-                            className="flex items-center gap-4 rounded-2xl px-4 py-3.5 cursor-pointer transition-transform active:scale-[0.99]"
-                            style={{
-                                background: "var(--surface)",
-                                border: "1px solid var(--border-light)",
-                                boxShadow: "var(--shadow-sm)",
-                            }}
-                        >
-                            <div
-                                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{ background: "var(--surface-muted)" }}
-                            >
-                                <ShoppingBag className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm truncate" style={{ color: "var(--foreground)" }}>
-                                    Market Alışverişi
-                                </p>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    <Clock className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        2 gün önce · Ev Masrafları
-                                    </p>
+                                    <div className="w-11 h-11 rounded-2xl" style={{ background: "var(--surface-muted)" }} />
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-3 rounded-full w-32" style={{ background: "var(--surface-muted)" }} />
+                                        <div className="h-2 rounded-full w-20" style={{ background: "var(--surface-muted)" }} />
+                                    </div>
+                                    <div className="h-4 rounded-full w-16" style={{ background: "var(--surface-muted)" }} />
                                 </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                                <p className="font-extrabold text-sm" style={{ color: "var(--foreground)" }}>₺560,00</p>
-                                <span
-                                    className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5"
-                                    style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
+                            ))
+                        ) : !recentExpenses || recentExpenses.length === 0 ? (
+                            <div className="py-10 flex flex-col items-center gap-3 text-center">
+                                <div
+                                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                                    style={{ background: "var(--surface-muted)" }}
                                 >
-                                    Payın: ₺140
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Transaction 3 */}
-                        <div
-                            className="flex items-center gap-4 rounded-2xl px-4 py-3.5 cursor-pointer transition-transform active:scale-[0.99]"
-                            style={{
-                                background: "var(--surface)",
-                                border: "1px solid var(--border-light)",
-                                boxShadow: "var(--shadow-sm)",
-                            }}
-                        >
-                            <div
-                                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{ background: "var(--primary-light)" }}
-                            >
-                                <Users className="w-5 h-5" style={{ color: "var(--primary)" }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm truncate" style={{ color: "var(--foreground)" }}>
-                                    Hafta Sonu Gezisi
-                                </p>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    <Clock className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        3 gün önce · Tatil Grubu
-                                    </p>
+                                    <Receipt className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
                                 </div>
+                                <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+                                    Henüz harcama yok.
+                                </p>
                             </div>
-                            <div className="text-right shrink-0">
-                                <p className="font-extrabold text-sm" style={{ color: "var(--foreground)" }}>₺1.200,00</p>
-                                <span
-                                    className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5"
-                                    style={{ background: "var(--primary-light)", color: "var(--primary)" }}
-                                >
-                                    Sen Ödedin
-                                </span>
-                            </div>
-                        </div>
+                        ) : (
+                            recentExpenses.map((expense) => (
+                                <RecentExpenseCard
+                                    key={expense.id}
+                                    expense={expense}
+                                    currentUserId={currentUser?.id ?? null}
+                                    onClick={() =>
+                                        router.push(`/groups/${expense.group_id}/expenses/${expense.id}`)
+                                    }
+                                />
+                            ))
+                        )}
                     </div>
                 </div>
             </main>

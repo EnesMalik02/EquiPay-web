@@ -2,33 +2,41 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, LogOut, Trash2, AlertTriangle, ChevronRight, ShieldCheck } from "lucide-react";
+import { X, LogOut, Trash2, AlertTriangle, ChevronRight, ShieldCheck, Pencil } from "lucide-react";
 import { groupApi } from "@/entities/group/api/groupApi";
-import { GroupMemberResponse } from "@/entities/group/model/types";
+import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
 
-type Step = "idle" | "confirm-leave" | "confirm-delete" | "assign-admin";
+type Step = "idle" | "edit-info" | "confirm-leave" | "confirm-delete" | "assign-admin";
 
 interface GroupSettingsModalProps {
     groupId: string;
     groupName: string;
+    groupDescription?: string | null;
     isAdmin: boolean;
     currentUserId: string | null;
     members: GroupMemberResponse[];
     onClose: () => void;
+    onUpdated?: (updated: GroupResponse) => void;
 }
 
 export const GroupSettingsModal = ({
     groupId,
     groupName,
+    groupDescription,
     isAdmin,
     currentUserId,
     members,
     onClose,
+    onUpdated,
 }: GroupSettingsModalProps) => {
     const router = useRouter();
     const [step, setStep] = useState<Step>("idle");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // edit-info state
+    const [editName, setEditName] = useState(groupName);
+    const [editDescription, setEditDescription] = useState(groupDescription ?? "");
 
     const otherMembers = members.filter((m) => m.user_id !== currentUserId && !m.left_at);
 
@@ -72,6 +80,28 @@ export const GroupSettingsModal = ({
         }
     };
 
+    const handleSaveInfo = async () => {
+        if (!editName.trim()) {
+            setError("Grup adı boş olamaz.");
+            return;
+        }
+        setLoading(true);
+        setError("");
+        try {
+            const updated = await groupApi.update(groupId, {
+                name: editName.trim(),
+                description: editDescription.trim() || undefined,
+            });
+            onUpdated?.(updated);
+            onClose();
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { detail?: string } }; message?: string };
+            setError(e.response?.data?.detail ?? e.message ?? "");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const reset = () => {
         setStep("idle");
         setError("");
@@ -105,6 +135,23 @@ export const GroupSettingsModal = ({
                 {/* ── IDLE ── */}
                 {step === "idle" && (
                     <div className="space-y-2">
+                        {/* Grup Bilgilerini Düzenle — sadece admin */}
+                        {isAdmin && (
+                            <button
+                                onClick={() => setStep("edit-info")}
+                                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-blue-50 hover:bg-blue-100 transition-colors group text-left"
+                            >
+                                <div className="w-9 h-9 rounded-xl bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center text-blue-500 shrink-0 transition-colors">
+                                    <Pencil className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-blue-700">Grubu Düzenle</p>
+                                    <p className="text-xs text-blue-400 mt-0.5">Ad ve açıklamayı güncelle</p>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-blue-300 group-hover:text-blue-400 transition-colors" />
+                            </button>
+                        )}
+
                         {/* Admin ata — sadece adminde ve başka üye varsa */}
                         {isAdmin && otherMembers.length > 0 && (
                             <button
@@ -153,6 +200,53 @@ export const GroupSettingsModal = ({
                                 <ChevronRight className="w-4 h-4 text-red-300 group-hover:text-red-400 transition-colors" />
                             </button>
                         )}
+                    </div>
+                )}
+
+                {/* ── EDIT INFO ── */}
+                {step === "edit-info" && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-xs font-bold tracking-widest uppercase text-gray-400 block mb-1.5">
+                                Grup Adı
+                            </label>
+                            <input
+                                type="text"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                maxLength={255}
+                                className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-semibold text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors"
+                                placeholder="Grup adını girin"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold tracking-widest uppercase text-gray-400 block mb-1.5">
+                                Açıklama
+                            </label>
+                            <textarea
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                rows={3}
+                                className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-medium text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors resize-none"
+                                placeholder="Kısa bir açıklama ekleyin (isteğe bağlı)"
+                            />
+                        </div>
+                        <div className="flex gap-3 pt-1">
+                            <button
+                                onClick={reset}
+                                disabled={loading}
+                                className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                            >
+                                Vazgeç
+                            </button>
+                            <button
+                                onClick={handleSaveInfo}
+                                disabled={loading || !editName.trim()}
+                                className="flex-1 py-3 rounded-2xl bg-[#00d186] hover:bg-[#00c07c] text-white font-bold text-sm shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? "Kaydediliyor..." : "Kaydet"}
+                            </button>
+                        </div>
                     </div>
                 )}
 

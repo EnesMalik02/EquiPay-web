@@ -1,5 +1,12 @@
 import { apiClient } from "@/shared/api/apiClient";
-import { ExpenseCreate, ExpenseResponse, ExpenseSplitResponse, ListExpensesParams } from "../model/types";
+import {
+    ExpenseCreate,
+    ExpenseUpdate,
+    ExpenseResponse,
+    RecentExpenseResponse,
+    ExpenseSplitResponse,
+    ListExpensesParams,
+} from "../model/types";
 
 export const expenseApi = {
     async create(payload: ExpenseCreate): Promise<ExpenseResponse> {
@@ -21,6 +28,29 @@ export const expenseApi = {
     async getById(expenseId: string): Promise<ExpenseResponse> {
         const { data } = await apiClient.get<ExpenseResponse>(`/expenses/${expenseId}`);
         return data;
+    },
+
+    async getRecent(limit = 10): Promise<RecentExpenseResponse[]> {
+        const { data } = await apiClient.get<RecentExpenseResponse[]>("/expenses/me/recent", {
+            params: { limit },
+        });
+        return data;
+    },
+
+    async getMySplits(limit = 100): Promise<RecentExpenseResponse[]> {
+        const { data } = await apiClient.get<RecentExpenseResponse[]>("/expenses/me/splits", {
+            params: { limit },
+        });
+        return data;
+    },
+
+    async update(expenseId: string, payload: ExpenseUpdate): Promise<ExpenseResponse> {
+        const { data } = await apiClient.patch<ExpenseResponse>(`/expenses/${expenseId}`, payload);
+        return data;
+    },
+
+    async deleteById(expenseId: string): Promise<void> {
+        await apiClient.delete(`/expenses/${expenseId}`);
     },
 
     async paySplit(expenseId: string, splitId: string): Promise<ExpenseSplitResponse> {

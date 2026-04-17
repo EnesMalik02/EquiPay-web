@@ -40,6 +40,18 @@ export interface ExpenseResponse {
     splits: ExpenseSplitResponse[];
 }
 
+export interface ExpenseUpdate {
+    title?: string;
+    amount?: number;
+    currency?: string;
+    notes?: string;
+    expense_date?: string;
+}
+
+export interface RecentExpenseResponse extends ExpenseResponse {
+    group_name: string | null;
+}
+
 export interface ListExpensesParams {
     limit?: number;
     offset?: number;
