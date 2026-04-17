@@ -9,7 +9,7 @@ import { CreateGroupModal } from "@/features/create-group";
 import { GroupResponse } from "@/entities/group/model/types";
 import { useRecentExpenses } from "@/entities/expense/hooks/useRecentExpenses";
 import { useUser } from "@/shared/store/UserContext";
-import { RecentExpenseResponse } from "@/entities/expense/model/types";
+import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 
 function formatRelativeDate(dateStr: string): string {
     const date = new Date(dateStr);
@@ -21,12 +21,12 @@ function formatRelativeDate(dateStr: string): string {
 }
 
 function RecentExpenseCard({ expense, currentUserId, onClick }: {
-    expense: RecentExpenseResponse;
+    expense: ExpenseWithMySplitResponse;
     currentUserId: string | null;
     onClick: () => void;
 }) {
     const isPayer = String(expense.paid_by) === String(currentUserId);
-    const mySplit = expense.splits?.find((s) => String(s.user_id) === String(currentUserId));
+    const mySplit = expense.my_split;
     const amount = `₺${parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
 
     return (

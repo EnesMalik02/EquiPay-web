@@ -9,7 +9,7 @@ import { CheckCircle, XCircle, Clock, ArrowUpRight, ArrowDownLeft, Receipt } fro
 import { SkeletonSettlementItem } from "@/shared/ui";
 import { useState } from "react";
 import { useMySplitExpenses } from "@/entities/expense/hooks/useMySplitExpenses";
-import { RecentExpenseResponse } from "@/entities/expense/model/types";
+import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 
 type Tab = "all" | "pending" | "paid";
@@ -31,21 +31,20 @@ const statusColor: Record<SettlementStatus, string> = {
 /* ── My Split Expense Item ── */
 function MySplitExpenseItem({
     expense,
-    currentUserId,
     onPaid,
 }: {
-    expense: RecentExpenseResponse;
-    currentUserId: string | null;
+    expense: ExpenseWithMySplitResponse;
     onPaid: (expenseId: string, splitId: string) => void;
 }) {
     const router = useRouter();
-    const mySplit = expense.splits?.find((s) => String(s.user_id) === String(currentUserId));
+    const currentUser = useUser();
+    const mySplit = expense.my_split;
     if (!mySplit) return null;
 
     const owed = parseFloat(mySplit.owed_amount);
     const paid = parseFloat(mySplit.paid_amount);
     const isPaid = paid >= owed;
-    const isPayer = String(expense.paid_by) === String(currentUserId);
+    const isPayer = String(expense.paid_by) === String(currentUser?.id);
 
     return (
         <div
@@ -236,20 +235,13 @@ export const SettlementsPage = () => {
     /* Filtering */
     const currentUserId = currentUser?.id ?? null;
 
-    const hasMySplit = (exp: RecentExpenseResponse) =>
-        exp.splits?.some((s) => String(s.user_id) === String(currentUserId));
+    const unpaidExpenses = allSplitExpenses.filter(
+        (exp) => exp.my_split && parseFloat(exp.my_split.paid_amount) < parseFloat(exp.my_split.owed_amount)
+    );
 
-    const myExpenses = allSplitExpenses.filter(hasMySplit);
-
-    const unpaidExpenses = myExpenses.filter((exp) => {
-        const split = exp.splits.find((s) => String(s.user_id) === String(currentUserId));
-        return split && parseFloat(split.paid_amount) < parseFloat(split.owed_amount);
-    });
-
-    const paidExpenses = myExpenses.filter((exp) => {
-        const split = exp.splits.find((s) => String(s.user_id) === String(currentUserId));
-        return split && parseFloat(split.paid_amount) >= parseFloat(split.owed_amount);
-    });
+    const paidExpenses = allSplitExpenses.filter(
+        (exp) => exp.my_split && parseFloat(exp.my_split.paid_amount) >= parseFloat(exp.my_split.owed_amount)
+    );
 
     const pendingCount = unpaidExpenses.length;
 
@@ -260,7 +252,7 @@ export const SettlementsPage = () => {
     ];
 
     /* Content per tab */
-    const isEmptyAll = myExpenses.length === 0 && settlements.length === 0;
+    const isEmptyAll = allSplitExpenses.length === 0 && settlements.length === 0;
     const isEmptyTab =
         activeTab === "all" ? isEmptyAll
         : activeTab === "pending" ? unpaidExpenses.length === 0
@@ -326,7 +318,6 @@ export const SettlementsPage = () => {
                                             <MySplitExpenseItem
                                                 key={exp.id}
                                                 expense={exp}
-                                                currentUserId={currentUserId}
                                                 onPaid={handlePaySplit}
                                             />
                                         ))}
@@ -339,7 +330,6 @@ export const SettlementsPage = () => {
                                             <MySplitExpenseItem
                                                 key={exp.id}
                                                 expense={exp}
-                                                currentUserId={currentUserId}
                                                 onPaid={handlePaySplit}
                                             />
                                         ))}
@@ -368,7 +358,6 @@ export const SettlementsPage = () => {
                                 <MySplitExpenseItem
                                     key={exp.id}
                                     expense={exp}
-                                    currentUserId={currentUserId}
                                     onPaid={handlePaySplit}
                                 />
                             ))
@@ -380,7 +369,6 @@ export const SettlementsPage = () => {
                                 <MySplitExpenseItem
                                     key={exp.id}
                                     expense={exp}
-                                    currentUserId={currentUserId}
                                     onPaid={handlePaySplit}
                                 />
                             ))

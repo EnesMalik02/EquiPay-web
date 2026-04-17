@@ -3,7 +3,8 @@ import {
     ExpenseCreate,
     ExpenseUpdate,
     ExpenseResponse,
-    RecentExpenseResponse,
+    ExpenseDetailResponse,
+    ExpenseWithMySplitResponse,
     ExpenseSplitResponse,
     ListExpensesParams,
 } from "../model/types";
@@ -25,21 +26,21 @@ export const expenseApi = {
         return data;
     },
 
-    async getById(expenseId: string): Promise<ExpenseResponse> {
-        const { data } = await apiClient.get<ExpenseResponse>(`/expenses/${expenseId}`);
+    async getById(expenseId: string): Promise<ExpenseDetailResponse> {
+        const { data } = await apiClient.get<ExpenseDetailResponse>(`/expenses/${expenseId}`);
         return data;
     },
 
-    async getRecent(limit = 10): Promise<RecentExpenseResponse[]> {
-        const { data } = await apiClient.get<RecentExpenseResponse[]>("/expenses/me/recent", {
+    async getRecent(limit = 10): Promise<ExpenseWithMySplitResponse[]> {
+        const { data } = await apiClient.get<ExpenseWithMySplitResponse[]>("/expenses/me/recent", {
             params: { limit },
         });
         return data;
     },
 
-    async getMySplits(limit = 100): Promise<RecentExpenseResponse[]> {
-        const { data } = await apiClient.get<RecentExpenseResponse[]>("/expenses/me/splits", {
-            params: { limit },
+    async getMySplits(params?: { limit?: number; offset?: number }): Promise<ExpenseWithMySplitResponse[]> {
+        const { data } = await apiClient.get<ExpenseWithMySplitResponse[]>("/expenses/me/splits", {
+            params: { limit: 20, offset: 0, ...params },
         });
         return data;
     },
