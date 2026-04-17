@@ -2,14 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { groupApi, GroupResponse, GroupCard } from "@/entities/group";
+import { Plus, Users } from "lucide-react";
+import { groupApi, GroupResponse } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
-import { PrimaryButton, SkeletonCard } from "@/shared/ui";
 
 interface GroupListProps {
-    /** When provided, called instead of opening the internal modal (e.g. parent owns the button) */
     onNewGroup?: () => void;
+}
+
+const CARD_GRADIENTS: [string, string][] = [
+    ["#00d186", "#00a0b4"],
+    ["#3b82f6", "#6366f1"],
+    ["#f59e0b", "#ef4444"],
+    ["#8b5cf6", "#ec4899"],
+    ["#ec4899", "#f97316"],
+    ["#14b8a6", "#6366f1"],
+];
+
+function cardGradient(name: string): [string, string] {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
 }
 
 export const GroupList = ({ onNewGroup }: GroupListProps) => {
@@ -19,11 +32,8 @@ export const GroupList = ({ onNewGroup }: GroupListProps) => {
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     const openCreate = () => {
-        if (onNewGroup) {
-            onNewGroup();
-        } else {
-            setShowCreateModal(true);
-        }
+        if (onNewGroup) onNewGroup();
+        else setShowCreateModal(true);
     };
 
     useEffect(() => {
@@ -50,50 +60,123 @@ export const GroupList = ({ onNewGroup }: GroupListProps) => {
             )}
 
             <div className="mb-14">
-                <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-bold" style={{ color: "var(--foreground)" }}>
                         Aktif Gruplar
                     </h3>
                     <button
                         onClick={openCreate}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-                        style={{ background: "var(--foreground)", color: "#fff" }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95"
+                        style={{ background: "var(--primary)", color: "#000" }}
                     >
                         <Plus className="w-3.5 h-3.5" />
-                        Yeni Grup
+                        Yeni
                     </button>
                 </div>
 
-                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+                <div className="flex gap-3 overflow-x-auto pb-3 hide-scrollbar">
                     {loading ? (
-                        Array.from({ length: 2 }).map((_, i) => (
-                            <div key={i} className="min-w-[240px] w-[240px] shrink-0">
-                                <SkeletonCard />
-                            </div>
+                        Array.from({ length: 3 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="min-w-[196px] w-[196px] h-[140px] rounded-2xl shrink-0 animate-shimmer"
+                            />
                         ))
                     ) : groups.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center w-full py-12 text-center gap-3">
-                            <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
-                                Henüz grup yok.
-                            </p>
-                            <PrimaryButton
-                                variant="outline"
-                                size="sm"
-                                icon={<Plus className="w-3.5 h-3.5" />}
-                                onClick={openCreate}
-                            >
-                                İlk grubu oluştur
-                            </PrimaryButton>
-                        </div>
+                        <button
+                            onClick={openCreate}
+                            className="min-w-[196px] w-[196px] h-[140px] shrink-0 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-transform active:scale-95"
+                            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                        >
+                            <Plus className="w-6 h-6" />
+                            <span className="text-xs font-semibold">Grup oluştur</span>
+                        </button>
                     ) : (
-                        groups.map((group) => (
-                            <div key={group.id} className="min-w-[240px] w-[240px] shrink-0">
-                                <GroupCard
-                                    group={group}
-                                    onClick={() => router.push(`/groups/${group.id}`)}
-                                />
-                            </div>
-                        ))
+                        <>
+                            {groups.map((group, idx) => {
+                                const [from, to] = cardGradient(group.name);
+                                const initial = group.name.charAt(0).toUpperCase();
+                                const isFeatured = idx === 0;
+                                return (
+                                    <button
+                                        key={group.id}
+                                        onClick={() => router.push(`/groups/${group.id}`)}
+                                        className={`shrink-0 rounded-2xl relative overflow-hidden text-left transition-transform active:scale-[0.97] ${
+                                            isFeatured
+                                                ? "min-w-[260px] w-[260px] h-[160px]"
+                                                : "min-w-[196px] w-[196px] h-[140px]"
+                                        }`}
+                                        style={{ background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)` }}
+                                    >
+                                        {/* Large decorative initial */}
+                                        <span
+                                            className="absolute -right-3 -top-3 font-black leading-none select-none pointer-events-none"
+                                            style={{
+                                                fontSize: isFeatured ? "100px" : "84px",
+                                                color: "rgba(255,255,255,0.10)",
+                                                letterSpacing: "-4px",
+                                            }}
+                                        >
+                                            {initial}
+                                        </span>
+
+                                        {/* Card content */}
+                                        <div className="absolute inset-0 p-4 flex flex-col justify-between">
+                                            <div
+                                                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                                                style={{ background: "rgba(255,255,255,0.22)" }}
+                                            >
+                                                <Users className="w-4 h-4 text-white" />
+                                            </div>
+
+                                            <div>
+                                                <p
+                                                    className="font-bold text-white leading-tight line-clamp-1"
+                                                    style={{ fontSize: isFeatured ? "15px" : "14px" }}
+                                                >
+                                                    {group.name}
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    {group.member_count !== undefined && (
+                                                        <span
+                                                            className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                                                            style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.9)" }}
+                                                        >
+                                                            {group.member_count} üye
+                                                        </span>
+                                                    )}
+                                                    {isFeatured && (
+                                                        <span
+                                                            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                                            style={{ background: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.7)" }}
+                                                        >
+                                                            Son aktif
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+
+                            {/* Add new group card */}
+                            <button
+                                onClick={openCreate}
+                                className="min-w-[140px] w-[140px] h-[140px] shrink-0 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-transform active:scale-95"
+                                style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                            >
+                                <div
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                                    style={{ background: "var(--surface-muted)" }}
+                                >
+                                    <Plus className="w-4.5 h-4.5 w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+                                </div>
+                                <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
+                                    Yeni Grup
+                                </span>
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

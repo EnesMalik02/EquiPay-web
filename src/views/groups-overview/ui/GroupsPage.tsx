@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Plus, Search } from "lucide-react";
+import { Users, Plus, Search, Layers } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupResponse } from "@/entities/group/model/types";
 import { GroupCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
-import { PrimaryButton, SkeletonCard } from "@/shared/ui";
+import { SkeletonCard } from "@/shared/ui";
 
 export const GroupsPage = () => {
     const router = useRouter();
@@ -45,30 +45,94 @@ export const GroupsPage = () => {
             )}
 
             <div className="min-h-screen font-sans" style={{ background: "var(--background)" }}>
-                <main className="max-w-5xl mx-auto px-6 pt-10">
 
-                    {/* ── Header ───────────────────────────────── */}
-                    <div className="flex items-center justify-between mb-7">
-                        <div>
-                            <p className="text-[11px] font-bold tracking-widest uppercase mb-1"
-                               style={{ color: "var(--text-muted)" }}>
-                                Genel Bakış
-                            </p>
-                            <h1 className="text-3xl font-extrabold tracking-tight"
-                                style={{ color: "var(--foreground)" }}>
-                                Gruplarım
-                            </h1>
+                {/* ── Gradient Header ─────────────────────────── */}
+                <div
+                    className="relative overflow-hidden"
+                    style={{
+                        background: "linear-gradient(135deg, #0a0a0a 0%, #1c1c2e 55%, #16213e 100%)",
+                        paddingTop: 48,
+                        paddingBottom: 32,
+                        paddingLeft: 24,
+                        paddingRight: 24,
+                    }}
+                >
+                    {/* Glow — right side */}
+                    <div
+                        className="pointer-events-none absolute top-0 right-0 w-72 h-72 rounded-full"
+                        style={{
+                            background: "radial-gradient(circle, var(--primary) 0%, transparent 70%)",
+                            opacity: 0.15,
+                            transform: "translate(25%, -25%)",
+                        }}
+                    />
+                    {/* Glow — left bottom */}
+                    <div
+                        className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 rounded-full"
+                        style={{
+                            background: "radial-gradient(circle, #6366f1 0%, transparent 70%)",
+                            opacity: 0.12,
+                            transform: "translate(-20%, 20%)",
+                        }}
+                    />
+
+                    <div className="max-w-5xl mx-auto relative z-10">
+                        {/* Title row */}
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p
+                                    className="text-[11px] font-bold tracking-widest uppercase mb-1"
+                                    style={{ color: "rgba(255,255,255,0.4)" }}
+                                >
+                                    Genel Bakış
+                                </p>
+                                <h1 className="text-3xl font-extrabold tracking-tight text-white">
+                                    Gruplarım
+                                </h1>
+                            </div>
+                            <button
+                                onClick={() => setShowCreate(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-transform active:scale-95"
+                                style={{ background: "var(--primary)", color: "#000" }}
+                            >
+                                <Plus className="w-4 h-4" />
+                                Yeni Grup
+                            </button>
                         </div>
 
-                        <PrimaryButton
-                            onClick={() => setShowCreate(true)}
-                            icon={<Plus className="w-4 h-4" />}
-                        >
-                            Yeni Grup
-                        </PrimaryButton>
+                        {/* Stat pills */}
+                        {!loading && groups.length > 0 && (
+                            <div className="flex gap-3 mt-5">
+                                <div
+                                    className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
+                                    style={{ background: "rgba(255,255,255,0.08)" }}
+                                >
+                                    <Layers className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
+                                    <span className="text-sm font-bold text-white">{groups.length}</span>
+                                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                                        Grup
+                                    </span>
+                                </div>
+                                <div
+                                    className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
+                                    style={{ background: "rgba(255,255,255,0.08)" }}
+                                >
+                                    <Users className="w-3.5 h-3.5" style={{ color: "#818cf8" }} />
+                                    <span className="text-sm font-bold text-white">
+                                        {groups.reduce((acc, g) => acc + (g.member_count ?? 0), 0)}
+                                    </span>
+                                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                                        Üye
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
+                </div>
 
-                    {/* ── Search ───────────────────────────────── */}
+                <main className="max-w-5xl mx-auto px-5 pt-5">
+
+                    {/* ── Search ────────────────────────────────── */}
                     <div className="relative mb-6">
                         <Search
                             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
@@ -79,7 +143,7 @@ export const GroupsPage = () => {
                             placeholder="Grup ara..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all border"
+                            className="w-full rounded-2xl py-3 pl-10 pr-4 text-sm outline-none transition-all"
                             style={{
                                 background: "var(--surface)",
                                 border: "1.5px solid var(--border-light)",
@@ -94,36 +158,7 @@ export const GroupsPage = () => {
                         />
                     </div>
 
-                    {/* ── Stats ────────────────────────────────── */}
-                    {!loading && groups.length > 0 && (
-                        <div
-                            className="grid grid-cols-2 gap-3 mb-6 p-4 rounded-2xl border"
-                            style={{
-                                background: "var(--surface)",
-                                borderColor: "var(--border-light)",
-                                boxShadow: "var(--shadow-sm)",
-                            }}
-                        >
-                            <div className="text-center">
-                                <p className="text-2xl font-extrabold" style={{ color: "var(--foreground)" }}>
-                                    {groups.length}
-                                </p>
-                                <p className="text-xs font-semibold mt-0.5" style={{ color: "var(--text-muted)" }}>
-                                    Aktif Grup
-                                </p>
-                            </div>
-                            <div className="text-center border-l" style={{ borderColor: "var(--border-light)" }}>
-                                <p className="text-2xl font-extrabold" style={{ color: "var(--primary)" }}>
-                                    {groups.reduce((acc) => acc, 0)}
-                                </p>
-                                <p className="text-xs font-semibold mt-0.5" style={{ color: "var(--text-muted)" }}>
-                                    Toplam Harcama
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── List ─────────────────────────────────── */}
+                    {/* ── Group Grid ────────────────────────────── */}
                     {loading ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {Array.from({ length: 4 }).map((_, i) => (
@@ -133,7 +168,7 @@ export const GroupsPage = () => {
                     ) : filtered.length === 0 ? (
                         <div className="py-20 flex flex-col items-center text-center gap-3">
                             <div
-                                className="w-16 h-16 rounded-full flex items-center justify-center"
+                                className="w-16 h-16 rounded-3xl flex items-center justify-center"
                                 style={{ background: "var(--surface-muted)" }}
                             >
                                 <Users className="w-7 h-7" style={{ color: "var(--text-muted)" }} />
