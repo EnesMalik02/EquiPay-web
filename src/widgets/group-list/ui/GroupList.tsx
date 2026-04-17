@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { groupApi, GroupResponse, GroupListCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
 
@@ -18,6 +18,22 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
     const [groups, setGroups] = useState<GroupResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    const updateScrollState = () => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 0);
+        setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+
+    const scroll = (dir: "left" | "right") => {
+        const el = scrollRef.current;
+        if (!el) return;
+        el.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
+    };
 
     const openCreate = () => {
         if (onNewGroup) onNewGroup();
@@ -38,6 +54,18 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
         router.push(`/groups/${group.id}`);
     };
 
+    useEffect(() => {
+        updateScrollState();
+    }, [groups, loading]);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(updateScrollState);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
     return (
         <>
             {showCreateModal && (
@@ -53,27 +81,55 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
                         <h3 className="text-base font-bold" style={{ color: "var(--foreground)" }}>
                             Aktif Gruplar
                         </h3>
-                        <button
-                            onClick={openCreate}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95 cursor-pointer"
-                            style={{ background: "var(--primary)", color: "#000" }}
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                            Yeni
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {(canScrollLeft || canScrollRight) && (
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => scroll("left")}
+                                        disabled={!canScrollLeft}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center transition-opacity cursor-pointer"
+                                        style={{
+                                            background: "var(--surface-muted)",
+                                            opacity: canScrollLeft ? 1 : 0.3,
+                                        }}
+                                    >
+                                        <ChevronLeft className="w-4 h-4" style={{ color: "var(--foreground)" }} />
+                                    </button>
+                                    <button
+                                        onClick={() => scroll("right")}
+                                        disabled={!canScrollRight}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center transition-opacity cursor-pointer"
+                                        style={{
+                                            background: "var(--surface-muted)",
+                                            opacity: canScrollRight ? 1 : 0.3,
+                                        }}
+                                    >
+                                        <ChevronRight className="w-4 h-4" style={{ color: "var(--foreground)" }} />
+                                    </button>
+                                </div>
+                            )}
+                            <button
+                                onClick={openCreate}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95 cursor-pointer"
+                                style={{ background: "var(--primary)", color: "#000" }}
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                Yeni
+                            </button>
+                        </div>
                     </div>
                 )}
 
-                <div className="flex gap-3 overflow-x-auto pb-3 hide-scrollbar">
+                <div
+                    ref={scrollRef}
+                    onScroll={updateScrollState}
+                    className="flex gap-3 overflow-x-auto pb-3 hide-scrollbar"
+                >
                     {loading ? (
                         Array.from({ length: 3 }).map((_, i) => (
                             <div
                                 key={i}
-                                className={`shrink-0 rounded-2xl animate-shimmer relative overflow-hidden ${
-                                    i === 0
-                                        ? "min-w-[260px] w-[260px] h-[160px]"
-                                        : "min-w-[196px] w-[196px] h-[140px]"
-                                }`}
+                                className="shrink-0 rounded-2xl animate-shimmer relative overflow-hidden min-w-[260px] w-[260px] h-[160px]"
                             >
                                 {/* Icon placeholder */}
                                 <div
@@ -83,7 +139,7 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
                                 {/* Text placeholders */}
                                 <div
                                     className="absolute bottom-4 left-4 h-3 rounded-full"
-                                    style={{ width: i === 0 ? "120px" : "90px", background: "rgba(255,255,255,0.35)" }}
+                                    style={{ width: "120px", background: "rgba(255,255,255,0.35)" }}
                                 />
                                 <div
                                     className="absolute bottom-9 left-4 h-2 rounded-full"

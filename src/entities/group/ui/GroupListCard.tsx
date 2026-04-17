@@ -31,18 +31,14 @@ export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListC
     return (
         <button
             onClick={onClick}
-            className={`shrink-0 rounded-2xl relative overflow-hidden text-left transition-transform active:scale-[0.97] cursor-pointer ${
-                isFeatured
-                    ? "min-w-[260px] w-[260px] h-[160px]"
-                    : "min-w-[196px] w-[196px] h-[140px]"
-            }`}
+            className="shrink-0 rounded-2xl relative overflow-hidden text-left transition-transform active:scale-[0.97] cursor-pointer min-w-[260px] w-[260px] h-[160px]"
             style={{ background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)` }}
         >
             {/* Decorative initial */}
             <span
                 className="absolute -right-3 -top-3 font-black leading-none select-none pointer-events-none"
                 style={{
-                    fontSize: isFeatured ? "100px" : "84px",
+                    fontSize: "100px",
                     color: "rgba(255,255,255,0.10)",
                     letterSpacing: "-4px",
                 }}
@@ -61,7 +57,7 @@ export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListC
                 <div>
                     <p
                         className="font-bold text-white leading-tight line-clamp-1"
-                        style={{ fontSize: isFeatured ? "15px" : "14px" }}
+                        style={{ fontSize: "15px" }}
                     >
                         {group.name}
                     </p>
