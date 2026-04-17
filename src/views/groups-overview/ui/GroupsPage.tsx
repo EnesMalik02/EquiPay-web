@@ -46,89 +46,77 @@ export const GroupsPage = () => {
 
             <div className="min-h-screen font-sans" style={{ background: "var(--background)" }}>
 
-                {/* ── Gradient Header ─────────────────────────── */}
-                <div
-                    className="relative overflow-hidden"
-                    style={{
-                        background: "linear-gradient(135deg, #0a0a0a 0%, #1c1c2e 55%, #16213e 100%)",
-                        paddingTop: 48,
-                        paddingBottom: 32,
-                        paddingLeft: 24,
-                        paddingRight: 24,
-                    }}
-                >
-                    {/* Glow — right side */}
-                    <div
-                        className="pointer-events-none absolute top-0 right-0 w-72 h-72 rounded-full"
-                        style={{
-                            background: "radial-gradient(circle, var(--primary) 0%, transparent 70%)",
-                            opacity: 0.15,
-                            transform: "translate(25%, -25%)",
-                        }}
-                    />
-                    {/* Glow — left bottom */}
-                    <div
-                        className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 rounded-full"
-                        style={{
-                            background: "radial-gradient(circle, #6366f1 0%, transparent 70%)",
-                            opacity: 0.12,
-                            transform: "translate(-20%, 20%)",
-                        }}
-                    />
-
-                    <div className="max-w-5xl mx-auto relative z-10">
-                        {/* Title row */}
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p
-                                    className="text-[11px] font-bold tracking-widest uppercase mb-1"
-                                    style={{ color: "rgba(255,255,255,0.4)" }}
-                                >
-                                    Genel Bakış
-                                </p>
-                                <h1 className="text-3xl font-extrabold tracking-tight text-white">
-                                    Gruplarım
-                                </h1>
-                            </div>
-                            <button
-                                onClick={() => setShowCreate(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-transform active:scale-95"
-                                style={{ background: "var(--primary)", color: "#000" }}
+                {/* ── Header ──────────────────────────────────── */}
+                <header className="max-w-5xl mx-auto px-5 pt-12 pb-2">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p
+                                className="text-[11px] font-bold tracking-[0.2em] uppercase mb-2"
+                                style={{ color: "var(--text-muted)" }}
                             >
-                                <Plus className="w-4 h-4" />
-                                Yeni Grup
-                            </button>
+                                Genel Bakış
+                            </p>
+                            <h1 className="text-[34px] font-black leading-none tracking-tight" style={{ color: "var(--foreground)" }}>
+                                Grup
+                            </h1>
+                            <h1 className="text-[34px] font-black leading-none tracking-tight" style={{ color: "var(--primary)" }}>
+                                Yönetimi
+                            </h1>
                         </div>
 
-                        {/* Stat pills */}
-                        {!loading && groups.length > 0 && (
-                            <div className="flex gap-3 mt-5">
-                                <div
-                                    className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
-                                    style={{ background: "rgba(255,255,255,0.08)" }}
-                                >
-                                    <Layers className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
-                                    <span className="text-sm font-bold text-white">{groups.length}</span>
-                                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
-                                        Grup
-                                    </span>
-                                </div>
-                                <div
-                                    className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
-                                    style={{ background: "rgba(255,255,255,0.08)" }}
-                                >
-                                    <Users className="w-3.5 h-3.5" style={{ color: "#818cf8" }} />
-                                    <span className="text-sm font-bold text-white">
-                                        {groups.reduce((acc, g) => acc + (g.member_count ?? 0), 0)}
-                                    </span>
-                                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
-                                        Üye
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+                        <button
+                            onClick={() => setShowCreate(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-transform active:scale-95 cursor-pointer mt-1"
+                            style={{
+                                background: "var(--primary)",
+                                color: "#000",
+                                boxShadow: "0 4px 14px rgba(0, 209, 134, 0.28)",
+                            }}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Yeni Grup
+                        </button>
                     </div>
-                </div>
+
+                    {/* Accent line */}
+                    <div className="flex items-center gap-2 mt-6 mb-1">
+                        <div className="h-0.5 w-8 rounded-full" style={{ background: "var(--primary)" }} />
+                        <div className="h-0.5 w-3 rounded-full" style={{ background: "var(--primary-border)" }} />
+                        <div className="h-0.5 w-1.5 rounded-full" style={{ background: "var(--border-light)" }} />
+                    </div>
+
+                    {/* Stat pills */}
+                    {!loading && groups.length > 0 && (
+                        <div className="flex gap-2.5 mt-5">
+                            <div
+                                className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
+                                style={{
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border-light)",
+                                    boxShadow: "var(--shadow-sm)",
+                                }}
+                            >
+                                <Layers className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
+                                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{groups.length}</span>
+                                <span className="text-xs" style={{ color: "var(--text-muted)" }}>Grup</span>
+                            </div>
+                            <div
+                                className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
+                                style={{
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border-light)",
+                                    boxShadow: "var(--shadow-sm)",
+                                }}
+                            >
+                                <Users className="w-3.5 h-3.5" style={{ color: "var(--text-secondary)" }} />
+                                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
+                                    {groups.reduce((acc, g) => acc + (g.member_count ?? 0), 0)}
+                                </span>
+                                <span className="text-xs" style={{ color: "var(--text-muted)" }}>Üye</span>
+                            </div>
+                        </div>
+                    )}
+                </header>
 
                 <main className="max-w-5xl mx-auto px-5 pt-5">
 
@@ -149,12 +137,8 @@ export const GroupsPage = () => {
                                 border: "1.5px solid var(--border-light)",
                                 color: "var(--foreground)",
                             }}
-                            onFocus={(e) =>
-                                (e.currentTarget.style.borderColor = "var(--primary)")
-                            }
-                            onBlur={(e) =>
-                                (e.currentTarget.style.borderColor = "var(--border-light)")
-                            }
+                            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--primary)")}
+                            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-light)")}
                         />
                     </div>
 
@@ -179,7 +163,7 @@ export const GroupsPage = () => {
                             {!query && (
                                 <button
                                     onClick={() => setShowCreate(true)}
-                                    className="text-sm font-bold underline"
+                                    className="text-sm font-bold underline cursor-pointer"
                                     style={{ color: "var(--primary)" }}
                                 >
                                     İlk grubu oluştur
@@ -187,7 +171,7 @@ export const GroupsPage = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-28">
                             {filtered.map((group) => (
                                 <GroupCard
                                     key={group.id}

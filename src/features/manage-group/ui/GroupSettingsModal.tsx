@@ -169,10 +169,10 @@ export const GroupSettingsModal = ({
                                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 text-left"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
-                                        {(m.name ?? m.username ?? "?").charAt(0).toUpperCase()}
+                                        {(m.display_name ?? m.username ?? "?").charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-black truncate">{m.name ?? m.username}</p>
+                                        <p className="text-sm font-semibold text-black truncate">{m.display_name ?? m.username}</p>
                                         {m.username && <p className="text-xs text-gray-400">@{m.username}</p>}
                                     </div>
                                     {m.role === "admin" && (

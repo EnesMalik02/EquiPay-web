@@ -13,3 +13,4 @@ export { groupApi } from "./api/groupApi";
 
 // UI
 export { GroupCard } from "./ui/GroupCard";
+export { GroupListCard } from "./ui/GroupListCard";

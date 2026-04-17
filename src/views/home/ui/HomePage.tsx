@@ -111,7 +111,7 @@ export const HomePage = () => {
                             Gruplarım
                         </h2>
                     </div>
-                    <GroupList onNewGroup={() => setShowCreate(true)} />
+                    <GroupList onNewGroup={() => setShowCreate(true)} showHeader={false} />
                 </div>
 
                 {/* ── Recent Transactions ──────────────────────── */}
