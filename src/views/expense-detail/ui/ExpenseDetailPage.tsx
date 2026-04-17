@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Receipt, CalendarDays, FileText, Wallet, Users } from "lucide-react";
+import { ArrowLeft, Receipt, CalendarDays, FileText, Wallet, Users, CheckCircle2, Clock3, TrendingUp, UserCheck, ChevronDown } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { groupApi } from "@/entities/group/api/groupApi";
@@ -24,6 +24,8 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
+    const [statsOpen, setStatsOpen] = useState(false);
+    const [barAnimated, setBarAnimated] = useState(false);
 
     useEffect(() => {
         Promise.all([
@@ -32,6 +34,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
         ]).then(([exp, mems]) => {
             setExpense(exp);
             setMembers(mems);
+            setTimeout(() => setBarAnimated(true), 80);
         }).finally(() => setLoading(false));
     }, [expenseId, groupId]);
 
@@ -115,6 +118,126 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     )}
                                 </div>
                             );
+                        })()}
+
+                        {/* ── Expense Stats ─────────────────────────── */}
+                        {(() => {
+                            const total = parseFloat(expense.amount);
+                            const totalPaid = expense.splits.reduce((s, sp) => s + parseFloat(sp.paid_amount), 0);
+                            const totalPending = total - totalPaid;
+                            const settledCount = expense.splits.filter((sp) => parseFloat(sp.paid_amount) >= parseFloat(sp.owed_amount)).length;
+                            const totalCount = expense.splits.length;
+                            const perPerson = totalCount > 0 ? total / totalCount : 0;
+                            const progressPct = total > 0 ? Math.min(100, Math.round((totalPaid / total) * 100)) : 0;
+
+                                    return (
+                                        <div
+                                            className="rounded-2xl mb-6 overflow-hidden"
+                                            style={{
+                                                background: "var(--surface)",
+                                                border: "1px solid var(--border-light)",
+                                                boxShadow: "var(--shadow-sm)",
+                                            }}
+                                        >
+                                            {/* Toggle header */}
+                                            <button
+                                                onClick={() => setStatsOpen((v) => !v)}
+                                                className="w-full flex items-center justify-between px-4 py-3.5 cursor-pointer"
+                                            >
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="h-2 w-24 rounded-full overflow-hidden" style={{ background: "var(--surface-muted)" }}>
+                                                        <div
+                                                            className="h-full rounded-full"
+                                                            style={{
+                                                                width: barAnimated ? `${progressPct}%` : "0%",
+                                                                transition: "width 900ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                                                                background: progressPct === 100 ? "var(--primary)" : "linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%)",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <span
+                                                        className="text-xs font-bold"
+                                                        style={{ color: progressPct === 100 ? "var(--primary)" : "var(--text-secondary)" }}
+                                                    >
+                                                        %{progressPct} ödendi
+                                                    </span>
+                                                </div>
+                                                <ChevronDown
+                                                    className="w-4 h-4 shrink-0"
+                                                    style={{
+                                                        color: "var(--text-muted)",
+                                                        transform: statsOpen ? "rotate(180deg)" : "rotate(0deg)",
+                                                        transition: "transform 250ms ease-out",
+                                                    }}
+                                                />
+                                            </button>
+
+                                            {/* Collapsible body — grid-template-rows animasyonu */}
+                                            <div
+                                                style={{
+                                                    display: "grid",
+                                                    gridTemplateRows: statsOpen ? "1fr" : "0fr",
+                                                    transition: "grid-template-rows 280ms ease-out",
+                                                }}
+                                            >
+                                                <div className="overflow-hidden" style={{ minHeight: 0 }}>
+                                                    <div className="px-4 pb-4 grid grid-cols-2 gap-2.5">
+                                                        <div
+                                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5"
+                                                            style={{ background: "var(--primary-light)" }}
+                                                        >
+                                                            <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "var(--primary)" }} />
+                                                            <div>
+                                                                <p className="text-[10px] font-semibold" style={{ color: "var(--primary)" }}>Ödenen</p>
+                                                                <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                                    ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5"
+                                                            style={{ background: "var(--surface-muted)" }}
+                                                        >
+                                                            <Clock3 className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
+                                                            <div>
+                                                                <p className="text-[10px] font-semibold" style={{ color: "var(--text-secondary)" }}>Bekleyen</p>
+                                                                <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                                    ₺{totalPending.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5"
+                                                            style={{ background: "var(--surface-muted)" }}
+                                                        >
+                                                            <TrendingUp className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
+                                                            <div>
+                                                                <p className="text-[10px] font-semibold" style={{ color: "var(--text-secondary)" }}>Kişi Başı</p>
+                                                                <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                                    ₺{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5"
+                                                            style={{ background: "var(--surface-muted)" }}
+                                                        >
+                                                            <UserCheck className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
+                                                            <div>
+                                                                <p className="text-[10px] font-semibold" style={{ color: "var(--text-secondary)" }}>Ödeyenler</p>
+                                                                <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                                    {settledCount}/{totalCount} kişi
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
                         })()}
 
                         {/* Meta rows */}
