@@ -35,8 +35,13 @@ export const AddMemberModal = ({ groupId, onClose, onAdded }: AddMemberModalProp
             const member = await groupApi.addMember(groupId, payload);
             onAdded(member);
         } catch (err: unknown) {
-            const e = err as { response?: { data?: { detail?: string } }; message?: string };
-            setError(e.response?.data?.detail || e.message || "Üye eklenirken bir hata oluştu.");
+            const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
+            const detail = e.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail.map((d: { msg?: string }) => d.msg ?? String(d)).join(", "));
+            } else {
+                setError((detail as string | undefined) || e.message || "Üye eklenirken bir hata oluştu.");
+            }
         } finally {
             setLoading(false);
         }

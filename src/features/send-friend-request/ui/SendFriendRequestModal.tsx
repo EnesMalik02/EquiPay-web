@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { friendApi } from "@/entities/friend";
 
 interface SendFriendRequestModalProps {
@@ -9,8 +11,12 @@ interface SendFriendRequestModalProps {
     onSent: () => void;
 }
 
+type SearchMode = "email" | "phone";
+
 export const SendFriendRequestModal = ({ onClose, onSent }: SendFriendRequestModalProps) => {
+    const [mode, setMode] = useState<SearchMode>("email");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -19,15 +25,23 @@ export const SendFriendRequestModal = ({ onClose, onSent }: SendFriendRequestMod
         setLoading(true);
         setError("");
         try {
-            await friendApi.send(email.trim());
+            const payload = mode === "email" ? { email: email.trim() } : { phone: phone.trim() };
+            await friendApi.send(payload);
             onSent();
         } catch (err: unknown) {
-            const e = err as { response?: { data?: { detail?: string } }; message?: string };
-            setError(e.response?.data?.detail || e.message || "İstek gönderilemedi.");
+            const e = err as { response?: { data?: { detail?: unknown } }; message?: string };
+            const detail = e.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail.map((d: { msg?: string }) => d.msg ?? String(d)).join(", "));
+            } else {
+                setError((detail as string | undefined) || e.message || "İstek gönderilemedi.");
+            }
         } finally {
             setLoading(false);
         }
     };
+
+    const isDisabled = loading || (mode === "email" ? !email.trim() : !phone.trim());
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -40,26 +54,69 @@ export const SendFriendRequestModal = ({ onClose, onSent }: SendFriendRequestMod
                     </button>
                 </div>
 
+                {/* Mode toggle */}
+                <div className="flex bg-gray-100 rounded-xl p-1 mb-5">
+                    <button
+                        type="button"
+                        onClick={() => { setMode("email"); setError(""); }}
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                            mode === "email"
+                                ? "bg-white text-black shadow-sm"
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Email
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => { setMode("phone"); setError(""); }}
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                            mode === "phone"
+                                ? "bg-white text-black shadow-sm"
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Telefon
+                    </button>
+                </div>
+
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-4 text-sm font-medium">{error}</div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1.5" htmlFor="friend-email">
-                            Email Adresi <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                            id="friend-email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="arkadas@email.com"
-                            required
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 outline-none transition-all text-black font-medium placeholder-gray-400"
-                        />
-                        <p className="text-xs text-gray-400 mt-1.5">Eklemek istediğin kişinin kayıtlı email adresini gir.</p>
-                    </div>
+                    {mode === "email" ? (
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1.5" htmlFor="friend-email">
+                                Email Adresi <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                                id="friend-email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="arkadas@email.com"
+                                required
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 outline-none transition-all text-black font-medium placeholder-gray-400"
+                            />
+                            <p className="text-xs text-gray-400 mt-1.5">Eklemek istediğin kişinin kayıtlı email adresini gir.</p>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1.5" htmlFor="friend-phone">
+                                Telefon Numarası <span className="text-red-400">*</span>
+                            </label>
+                            <PhoneInput
+                                id="friend-phone"
+                                defaultCountry="TR"
+                                value={phone}
+                                onChange={(val) => setPhone(val || "")}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4"
+                                placeholder="(505) 123 45 67"
+                            />
+                            <p className="text-xs text-gray-400 mt-1.5">Eklemek istediğin kişinin kayıtlı telefon numarasını gir.</p>
+                        </div>
+                    )}
 
                     <div className="flex gap-3 pt-2">
                         <button type="button" onClick={onClose} className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all">
@@ -67,7 +124,7 @@ export const SendFriendRequestModal = ({ onClose, onSent }: SendFriendRequestMod
                         </button>
                         <button
                             type="submit"
-                            disabled={loading || !email.trim()}
+                            disabled={isDisabled}
                             className="flex-1 py-3 px-4 bg-[#00d186] hover:bg-[#00c07c] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(0,209,134,0.39)] transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {loading ? "Gönderiliyor..." : "İstek Gönder"}
