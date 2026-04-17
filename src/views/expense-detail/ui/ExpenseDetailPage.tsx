@@ -9,6 +9,7 @@ import { groupApi } from "@/entities/group/api/groupApi";
 import { ExpenseResponse } from "@/entities/expense/model/types";
 import { GroupMemberResponse } from "@/entities/group/model/types";
 import { useUser } from "@/shared/store/UserContext";
+import { Skeleton } from "@/shared/ui";
 
 interface ExpenseDetailPageProps {
     groupId: string;
@@ -48,12 +49,13 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     };
 
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans">
+        <div className="min-h-screen font-sans" style={{ background: "var(--background)", color: "var(--foreground)" }}>
             <main className="max-w-5xl mx-auto px-6 pt-8 pb-12">
 
                 <button
                     onClick={() => router.push(`/groups/${groupId}`)}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-semibold mb-8 transition-colors"
+                    className="flex items-center gap-2 text-sm font-semibold mb-8 transition-colors"
+                    style={{ color: "var(--text-secondary)" }}
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Geri Dön
@@ -62,14 +64,15 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                 {loading ? (
                     <div className="space-y-5">
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gray-100 animate-pulse shrink-0" />
+                            <Skeleton className="w-14 h-14 shrink-0" rounded="lg" />
                             <div className="space-y-2 flex-1">
-                                <div className="h-6 w-48 bg-gray-100 rounded-full animate-pulse" />
-                                <div className="h-3 w-24 bg-gray-100 rounded-full animate-pulse" />
+                                <Skeleton className="h-6 w-48" />
+                                <Skeleton className="h-3 w-24" rounded="full" />
                             </div>
                         </div>
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="h-14 bg-gray-50 rounded-2xl animate-pulse" />
+                        <Skeleton className="h-24 w-full" rounded="lg" />
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} className="h-14 w-full" rounded="lg" />
                         ))}
                     </div>
                 ) : expense ? (
@@ -89,10 +92,10 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                             <Receipt className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <p className="text-2xl font-extrabold text-black tracking-tight">
+                                            <p className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
                                                 ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                             </p>
-                                            <p className="text-sm text-gray-400 font-medium mt-0.5">{expense.title}</p>
+                                            <p className="text-sm font-medium mt-0.5" style={{ color: "var(--text-muted)" }}>{expense.title}</p>
                                         </div>
                                     </div>
                                     {mySplit && myOwed > 0 && (
@@ -115,11 +118,11 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                         })()}
 
                         {/* Meta rows */}
-                        <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-8">
+                        <div className="rounded-2xl divide-y divide-gray-100 mb-8" style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}>
                             <div className="flex items-center gap-3 px-4 py-3.5">
-                                <Wallet className="w-4 h-4 text-gray-400 shrink-0" />
-                                <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Ödeyen</span>
-                                <span className="text-sm font-bold text-black truncate">
+                                <Wallet className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Ödeyen</span>
+                                <span className="text-sm font-bold truncate" style={{ color: "var(--foreground)" }}>
                                     {(() => {
                                         const p = members.find((m) => String(m.user_id) === String(expense.paid_by));
                                         return p?.display_name ?? p?.username ?? expense.paid_by;
@@ -127,20 +130,20 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                 </span>
                             </div>
                             <div className="flex items-center gap-3 px-4 py-3.5">
-                                <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
-                                <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Tarih</span>
-                                <span className="text-sm font-bold text-black">{expense.expense_date}</span>
+                                <CalendarDays className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Tarih</span>
+                                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{expense.expense_date}</span>
                             </div>
                             <div className="flex items-center gap-3 px-4 py-3.5">
-                                <span className="w-4 h-4 text-gray-400 text-xs font-black flex items-center justify-center shrink-0">₺</span>
-                                <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Para Birimi</span>
-                                <span className="text-sm font-bold text-black">{expense.currency}</span>
+                                <span className="w-4 h-4 text-xs font-black flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>₺</span>
+                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Para Birimi</span>
+                                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{expense.currency}</span>
                             </div>
                             {expense.notes && (
                                 <div className="flex items-start gap-3 px-4 py-3.5">
-                                    <FileText className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
-                                    <span className="text-sm text-gray-500 font-medium w-28 shrink-0">Not</span>
-                                    <span className="text-sm font-medium text-gray-700">{expense.notes}</span>
+                                    <FileText className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--text-muted)" }} />
+                                    <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Not</span>
+                                    <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>{expense.notes}</span>
                                 </div>
                             )}
                         </div>
@@ -148,10 +151,10 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                         {/* Splits */}
                         <div>
                             <div className="flex items-center gap-2 mb-3">
-                                <Users className="w-4 h-4 text-gray-400" />
-                                <p className="text-xs font-bold tracking-widest uppercase text-gray-400">Paylaşım</p>
+                                <Users className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+                                <p className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Paylaşım</p>
                             </div>
-                            <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100">
+                            <div className="rounded-2xl divide-y divide-gray-100" style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}>
                                 {expense.splits.map((split) => {
                                     const member = members.find((m) => String(m.user_id) === String(split.user_id));
                                     const name = member?.display_name ?? member?.username ?? String(split.user_id);
@@ -161,12 +164,13 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
 
                                     return (
                                         <div key={split.id} className="flex items-center gap-3 px-4 py-3.5">
-                                            <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
+                                            <div className="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold shrink-0"
+                                                 style={{ background: "var(--surface-muted)", borderColor: "var(--border-light)", color: "var(--text-secondary)" }}>
                                                 {name.charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="flex-1 text-sm font-semibold text-black truncate">{name}</span>
+                                            <span className="flex-1 text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>{name}</span>
                                             <div className="text-right shrink-0">
-                                                <p className="text-sm font-bold text-black">
+                                                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
                                                     ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 </p>
                                                 {settled ? (

@@ -64,12 +64,12 @@ export const BottomNav = () => {
                         onClick={() => setShowCreate(true)}
                         className="
                             mx-1 w-12 h-12 shrink-0
-                            bg-[var(--foreground)] hover:bg-[#222]
                             text-white rounded-full
                             flex items-center justify-center
                             shadow-lg active:scale-90
                             transition-all duration-150
                         "
+                        style={{ background: "var(--primary)", boxShadow: "0 4px 16px rgba(0,209,134,0.4)" }}
                         aria-label="Yeni grup oluştur"
                     >
                         <Plus className="w-5 h-5" />

@@ -72,3 +72,19 @@ body {
 .animate-fade-in-up {
   animation: fade-in-up 0.25s ease-out;
 }
+
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 0%,
+    var(--border-light) 40%,
+    var(--surface-muted) 80%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+}

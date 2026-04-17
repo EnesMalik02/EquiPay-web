@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { UserPlus, UserCheck, UserX, Users } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { friendApi, FriendResponse, FriendRequestResponse } from "@/entities/friend";
-import { UserAvatar } from "@/shared/ui";
+import { UserAvatar, SkeletonListItem } from "@/shared/ui";
 import { SendFriendRequestModal } from "@/features/send-friend-request";
 
 type Tab = "friends" | "requests";
@@ -73,7 +73,7 @@ export const FriendsPage = () => {
                     <button
                         onClick={() => setShowModal(true)}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
-                        style={{ background: "var(--foreground)" }}
+                        style={{ background: "var(--primary)", boxShadow: "0 4px 12px rgba(0,209,134,0.3)" }}
                     >
                         <UserPlus className="w-4 h-4" />
                         Ekle
@@ -105,7 +105,7 @@ export const FriendsPage = () => {
                 {loading ? (
                     <div className="space-y-3">
                         {Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: "var(--surface-muted)" }} />
+                            <SkeletonListItem key={i} />
                         ))}
                     </div>
                 ) : activeTab === "friends" ? (

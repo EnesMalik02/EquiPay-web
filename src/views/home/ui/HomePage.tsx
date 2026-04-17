@@ -35,16 +35,28 @@ export const HomePage = () => {
 
             <main className="max-w-5xl mx-auto px-6 pt-10">
                 {/* Balance Section */}
-                <div className="mb-10">
-                    <p className="text-[11px] font-bold tracking-widest uppercase mb-1"
+                <div
+                    className="mb-10 p-6 rounded-3xl relative overflow-hidden"
+                    style={{
+                        background: "var(--surface)",
+                        border: "1px solid var(--border-light)",
+                        boxShadow: "var(--shadow-md)",
+                    }}
+                >
+                    {/* Subtle green glow blob */}
+                    <div
+                        className="pointer-events-none absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-[0.07]"
+                        style={{ background: "var(--primary)" }}
+                    />
+                    <p className="text-[11px] font-bold tracking-widest uppercase mb-1 relative z-10"
                        style={{ color: "var(--text-muted)" }}>
                         Net Durumun
                     </p>
-                    <h1 className="text-5xl font-extrabold tracking-tight mb-3"
+                    <h1 className="text-5xl font-extrabold tracking-tight mb-3 relative z-10"
                         style={{ color: balanceColor }}>
                         {balanceFormatted}
                     </h1>
-                    <p className="text-sm leading-relaxed max-w-sm" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-sm leading-relaxed max-w-sm relative z-10" style={{ color: "var(--text-secondary)" }}>
                         4 aktif grupta toplam bakiyen bulunuyor.
                     </p>
                 </div>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { groupApi, GroupResponse, GroupCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
-import { PrimaryButton } from "@/shared/ui";
+import { PrimaryButton, SkeletonCard } from "@/shared/ui";
 
 interface GroupListProps {
     /** When provided, called instead of opening the internal modal (e.g. parent owns the button) */
@@ -67,10 +67,9 @@ export const GroupList = ({ onNewGroup }: GroupListProps) => {
                 <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
                     {loading ? (
                         Array.from({ length: 2 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className="min-w-[280px] bg-gray-50 border border-gray-100 rounded-3xl p-6 animate-pulse h-[160px]"
-                            />
+                            <div key={i} className="min-w-[240px] w-[240px] shrink-0">
+                                <SkeletonCard />
+                            </div>
                         ))
                     ) : groups.length === 0 ? (
                         <div className="flex flex-col items-center justify-center w-full py-12 text-center gap-3">

@@ -5,6 +5,7 @@ import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { settlementApi, SettlementResponse, SettlementStatus } from "@/entities/settlement";
 import { useUser } from "@/shared/store/UserContext";
 import { CheckCircle, XCircle, Clock, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { SkeletonSettlementItem } from "@/shared/ui";
 
 type Tab = "pending" | "confirmed" | "rejected";
 
@@ -81,13 +82,16 @@ export const SettlementsPage = () => {
 
                 {loading ? (
                     <div className="space-y-3">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: "var(--surface-muted)" }} />
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <SkeletonSettlementItem key={i} />
                         ))}
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="py-20 text-center">
-                        <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                    <div className="py-20 flex flex-col items-center gap-3 text-center">
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "var(--surface-muted)" }}>
+                            <Clock className="w-6 h-6" style={{ color: "var(--text-muted)" }} />
+                        </div>
+                        <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
                             Bu kategoride ödeme kaydı yok.
                         </p>
                     </div>

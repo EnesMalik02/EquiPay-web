@@ -7,6 +7,7 @@ import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
+import { Skeleton } from "@/shared/ui";
 
 type SplitType = "equal" | "exact" | "percentage";
 
@@ -155,12 +156,16 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
     /* ── Loading ──────────────────────────────────────────────── */
     if (dataLoading) {
         return (
-            <div className="min-h-screen bg-white font-sans">
+            <div className="min-h-screen font-sans" style={{ background: "var(--background)" }}>
                 <main className="max-w-5xl mx-auto px-6 pt-8">
-                    <div className="h-5 w-32 bg-gray-100 rounded-full animate-pulse mb-10" />
+                    <Skeleton className="h-5 w-32 mb-10" rounded="full" />
+                    <Skeleton className="h-8 w-48 mb-8" />
                     <div className="space-y-5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-14 bg-gray-50 rounded-2xl animate-pulse" />
+                            <div key={i} className="space-y-1.5">
+                                <Skeleton className="h-3.5 w-20" rounded="full" />
+                                <Skeleton className="h-12 w-full" />
+                            </div>
                         ))}
                     </div>
                 </main>
@@ -181,19 +186,20 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
     /* ── Render ───────────────────────────────────────────────── */
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans">
+        <div className="min-h-screen font-sans" style={{ background: "var(--background)", color: "var(--foreground)" }}>
 
             <main className="max-w-5xl mx-auto px-6 pt-8">
 
                 <button
                     onClick={() => router.push(`/groups/${groupId}`)}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-semibold mb-8 transition-colors"
+                    className="flex items-center gap-2 text-sm font-semibold mb-8 transition-colors"
+                    style={{ color: "var(--text-secondary)" }}
                 >
                     <ArrowLeft className="w-4 h-4" />
                     {group ? group.name : "Gruba Dön"}
                 </button>
 
-                <h1 className="text-3xl font-extrabold tracking-tight text-black mb-8">
+                <h1 className="text-3xl font-extrabold tracking-tight mb-8" style={{ color: "var(--foreground)" }}>
                     Harcama Ekle
                 </h1>
 
@@ -208,7 +214,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                        <label className="block text-sm font-bold mb-1.5" style={{ color: "var(--foreground)" }}>
                             Başlık <span className="text-red-400">*</span>
                         </label>
                         <input
@@ -225,7 +231,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                     {/* Amount + Date row */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                            <label className="block text-sm font-bold mb-1.5" style={{ color: "var(--foreground)" }}>
                                 Tutar (₺) <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -240,7 +246,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                            <label className="block text-sm font-bold mb-1.5" style={{ color: "var(--foreground)" }}>
                                 Tarih <span className="text-gray-400 font-normal">(isteğe bağlı)</span>
                             </label>
                             <input
@@ -254,7 +260,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                     {/* Paid by */}
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                        <label className="block text-sm font-bold mb-1.5" style={{ color: "var(--foreground)" }}>
                             Kim Ödedi? <span className="text-red-400">*</span>
                         </label>
                         <select
@@ -272,7 +278,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                     {/* Notes */}
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                        <label className="block text-sm font-bold mb-1.5" style={{ color: "var(--foreground)" }}>
                             Not <span className="text-gray-400 font-normal">(isteğe bağlı)</span>
                         </label>
                         <input
@@ -287,7 +293,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                     {/* Split type selector */}
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                        <label className="block text-sm font-bold mb-1.5" style={{ color: "var(--foreground)" }}>
                             Paylaşım Yöntemi
                         </label>
                         <div className="flex rounded-xl bg-gray-100 p-1 gap-1">

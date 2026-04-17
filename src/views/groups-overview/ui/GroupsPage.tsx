@@ -8,7 +8,7 @@ import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupResponse } from "@/entities/group/model/types";
 import { GroupCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
-import { PrimaryButton } from "@/shared/ui";
+import { PrimaryButton, SkeletonCard } from "@/shared/ui";
 
 export const GroupsPage = () => {
     const router = useRouter();
@@ -127,11 +127,7 @@ export const GroupsPage = () => {
                     {loading ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {Array.from({ length: 4 }).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="h-[220px] rounded-3xl animate-pulse"
-                                    style={{ background: "var(--surface-muted)" }}
-                                />
+                                <SkeletonCard key={i} />
                             ))}
                         </div>
                     ) : filtered.length === 0 ? (
