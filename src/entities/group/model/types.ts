@@ -18,7 +18,8 @@ export interface GroupUpdate {
 }
 
 export interface GroupMemberAdd {
-    phone: string;
+    phone?: string;
+    email?: string;
 }
 
 export interface GroupMemberRoleUpdate {

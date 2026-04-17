@@ -1,24 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { registerAction } from "../actions/authActions";
 import Link from "next/link";
 
 export const RegisterForm = () => {
     const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!phone.trim()) {
+            setError("Telefon numarası zorunludur.");
+            return;
+        }
         setLoading(true);
         setError("");
 
         const result = await registerAction({
             email,
             password,
+            phone: phone.trim(),
             display_name: displayName.trim() || undefined,
         });
         if (result?.error) {
@@ -65,6 +73,20 @@ export const RegisterForm = () => {
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
                         placeholder="ornek@email.com"
                         required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="phone">
+                        Telefon Numarası <span className="text-red-400">*</span>
+                    </label>
+                    <PhoneInput
+                        id="phone"
+                        defaultCountry="TR"
+                        value={phone}
+                        onChange={(val) => setPhone(val || "")}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4"
+                        placeholder="(505) 123 45 67"
                     />
                 </div>
 
