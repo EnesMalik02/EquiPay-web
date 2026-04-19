@@ -22,9 +22,9 @@ const groups = [
 ];
 
 const stats = [
-  { label: "Toplam Harcama",  value: 5620, suffix: "₺", icon: Wallet },
-  { label: "Aktif Grup",      value: 3,    suffix: "",  icon: Users  },
-  { label: "Kişi Başı Tasarruf", value: 420, suffix: "₺", icon: Split  },
+  { label: "Toplam Harcama",     value: 5620, suffix: "₺", icon: Wallet },
+  { label: "Aktif Grup",         value: 3,    suffix: "",  icon: Users  },
+  { label: "Kişi Başı Tasarruf", value: 420,  suffix: "₺", icon: Split  },
 ];
 
 const features = [
@@ -54,16 +54,24 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span ref={ref}>{display.toLocaleString("tr-TR")}</span>;
 }
 
+// ── Logo SVG ──────────────────────────────────────────────
+function LogoIcon({ size = 18, stroke = "white" }: { size?: number; stroke?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="18" height="18" x="3" y="3" rx="4" />
+      <path d="M8 12h8" /><path d="M12 8v8" />
+    </svg>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────
 export default function LandingPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const cookies = document.cookie.split(";").map((c) => c.trim());
-    const hasToken = cookies.some(
-      (c) => c.startsWith("access_token=") || c.startsWith("refresh_token=")
-    );
-    setIsAuthenticated(hasToken);
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -71,6 +79,46 @@ export default function LandingPage() {
       className="relative overflow-hidden flex flex-col"
       style={{ background: "var(--background)", color: "var(--foreground)" }}
     >
+      {/* ── Scroll Navbar ─────────────────────────────────── */}
+      <motion.nav
+        initial={false}
+        animate={scrolled ? { y: 0, opacity: 1 } : { y: -64, opacity: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3"
+        style={{
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          background: "rgba(247, 247, 245, 0.92)",
+          borderBottom: "1px solid var(--border-light)",
+          boxShadow: "0 1px 0 var(--border), 0 4px 24px rgba(18,21,18,0.06)",
+        }}
+      >
+        <div className="flex items-center gap-2 max-w-5xl mx-auto w-full justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "var(--primary)" }}
+            >
+              <LogoIcon size={14} />
+            </div>
+            <span className="text-base font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
+              Paylaş
+            </span>
+          </div>
+          <Link
+            href="/auth/register"
+            className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer"
+            style={{
+              background: "var(--primary)",
+              color: "#fff",
+              boxShadow: "0 1px 4px rgba(31,138,76,0.25)",
+            }}
+          >
+            Başla
+          </Link>
+        </div>
+      </motion.nav>
+
       {/* Decorative blobs */}
       <div
         className="pointer-events-none absolute -top-20 -right-20 w-[320px] h-[320px] rounded-full opacity-[0.18] animate-blob"
@@ -91,55 +139,8 @@ export default function LandingPage() {
         }}
       />
 
-      {/* ── Header ────────────────────────────────────────── */}
-      <header className="relative z-10 flex items-center justify-between px-6 pt-8 max-w-5xl mx-auto w-full">
-        <div className="flex items-center gap-2.5 animate-scale-in" style={{ animationDelay: "0ms" }}>
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "var(--primary)", boxShadow: "0 4px 14px rgba(0,209,134,0.40)" }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="4" />
-              <path d="M8 12h8" /><path d="M12 8v8" />
-            </svg>
-          </div>
-          <span className="text-xl font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
-            Paylaş
-          </span>
-        </div>
-
-        <nav className="flex items-center gap-2 animate-scale-in" style={{ animationDelay: "60ms" }}>
-          {isAuthenticated ? (
-            <Link
-              href="/home"
-              className="text-sm font-bold px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer"
-              style={{ background: "var(--primary)", color: "#fff", boxShadow: "0 2px 10px rgba(0,209,134,0.35)" }}
-            >
-              Hesabım
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/auth/login"
-                className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Giriş Yap
-              </Link>
-              <Link
-                href="/auth/register"
-                className="text-sm font-bold px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer"
-                style={{ background: "var(--primary)", color: "#fff", boxShadow: "0 2px 10px rgba(0,209,134,0.35)" }}
-              >
-                Başla
-              </Link>
-            </>
-          )}
-        </nav>
-      </header>
-
       {/* ── Hero ──────────────────────────────────────────── */}
-      <main className="relative z-10 flex flex-col items-center px-6 pt-14 pb-6 max-w-5xl mx-auto w-full">
+      <main className="relative z-10 flex flex-col items-center px-6 pt-20 pb-6 max-w-5xl mx-auto w-full">
 
         {/* Floating logo */}
         <div className="animate-scale-in animate-float mb-7" style={{ animationDelay: "80ms" }}>
@@ -151,10 +152,7 @@ export default function LandingPage() {
               boxShadow: "0 8px 32px rgba(0,209,134,0.18), var(--shadow-md)",
             }}
           >
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="4" />
-              <path d="M8 12h8" /><path d="M12 8v8" />
-            </svg>
+            <LogoIcon size={38} stroke="var(--primary)" />
           </div>
         </div>
 
@@ -190,35 +188,31 @@ export default function LandingPage() {
         </p>
 
         {/* CTA buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm animate-slide-up" style={{ animationDelay: "320ms" }}>
-          {isAuthenticated ? (
-            <Link
-              href="/home"
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 font-bold rounded-2xl transition-all active:scale-95 cursor-pointer group"
-              style={{ background: "var(--primary)", color: "#fff", boxShadow: "0 4px 20px rgba(0,209,134,0.40)" }}
-            >
-              Hesabıma Git
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/auth/register"
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 font-bold rounded-2xl transition-all active:scale-95 cursor-pointer group"
-                style={{ background: "var(--primary)", color: "#fff", boxShadow: "0 4px 20px rgba(0,209,134,0.40)" }}
-              >
-                Hesap Oluştur
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href="/auth/login"
-                className="flex-1 flex items-center justify-center py-3.5 px-6 font-bold rounded-2xl transition-all active:scale-95 cursor-pointer"
-                style={{ background: "var(--surface)", color: "var(--foreground)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}
-              >
-                Giriş Yap
-              </Link>
-            </>
-          )}
+        <div className="flex flex-row gap-3 animate-slide-up" style={{ animationDelay: "320ms" }}>
+          <Link
+            href="/auth/register"
+            className="flex items-center gap-2 py-3 px-7 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer group text-sm"
+            style={{
+              background: "var(--primary)",
+              color: "#fff",
+              boxShadow: "0 2px 12px rgba(31,138,76,0.30), 0 1px 3px rgba(31,138,76,0.20)",
+            }}
+          >
+            Hesap Oluştur
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <Link
+            href="/auth/login"
+            className="flex items-center py-3 px-7 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer text-sm"
+            style={{
+              background: "var(--surface)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border)",
+              boxShadow: "0 1px 3px rgba(18,21,18,0.06)",
+            }}
+          >
+            Giriş Yap
+          </Link>
         </div>
       </main>
 
@@ -281,7 +275,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>Aylık Harcamalar</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Son 6 ay · Haz en yüksek</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Son 6 ay · Nis en yüksek</p>
               </div>
               <motion.div
                 initial={{ scale: 0 }}
@@ -300,17 +294,14 @@ export default function LandingPage() {
             <div className="flex items-end gap-2" style={{ height: "140px" }}>
               {monthlyData.map(({ month, amount }, i) => {
                 const heightPct = (amount / maxAmount) * 100;
-                const isActive = i === 3; // Nisan - en yüksek
+                const isActive = i === 3;
                 return (
                   <div key={month} className="flex-1 flex flex-col items-center gap-1.5" style={{ height: "100%" }}>
                     <div className="flex-1 flex items-end w-full">
                       <div className="w-full relative" style={{ height: `${heightPct}%` }}>
                         <motion.div
                           className="w-full h-full rounded-t-lg"
-                          style={{
-                            background: isActive ? "var(--primary)" : "var(--primary-light)",
-                            transformOrigin: "bottom",
-                          }}
+                          style={{ background: isActive ? "var(--primary)" : "var(--primary-light)", transformOrigin: "bottom" }}
                           initial={{ scaleY: 0 }}
                           whileInView={{ scaleY: 1 }}
                           viewport={{ once: true }}
@@ -336,7 +327,6 @@ export default function LandingPage() {
               })}
             </div>
 
-            {/* Chart footer */}
             <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>Bu ay toplam</p>
               <motion.p
@@ -368,7 +358,7 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2.5">
                     <div
                       className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: `${color}22` }}
+                      style={{ background: `${color === "var(--primary)" ? "rgba(0,209,134,0.12)" : color + "22"}` }}
                     >
                       <Users className="w-4 h-4" style={{ color }} />
                     </div>
@@ -385,7 +375,6 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Progress bar */}
                 <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border-light)" }}>
                   <motion.div
                     className="absolute left-0 top-0 h-full rounded-full"
