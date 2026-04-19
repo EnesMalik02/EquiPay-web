@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import PhoneInput from "react-phone-number-input";
+import type { Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { registerAction } from "../actions/authActions";
 import Link from "next/link";
+
+const DEFAULT_COUNTRY: Country = "TR";
 
 export const RegisterForm = () => {
     const [username, setUsername] = useState("");
@@ -83,11 +86,13 @@ export const RegisterForm = () => {
                     </label>
                     <PhoneInput
                         id="phone"
-                        defaultCountry="TR"
+                        defaultCountry={DEFAULT_COUNTRY}
+                        international
+                        countryCallingCodeEditable={false}
                         value={phone}
-                        onChange={(val) => setPhone(val || "")}
+                        onChange={(val) => setPhone(val ?? "")}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4"
-                        placeholder="(505) 123 45 67"
+                        placeholder="555 123 45 67"
                     />
                 </div>
 
