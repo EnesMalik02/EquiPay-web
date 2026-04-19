@@ -34,9 +34,9 @@ export const BottomNav = () => {
                 />
             )}
 
-            <div className="h-28" aria-hidden />
+            <div className="h-28 md:hidden" aria-hidden />
 
-            <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-5 px-4 pointer-events-none">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-5 px-4 pointer-events-none">
                 <nav
                     className="
                         pointer-events-auto
