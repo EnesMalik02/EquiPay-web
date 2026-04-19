@@ -215,43 +215,25 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                         <ArrowLeft className="w-4 h-4" />
                         {group?.name ?? "Gruba Dön"}
                     </button>
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => router.push(`/groups/${groupId}`)}
-                            className="text-sm font-semibold transition-opacity hover:opacity-70"
-                            style={{ color: "var(--text-secondary)" }}
-                        >
-                            İptal
-                        </button>
-                        <button
-                            type="submit"
-                            form="expense-form"
-                            disabled={!formValid || submitting}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-                            style={{ background: "var(--primary)" }}
-                        >
-                            ✓ {submitting ? "Kaydediliyor..." : "Kaydet"}
-                        </button>
-                    </div>
+                    {/* Mobilde İptal göster, desktop'ta sağ panel var */}
+                    <button
+                        type="button"
+                        onClick={() => router.push(`/groups/${groupId}`)}
+                        className="lg:hidden text-sm font-semibold transition-opacity hover:opacity-70"
+                        style={{ color: "var(--text-secondary)" }}
+                    >
+                        İptal
+                    </button>
                 </div>
             </div>
 
-            <main className="max-w-5xl mx-auto px-6 pt-8 pb-32">
+            <main className="max-w-5xl mx-auto px-6 pt-8 pb-32 lg:pb-12">
                 <h1 className="text-3xl font-extrabold tracking-tight mb-8" style={{ color: "var(--foreground)" }}>
                     Harcama Ekle
                 </h1>
 
-                {error && (
-                    <div className="flex items-start gap-3 px-4 py-3 rounded-xl mb-6 text-sm font-medium border"
-                        style={{ background: "var(--danger-light)", borderColor: "#f5b8ae", color: "var(--danger)" }}>
-                        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                        {error}
-                    </div>
-                )}
-
                 <form id="expense-form" onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 lg:items-start">
 
                         {/* ── Left column ── */}
                         <div className="space-y-5">
@@ -512,7 +494,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                         </div>
 
                         {/* ── Right column ── */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 lg:sticky lg:top-[57px]">
 
                             {/* Kim ödedi? */}
                             <div className="rounded-2xl border p-5" style={cardStyle}>
@@ -633,7 +615,59 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* ── Desktop Kaydet butonu (sadece lg+) ── */}
+                            <div className="hidden lg:flex flex-col gap-2">
+                                {error && (
+                                    <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl text-xs font-medium border"
+                                        style={{ background: "var(--danger-light)", borderColor: "#f5b8ae", color: "var(--danger)" }}>
+                                        <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                                        {error}
+                                    </div>
+                                )}
+                                <button
+                                    type="submit"
+                                    disabled={!formValid || submitting}
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                                    style={{
+                                        background: "var(--primary)",
+                                        boxShadow: formValid ? "0 2px 16px rgba(31,138,76,0.32)" : "none",
+                                    }}
+                                >
+                                    {submitting ? "Kaydediliyor..." : "Kaydet"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => router.push(`/groups/${groupId}`)}
+                                    className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-70"
+                                    style={{ color: "var(--text-secondary)" }}
+                                >
+                                    İptal
+                                </button>
+                            </div>
                         </div>
+                    </div>
+
+                    {/* ── Mobil Kaydet butonu (sadece < lg) ── */}
+                    <div className="lg:hidden mt-6 flex flex-col items-stretch gap-3">
+                        {error && (
+                            <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm font-medium border"
+                                style={{ background: "var(--danger-light)", borderColor: "#f5b8ae", color: "var(--danger)" }}>
+                                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                {error}
+                            </div>
+                        )}
+                        <button
+                            type="submit"
+                            disabled={!formValid || submitting}
+                            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                            style={{
+                                background: "var(--primary)",
+                                boxShadow: formValid ? "0 2px 12px rgba(31,138,76,0.30)" : "none",
+                            }}
+                        >
+                            {submitting ? "Kaydediliyor..." : "Kaydet"}
+                        </button>
                     </div>
                 </form>
             </main>
