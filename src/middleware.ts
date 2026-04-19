@@ -12,7 +12,9 @@ export function middleware(request: NextRequest) {
   const isAuthenticated = !!(accessToken || refreshToken)
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
+  const isAuthRoute = authRoutes.some((route) =>
+    route === '/' ? pathname === '/' : pathname.startsWith(route)
+  )
 
   if (!isAuthenticated && isProtectedRoute) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
