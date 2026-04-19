@@ -3,19 +3,19 @@
 import { Users } from "lucide-react";
 import { GroupResponse } from "../model/types";
 
-const CARD_GRADIENTS: [string, string][] = [
-    ["#00d186", "#00a0b4"],
-    ["#3b82f6", "#6366f1"],
-    ["#f59e0b", "#ef4444"],
-    ["#8b5cf6", "#ec4899"],
-    ["#ec4899", "#f97316"],
-    ["#14b8a6", "#6366f1"],
+const CARD_PALETTES: { bg: string; text: string; sub: string; icon: string }[] = [
+    { bg: "#DCF0E2", text: "#0E5C30", sub: "#1F8A4C", icon: "#B8E5CA" },
+    { bg: "#DBEAFE", text: "#1E3A8A", sub: "#2563EB", icon: "#BFDBFE" },
+    { bg: "#FEF3C7", text: "#78350F", sub: "#D97706", icon: "#FDE68A" },
+    { bg: "#EDE9FE", text: "#4C1D95", sub: "#7C3AED", icon: "#DDD6FE" },
+    { bg: "#FFE4E6", text: "#881337", sub: "#E11D48", icon: "#FECDD3" },
+    { bg: "#CCFBF1", text: "#134E4A", sub: "#0D9488", icon: "#99F6E4" },
 ];
 
-function cardGradient(name: string): [string, string] {
+function cardPalette(name: string) {
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
+    return CARD_PALETTES[Math.abs(hash) % CARD_PALETTES.length];
 }
 
 interface GroupListCardProps {
@@ -25,22 +25,23 @@ interface GroupListCardProps {
 }
 
 export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListCardProps) => {
-    const [from, to] = cardGradient(group.name);
+    const palette = cardPalette(group.name);
     const initial = group.name.charAt(0).toUpperCase();
 
     return (
         <button
             onClick={onClick}
             className="shrink-0 rounded-2xl relative overflow-hidden text-left transition-transform active:scale-[0.97] cursor-pointer min-w-[260px] w-[260px] h-[160px]"
-            style={{ background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)` }}
+            style={{ background: palette.bg, border: `1px solid ${palette.icon}` }}
         >
             {/* Decorative initial */}
             <span
                 className="absolute -right-3 -top-3 font-black leading-none select-none pointer-events-none"
                 style={{
                     fontSize: "100px",
-                    color: "rgba(255,255,255,0.10)",
+                    color: palette.icon,
                     letterSpacing: "-4px",
+                    opacity: 0.5,
                 }}
             >
                 {initial}
@@ -49,15 +50,15 @@ export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListC
             <div className="absolute inset-0 p-4 flex flex-col justify-between">
                 <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.22)" }}
+                    style={{ background: palette.icon }}
                 >
-                    <Users className="w-4 h-4 text-white" />
+                    <Users className="w-4 h-4" style={{ color: palette.text }} />
                 </div>
 
                 <div>
                     <p
-                        className="font-bold text-white leading-tight line-clamp-1"
-                        style={{ fontSize: "15px" }}
+                        className="font-bold leading-tight line-clamp-1"
+                        style={{ fontSize: "15px", color: palette.text }}
                     >
                         {group.name}
                     </p>
@@ -65,7 +66,7 @@ export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListC
                         {group.member_count !== undefined && (
                             <span
                                 className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                                style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.9)" }}
+                                style={{ background: palette.icon, color: palette.text }}
                             >
                                 {group.member_count} üye
                             </span>
@@ -73,7 +74,7 @@ export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListC
                         {isFeatured && (
                             <span
                                 className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ background: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.7)" }}
+                                style={{ background: palette.icon, color: palette.sub }}
                             >
                                 Son aktif
                             </span>

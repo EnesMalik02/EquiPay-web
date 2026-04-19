@@ -3,7 +3,6 @@
 import { useUser } from "@/shared/store/UserContext";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { logoutAction } from "@/features/auth/actions/authActions";
-import { useRouter } from "next/navigation";
 import {
     User, CreditCard, Bell, Globe, Moon, Shield,
     HelpCircle, ChevronRight, LogOut, CheckCircle, Star,
@@ -11,7 +10,6 @@ import {
 
 export const ProfilePage = () => {
     const user = useUser();
-    const router = useRouter();
 
     const displayName = user?.display_name ?? user?.username ?? "—";
 
