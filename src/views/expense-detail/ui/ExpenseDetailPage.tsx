@@ -50,6 +50,11 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
             setExpense(exp);
             setMembers(mems);
             setTimeout(() => setBarAnimated(true), 80);
+        }).catch((err: unknown) => {
+            const status = (err as { response?: { status?: number } })?.response?.status;
+            if (status === 403 || status === 404) {
+                router.replace("/groups");
+            }
         }).finally(() => setLoading(false));
     }, [expenseId, groupId]);
 
