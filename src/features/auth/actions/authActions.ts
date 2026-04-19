@@ -45,7 +45,7 @@ async function parseError(res: Response, fallback: string): Promise<string> {
 
 /* ── Login ──────────────────────────────────────────────────── */
 export async function loginAction(
-    email: string,
+    identifier: string,
     password: string,
 ): Promise<{ error: string } | void> {
     let res: Response;
@@ -53,7 +53,7 @@ export async function loginAction(
         res = await fetch(`${BASE_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "x-platform": "web" },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ identifier, password }),
             cache: "no-store",
         });
     } catch {
@@ -70,9 +70,8 @@ export async function loginAction(
 export async function registerAction(payload: {
     email: string;
     password: string;
-    display_name?: string;
-    username?: string;
-    phone?: string;
+    username: string;
+    phone: string;
 }): Promise<{ error: string } | void> {
     let res: Response;
     try {

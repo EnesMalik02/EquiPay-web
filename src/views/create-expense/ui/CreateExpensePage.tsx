@@ -21,6 +21,7 @@ const CATEGORIES = [
     { id: "ulasim",    label: "Ulaşım",    icon: Navigation },
     { id: "konaklama", label: "Konaklama", icon: Home },
     { id: "eglence",   label: "Eğlence",   icon: Globe },
+    { id: "diğer",     label: "Diğer",     icon: Plus },
 ];
 
 const AVATAR_COLORS = [
@@ -342,18 +343,6 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                 </button>
                                             );
                                         })}
-                                        <button
-                                            type="button"
-                                            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
-                                            style={{
-                                                background: "var(--surface-alt)",
-                                                color: "var(--text-secondary)",
-                                                border: "1px solid var(--border-light)",
-                                            }}
-                                        >
-                                            <Plus className="w-3.5 h-3.5" />
-                                            Diğer
-                                        </button>
                                     </div>
                                 </div>
 

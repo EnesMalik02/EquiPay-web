@@ -7,7 +7,7 @@ import { registerAction } from "../actions/authActions";
 import Link from "next/link";
 
 export const RegisterForm = () => {
-    const [displayName, setDisplayName] = useState("");
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
@@ -27,7 +27,7 @@ export const RegisterForm = () => {
             email,
             password,
             phone: phone.trim(),
-            display_name: displayName.trim() || undefined,
+            username: username.trim(),
         });
         if (result?.error) {
             setError(result.error);
@@ -48,16 +48,17 @@ export const RegisterForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="display_name">
-                        Ad Soyad <span className="text-gray-400 font-normal">(isteğe bağlı)</span>
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="username">
+                        Kullanıcı Adı <span className="text-red-400">*</span>
                     </label>
                     <input
-                        id="display_name"
+                        id="username"
                         type="text"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
-                        placeholder="Örn. Ahmet Yılmaz"
+                        placeholder="Örn. ahmet42"
+                        required
                     />
                 </div>
 
