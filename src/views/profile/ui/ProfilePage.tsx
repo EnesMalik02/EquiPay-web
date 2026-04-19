@@ -28,7 +28,6 @@ export const ProfilePage = () => {
         onClick?: () => void;
     }[] = [
         { icon: User,       label: "Kişisel bilgiler",  sub: "Ad, telefon, e-posta" },
-        { icon: CreditCard, label: "Ödeme yöntemleri",  sub: "2 kayıtlı kart" },
         { icon: Bell,       label: "Bildirimler",        sub: "E-posta ve push" },
         { icon: Globe,      label: "Dil ve bölge",       sub: "Türkçe · TRY" },
         { icon: Moon,       label: "Görünüm",            sub: "Açık" },
@@ -106,29 +105,6 @@ export const ProfilePage = () => {
                                                 <span>{user.phone}</span>
                                             </>
                                         )}
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                        <span
-                                            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-                                            style={{
-                                                background: "var(--primary-light)",
-                                                color: "var(--primary)",
-                                                border: "1px solid var(--primary-border)",
-                                            }}
-                                        >
-                                            <CheckCircle className="w-3 h-3" />
-                                            Doğrulanmış
-                                        </span>
-                                        <span
-                                            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-                                            style={{
-                                                background: "var(--surface-muted)",
-                                                color: "var(--text-secondary)",
-                                                border: "1px solid var(--border-light)",
-                                            }}
-                                        >
-                                            Pro üye
-                                        </span>
                                     </div>
                                 </div>
 
@@ -215,32 +191,6 @@ export const ProfilePage = () => {
                                     <span className="font-bold tabular-nums" style={{ color: "var(--primary)" }}>+₺180,75</span>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Pro plan card */}
-                        <div className="rounded-2xl border p-5" style={cardStyle}>
-                            <div className="flex items-center gap-1.5 mb-2">
-                                <Star className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
-                                <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--primary)" }}>
-                                    PRO PLAN
-                                </p>
-                            </div>
-                            <p className="text-xl font-extrabold mb-1.5" style={{ color: "var(--foreground)" }}>
-                                ₺49 / ay
-                            </p>
-                            <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-muted)" }}>
-                                Sınırsız grup, gelişmiş raporlar, otomatik döviz çevirisi ve öncelikli destek.
-                            </p>
-                            <button
-                                className="px-4 py-2 rounded-xl text-sm font-bold transition-all hover:opacity-80"
-                                style={{
-                                    background: "var(--primary-light)",
-                                    color: "var(--primary)",
-                                    border: "1px solid var(--primary-border)",
-                                }}
-                            >
-                                Planı yönet
-                            </button>
                         </div>
                     </div>
                 </div>
