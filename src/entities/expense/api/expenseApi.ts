@@ -31,16 +31,9 @@ export const expenseApi = {
         return data;
     },
 
-    async getRecent(limit = 10): Promise<ExpenseWithMySplitResponse[]> {
-        const { data } = await apiClient.get<ExpenseWithMySplitResponse[]>("/expenses/me/recent", {
-            params: { limit },
-        });
-        return data;
-    },
-
-    async getMySplits(params?: { limit?: number; offset?: number }): Promise<ExpenseWithMySplitResponse[]> {
+    async getMySplits(params?: { limit?: number; offset?: number; status?: "all" | "pending" | "paid" }): Promise<ExpenseWithMySplitResponse[]> {
         const { data } = await apiClient.get<ExpenseWithMySplitResponse[]>("/expenses/me/splits", {
-            params: { limit: 20, offset: 0, ...params },
+            params: { limit: 20, offset: 0, status: "all", ...params },
         });
         return data;
     },

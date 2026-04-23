@@ -32,7 +32,7 @@ interface MonthGroup {
 function groupByMonth(expenses: ExpenseResponse[]): MonthGroup[] {
     const map = new Map<string, ExpenseResponse[]>();
     for (const exp of expenses) {
-        const [year, month] = exp.expense_date.split("-");
+        const [year, month] = exp.created_at.split("-");
         const label = new Date(Number(year), Number(month) - 1).toLocaleDateString("tr-TR", {
             month: "long",
             year: "numeric",

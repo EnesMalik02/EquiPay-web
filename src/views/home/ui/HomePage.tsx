@@ -9,7 +9,7 @@ import { Plus, Users, Receipt } from "lucide-react";
 import { CreateGroupModal } from "@/features/create-group";
 import { SelectGroupModal } from "@/features/select-group/ui/SelectGroupModal";
 import { GroupResponse } from "@/entities/group/model/types";
-import { useRecentExpenses } from "@/entities/expense/hooks/useRecentExpenses";
+import { useMySplitExpenses } from "@/entities/expense/hooks/useMySplitExpenses";
 import { useUser } from "@/shared/store/UserContext";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { SplitExpenseItem, SkeletonSettlementItem } from "@/shared/ui";
@@ -20,7 +20,7 @@ export const HomePage = () => {
     const qc = useQueryClient();
     const [showCreate, setShowCreate] = useState(false);
     const [showSelectGroup, setShowSelectGroup] = useState(false);
-    const { data: recentExpenses, isLoading } = useRecentExpenses(8);
+    const { data: recentExpenses, isLoading } = useMySplitExpenses({ limit: 10 });
 
     const handleCreated = (group: GroupResponse) => {
         setShowCreate(false);
@@ -29,7 +29,7 @@ export const HomePage = () => {
 
     const handlePaySplit = async (expenseId: string, splitId: string) => {
         await expenseApi.paySplit(expenseId, splitId);
-        qc.invalidateQueries({ queryKey: ["expenses", "recent"] });
+        qc.invalidateQueries({ queryKey: ["expenses", "my-splits"] });
     };
 
     const quickActions = [
