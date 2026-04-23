@@ -98,7 +98,8 @@ export const ProfilePage = () => {
                                     </p>
                                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap text-sm" style={{ color: "var(--text-muted)" }}>
                                         {user?.email && <span>{user.email}</span>}
-                                        {user?.phone && (
+
+                                        {user?.phone && !user.phone && (
                                             <>
                                                 <span>·</span>
                                                 <span>{user.phone}</span>
@@ -106,18 +107,6 @@ export const ProfilePage = () => {
                                         )}
                                     </div>
                                 </div>
-
-                                <button
-                                    onClick={() => setEditOpen(true)}
-                                    className="px-4 py-2 rounded-xl text-sm font-semibold border transition-all shrink-0 hover:opacity-80"
-                                    style={{
-                                        background: "var(--surface)",
-                                        borderColor: "var(--border)",
-                                        color: "var(--foreground)",
-                                    }}
-                                >
-                                    Düzenle
-                                </button>
                             </div>
                         </div>
 
