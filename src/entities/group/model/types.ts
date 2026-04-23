@@ -27,12 +27,8 @@ export interface GroupMemberRoleUpdate {
 }
 
 export interface GroupMemberResponse {
-    id: string;
-    group_id: string;
     user_id: string;
     display_name?: string;
     username?: string;
     role?: "admin" | "member";
-    joined_at: string;
-    left_at?: string | null;
 }

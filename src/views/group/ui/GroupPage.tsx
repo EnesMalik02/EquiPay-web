@@ -421,7 +421,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                     <div className="flex justify-center -space-x-2">
                         {members.slice(0, 5).map((m) => (
                             <UserAvatar
-                                key={m.id}
+                                key={m.user_id}
                                 name={m.display_name ?? m.username ?? "?"}
                                 size="xs"
                                 ring
@@ -667,7 +667,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                             >
                                 {members.map((member, i) => (
                                     <div
-                                        key={member.id}
+                                        key={member.user_id}
                                         className="flex items-center gap-4 px-5 py-3.5"
                                         style={{
                                             borderBottom:
