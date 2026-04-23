@@ -4,3 +4,4 @@ export { GroupListItem, colorForIndex } from "./GroupListItem";
 export { ExpenseListItem } from "./ExpenseListItem";
 export { PrimaryButton } from "./PrimaryButton";
 export { Skeleton, SkeletonListItem, SkeletonCard, SkeletonSettlementItem } from "./Skeleton";
+export { SplitExpenseItem } from "./SplitExpenseItem";

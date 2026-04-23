@@ -1,15 +1,13 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { settlementApi, SettlementResponse, SettlementStatus } from "@/entities/settlement";
 import { useUser } from "@/shared/store/UserContext";
-import { CheckCircle, XCircle, Clock, ArrowUpRight, ArrowDownLeft, Receipt } from "lucide-react";
-import { SkeletonSettlementItem } from "@/shared/ui";
+import { CheckCircle, XCircle, Clock, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { SkeletonSettlementItem, SplitExpenseItem } from "@/shared/ui";
 import { useState } from "react";
 import { useMySplitExpenses } from "@/entities/expense/hooks/useMySplitExpenses";
-import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 
 type Tab = "all" | "pending" | "paid";
@@ -20,88 +18,6 @@ const statusLabel: Record<SettlementStatus, string> = {
     rejected: "Reddedildi",
     cancelled: "İptal",
 };
-
-/* ── My Split Expense Item ── */
-function MySplitExpenseItem({
-    expense,
-    onPaid,
-}: {
-    expense: ExpenseWithMySplitResponse;
-    onPaid: (expenseId: string, splitId: string) => void;
-}) {
-    const router = useRouter();
-    const currentUser = useUser();
-    const mySplit = expense.my_split;
-    if (!mySplit) return null;
-
-    const owed = parseFloat(mySplit.owed_amount);
-    const paid = parseFloat(mySplit.paid_amount);
-    const isPaid = paid >= owed;
-    const isPayer = String(expense.paid_by) === String(currentUser?.id);
-
-    return (
-        <div
-            className="flex items-center gap-4 p-4 rounded-2xl"
-            style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border-light)",
-                boxShadow: "var(--shadow-sm)",
-            }}
-        >
-            <div
-                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer"
-                style={{ background: isPaid ? "var(--primary-light)" : "var(--surface-muted)" }}
-                onClick={() => router.push(`/groups/${expense.group_id}/expenses/${expense.id}`)}
-            >
-                <Receipt
-                    className="w-5 h-5"
-                    style={{ color: isPaid ? "var(--primary)" : "var(--text-secondary)" }}
-                />
-            </div>
-
-            <div
-                className="flex-1 min-w-0 cursor-pointer"
-                onClick={() => router.push(`/groups/${expense.group_id}/expenses/${expense.id}`)}
-            >
-                <p
-                    className="text-[13.5px] font-semibold truncate"
-                    style={{ color: "var(--foreground)", letterSpacing: "-0.2px" }}
-                >
-                    {expense.title}
-                </p>
-                <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    {expense.expense_date}
-                    {expense.group_name ? ` · ${expense.group_name}` : ""}
-                </p>
-            </div>
-
-            <div className="shrink-0 flex flex-col items-end gap-1.5">
-                <p
-                    className="text-[13px] font-semibold"
-                    style={{
-                        fontFamily: "var(--font-geist-mono, monospace)",
-                        color: "var(--foreground)",
-                    }}
-                >
-                    ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                </p>
-                {isPaid ? (
-                    <span className="text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
-                        {isPayer ? "Sen Ödedin" : "Ödendi"}
-                    </span>
-                ) : (
-                    <button
-                        onClick={() => onPaid(expense.id, mySplit.id)}
-                        className="text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors active:scale-95"
-                        style={{ background: "var(--primary)", color: "#000" }}
-                    >
-                        Öde
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-}
 
 /* ── Settlement Item ── */
 function SettlementItem({
@@ -379,7 +295,7 @@ export const SettlementsPage = () => {
                                     <>
                                         <SectionLabel label="Ödenmemiş Paylarım" />
                                         {unpaidExpenses.map((exp) => (
-                                            <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                            <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
                                         ))}
                                     </>
                                 )}
@@ -387,7 +303,7 @@ export const SettlementsPage = () => {
                                     <>
                                         <SectionLabel label="Ödediğim Paylar" />
                                         {paidExpenses.map((exp) => (
-                                            <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                            <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
                                         ))}
                                     </>
                                 )}
@@ -410,12 +326,12 @@ export const SettlementsPage = () => {
 
                         {activeTab === "pending" &&
                             unpaidExpenses.map((exp) => (
-                                <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
                             ))}
 
                         {activeTab === "paid" &&
                             paidExpenses.map((exp) => (
-                                <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
                             ))}
                     </div>
                 )}

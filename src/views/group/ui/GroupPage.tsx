@@ -10,15 +10,13 @@ import {
     Users,
     Check,
     Receipt,
-    ArrowDownLeft,
-    ArrowUpRight,
 } from "lucide-react";
-import { UserAvatar } from "@/shared/ui";
+import { UserAvatar, SplitExpenseItem } from "@/shared/ui";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
-import { ExpenseResponse } from "@/entities/expense/model/types";
+import { ExpenseResponse, ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
 import { GroupSettingsModal } from "@/features/manage-group/ui/GroupSettingsModal";
 import { useUser } from "@/shared/store/UserContext";
@@ -47,6 +45,27 @@ function groupByMonth(expenses: ExpenseResponse[]): MonthGroup[] {
         items,
         total: items.reduce((s, e) => s + parseFloat(e.amount), 0),
     }));
+}
+
+function toSplitExpense(
+    expense: ExpenseResponse,
+    groupName: string,
+    currentUserId: string | null,
+): ExpenseWithMySplitResponse {
+    const raw = expense.splits?.find((sp) => sp.user_id === currentUserId);
+    return {
+        id: expense.id,
+        group_id: expense.group_id,
+        group_name: groupName,
+        paid_by: expense.paid_by,
+        title: expense.title,
+        amount: expense.amount,
+        currency: expense.currency,
+        notes: expense.notes,
+        expense_date: expense.expense_date,
+        is_fully_paid: expense.is_fully_paid,
+        my_split: raw ? { id: raw.id, owed_amount: raw.owed_amount, paid_amount: raw.paid_amount } : null,
+    };
 }
 
 function formatMoney(val: number | string): string {
@@ -152,162 +171,16 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
 
     const totalSpend = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
 
+    const handlePaySplit = async (expenseId: string, splitId: string) => {
+        await expenseApi.paySplit(expenseId, splitId);
+        const updated = await expenseApi.listByGroup(groupId, { limit: 20, offset: 0 });
+        setExpenses(updated);
+    };
+
     const tabs: { id: Tab; label: string; count: number }[] = [
         { id: "expenses", label: "Harcamalar", count: expenses.length },
         { id: "members", label: "Üyeler", count: members.length },
     ];
-
-    const renderExpenseRows = (items: ExpenseResponse[]) =>
-        groupByMonth(items).map((mg, mi) => (
-            <div key={mg.label}>
-                {/* Month header */}
-                <div
-                    className="flex items-center gap-3 px-5 py-2.5"
-                    style={{
-                        background: "var(--surface-alt)",
-                        borderBottom: "1px solid var(--border-light)",
-                        borderTop: mi > 0 ? "1px solid var(--border-light)" : "none",
-                    }}
-                >
-                    <span
-                        className="text-[10px] uppercase font-medium"
-                        style={{
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                            color: "var(--text-muted)",
-                            letterSpacing: "0.08em",
-                        }}
-                    >
-                        {mg.label}
-                    </span>
-                    <div className="flex-1 h-px" style={{ background: "var(--border-light)" }} />
-                    <span
-                        style={{
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                            fontSize: "11px",
-                            color: "var(--text-muted)",
-                        }}
-                    >
-                        {mg.items.length} harcama · {formatMoney(mg.total)}
-                    </span>
-                </div>
-
-                {/* Expense rows */}
-                {mg.items.map((expense, i) => {
-                    const payer = members.find((m) => m.user_id === expense.paid_by);
-                    const payerName = payer?.display_name ?? payer?.username ?? "Bilinmeyen";
-                    const isPayer = expense.paid_by === currentUserId;
-                    const mySplit = expense.splits?.find(
-                        (sp) => sp.user_id === currentUserId
-                    );
-                    const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
-
-                    return (
-                        <div
-                            key={expense.id}
-                            onClick={() =>
-                                router.push(`/groups/${groupId}/expenses/${expense.id}`)
-                            }
-                            className="flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors active:bg-[var(--surface-alt)]"
-                            style={{
-                                borderBottom:
-                                    i < mg.items.length - 1
-                                        ? "1px solid var(--border-light)"
-                                        : "none",
-                            }}
-                        >
-                            {/* Icon */}
-                            <div
-                                className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                                style={{
-                                    background: "var(--surface-alt)",
-                                    border: "1px solid var(--border)",
-                                    color: expense.is_fully_paid
-                                        ? "var(--text-muted)"
-                                        : isPayer
-                                        ? "var(--primary)"
-                                        : "var(--danger)",
-                                }}
-                            >
-                                {expense.is_fully_paid ? (
-                                    <Check className="w-[14px] h-[14px]" />
-                                ) : isPayer ? (
-                                    <ArrowDownLeft className="w-[14px] h-[14px]" />
-                                ) : (
-                                    <ArrowUpRight className="w-[14px] h-[14px]" />
-                                )}
-                            </div>
-
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                                <p
-                                    className="font-medium text-[13.5px] truncate"
-                                    style={{
-                                        color: "var(--foreground)",
-                                        letterSpacing: "-0.2px",
-                                    }}
-                                >
-                                    {expense.title}
-                                </p>
-                                <p
-                                    className="text-[12px] mt-0.5"
-                                    style={{ color: "var(--text-muted)" }}
-                                >
-                                    {isPayer ? "Sen" : payerName} ödedi
-                                    <span
-                                        className="mx-1.5"
-                                        style={{ color: "var(--text-placeholder)" }}
-                                    >
-                                        ·
-                                    </span>
-                                    <span
-                                        style={{
-                                            fontFamily: "var(--font-geist-mono, monospace)",
-                                            fontSize: "11px",
-                                        }}
-                                    >
-                                        {expense.expense_date.slice(5).replace("-", "/")}
-                                    </span>
-                                </p>
-                            </div>
-
-                            {/* Amounts */}
-                            <div className="text-right shrink-0">
-                                <p
-                                    className="text-[13px] font-medium"
-                                    style={{
-                                        fontFamily: "var(--font-geist-mono, monospace)",
-                                        color: "var(--text-secondary)",
-                                    }}
-                                >
-                                    {formatMoney(expense.amount)}
-                                </p>
-                                {expense.is_fully_paid ? (
-                                    <span
-                                        className="inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-0.5"
-                                        style={{
-                                            background: "var(--surface-muted)",
-                                            color: "var(--text-muted)",
-                                        }}
-                                    >
-                                        Ödendi
-                                    </span>
-                                ) : mySplit ? (
-                                    <p
-                                        className="text-[11px] mt-0.5 font-medium"
-                                        style={{
-                                            fontFamily: "var(--font-geist-mono, monospace)",
-                                            color: isPayer ? "var(--primary)" : "var(--danger)",
-                                        }}
-                                    >
-                                        {isPayer ? "+" : "−"}{formatMoney(myOwed)}
-                                    </p>
-                                ) : null}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        ));
 
     /* ── Render ──────────────────────────────────────── */
     return (
@@ -590,6 +463,58 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                             (() => {
                                 const unpaid = expenses.filter((e) => !e.is_fully_paid);
                                 const paid = expenses.filter((e) => e.is_fully_paid);
+
+                                const renderMonthGroups = (items: ExpenseResponse[]) =>
+                                    groupByMonth(items).map((mg, mi, arr) => (
+                                        <div key={mg.label}>
+                                            <div
+                                                className="flex items-center gap-3 px-5 py-2.5"
+                                                style={{
+                                                    background: "var(--surface-alt)",
+                                                    borderBottom: "1px solid var(--border-light)",
+                                                    borderTop: mi > 0 ? "1px solid var(--border-light)" : "none",
+                                                }}
+                                            >
+                                                <span
+                                                    className="text-[10px] uppercase font-medium"
+                                                    style={{
+                                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                                        color: "var(--text-muted)",
+                                                        letterSpacing: "0.08em",
+                                                    }}
+                                                >
+                                                    {mg.label}
+                                                </span>
+                                                <div className="flex-1 h-px" style={{ background: "var(--border-light)" }} />
+                                                <span
+                                                    style={{
+                                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                                        fontSize: "11px",
+                                                        color: "var(--text-muted)",
+                                                    }}
+                                                >
+                                                    {mg.items.length} harcama · {formatMoney(mg.total)}
+                                                </span>
+                                            </div>
+                                            {mg.items.map((exp, i) => {
+                                                const payer = members.find((m) => m.user_id === exp.paid_by);
+                                                const payerName = payer?.display_name ?? payer?.username ?? "Bilinmeyen";
+                                                const isLastInGroup = i === mg.items.length - 1;
+                                                const isLastGroup = mi === arr.length - 1;
+                                                return (
+                                                    <SplitExpenseItem
+                                                        key={exp.id}
+                                                        variant="row"
+                                                        expense={toSplitExpense(exp, group.name, currentUserId)}
+                                                        onPaid={handlePaySplit}
+                                                        payerName={payerName}
+                                                        isLast={isLastInGroup && isLastGroup}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    ));
+
                                 return (
                                     <>
                                         {unpaid.length > 0 && (
@@ -600,32 +525,25 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                                     border: "1px solid var(--border)",
                                                 }}
                                             >
-                                                {renderExpenseRows(unpaid)}
+                                                {renderMonthGroups(unpaid)}
                                             </div>
                                         )}
 
                                         {paid.length > 0 && (
                                             <>
                                                 <div className="flex items-center gap-3 my-4">
-                                                    <div
-                                                        className="h-px flex-1"
-                                                        style={{ background: "var(--border)" }}
-                                                    />
+                                                    <div className="h-px flex-1" style={{ background: "var(--border)" }} />
                                                     <span
                                                         className="text-[10px] uppercase"
                                                         style={{
-                                                            fontFamily:
-                                                                "var(--font-geist-mono, monospace)",
+                                                            fontFamily: "var(--font-geist-mono, monospace)",
                                                             color: "var(--text-muted)",
                                                             letterSpacing: "0.08em",
                                                         }}
                                                     >
                                                         Ödenenler
                                                     </span>
-                                                    <div
-                                                        className="h-px flex-1"
-                                                        style={{ background: "var(--border)" }}
-                                                    />
+                                                    <div className="h-px flex-1" style={{ background: "var(--border)" }} />
                                                 </div>
                                                 <div
                                                     className="rounded-[var(--radius-lg)] overflow-hidden"
@@ -634,7 +552,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                                         border: "1px solid var(--border)",
                                                     }}
                                                 >
-                                                    {renderExpenseRows(paid)}
+                                                    {renderMonthGroups(paid)}
                                                 </div>
                                             </>
                                         )}

@@ -2,141 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
-import { Plus, Users, Receipt, ArrowDownLeft, ArrowUpRight, Check } from "lucide-react";
+import { Plus, Users, Receipt } from "lucide-react";
 import { CreateGroupModal } from "@/features/create-group";
 import { SelectGroupModal } from "@/features/select-group/ui/SelectGroupModal";
 import { GroupResponse } from "@/entities/group/model/types";
 import { useRecentExpenses } from "@/entities/expense/hooks/useRecentExpenses";
 import { useUser } from "@/shared/store/UserContext";
-import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
-
-function formatMoney(val: number | string): string {
-    const n = typeof val === "string" ? parseFloat(val) : val;
-    return `₺${Math.abs(n).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-}
-
-function formatRelativeDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Bugün";
-    if (diffDays === 1) return "Dün";
-    return `${diffDays} gün önce`;
-}
-
-function ActivityRow({
-    expense,
-    currentUserId,
-    onClick,
-    isLast,
-}: {
-    expense: ExpenseWithMySplitResponse;
-    currentUserId: string | null;
-    onClick: () => void;
-    isLast: boolean;
-}) {
-    const isPayer = String(expense.paid_by) === String(currentUserId);
-    const isSettled = expense.is_fully_paid;
-    const mySplit = expense.my_split;
-    const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
-
-    return (
-        <div
-            onClick={onClick}
-            className="flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors active:bg-[var(--surface-alt)]"
-            style={{ borderBottom: isLast ? "none" : "1px solid var(--border-light)" }}
-        >
-            {/* Direction icon */}
-            <div
-                className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                style={{
-                    background: "var(--surface-alt)",
-                    border: "1px solid var(--border)",
-                    color: isSettled
-                        ? "var(--text-muted)"
-                        : isPayer
-                        ? "var(--primary)"
-                        : "var(--danger)",
-                }}
-            >
-                {isSettled ? (
-                    <Check className="w-[14px] h-[14px]" />
-                ) : isPayer ? (
-                    <ArrowDownLeft className="w-[14px] h-[14px]" />
-                ) : (
-                    <ArrowUpRight className="w-[14px] h-[14px]" />
-                )}
-            </div>
-
-            {/* Text */}
-            <div className="flex-1 min-w-0">
-                <p
-                    className="font-medium text-[13.5px] truncate"
-                    style={{ color: "var(--foreground)", letterSpacing: "-0.2px" }}
-                >
-                    {expense.title}
-                </p>
-                <p className="text-[12px] mt-0.5 flex items-center gap-1.5 flex-wrap">
-                    {expense.group_name && (
-                        <span style={{ color: "var(--text-muted)" }}>{expense.group_name}</span>
-                    )}
-                    {expense.group_name && (
-                        <span
-                            className="inline-block w-[2px] h-[2px] rounded-full"
-                            style={{ background: "var(--text-placeholder)" }}
-                        />
-                    )}
-                    <span
-                        style={{
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                            fontSize: "11px",
-                            color: "var(--text-muted)",
-                        }}
-                    >
-                        {formatRelativeDate(expense.expense_date)}
-                    </span>
-                </p>
-            </div>
-
-            {/* Amount */}
-            <div className="text-right shrink-0">
-                <p
-                    className="text-[13px] font-medium"
-                    style={{
-                        fontFamily: "var(--font-geist-mono, monospace)",
-                        color: "var(--text-secondary)",
-                    }}
-                >
-                    {formatMoney(expense.amount)}
-                </p>
-                {isSettled ? (
-                    <span
-                        className="inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-0.5"
-                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
-                    >
-                        Ödendi
-                    </span>
-                ) : mySplit ? (
-                    <p
-                        className="text-[11px] mt-0.5 font-medium"
-                        style={{
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                            color: isPayer ? "var(--primary)" : "var(--danger)",
-                        }}
-                    >
-                        {isPayer ? "+" : "−"}{formatMoney(myOwed)}
-                    </p>
-                ) : null}
-            </div>
-        </div>
-    );
-}
+import { expenseApi } from "@/entities/expense/api/expenseApi";
+import { SplitExpenseItem, SkeletonSettlementItem } from "@/shared/ui";
 
 export const HomePage = () => {
     const router = useRouter();
     const currentUser = useUser();
+    const qc = useQueryClient();
     const [showCreate, setShowCreate] = useState(false);
     const [showSelectGroup, setShowSelectGroup] = useState(false);
     const { data: recentExpenses, isLoading } = useRecentExpenses(8);
@@ -144,6 +25,11 @@ export const HomePage = () => {
     const handleCreated = (group: GroupResponse) => {
         setShowCreate(false);
         router.push(`/groups/${group.id}`);
+    };
+
+    const handlePaySplit = async (expenseId: string, splitId: string) => {
+        await expenseApi.paySplit(expenseId, splitId);
+        qc.invalidateQueries({ queryKey: ["expenses", "recent"] });
     };
 
     const quickActions = [
@@ -300,74 +186,42 @@ export const HomePage = () => {
                         </button>
                     </div>
 
-                    <div
-                        className="rounded-[var(--radius-lg)] overflow-hidden"
-                        style={{
-                            background: "var(--surface)",
-                            border: "1px solid var(--border)",
-                        }}
-                    >
-                        {isLoading ? (
-                            Array.from({ length: 4 }).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center gap-3 px-4 py-3"
-                                    style={{
-                                        borderBottom:
-                                            i < 3
-                                                ? "1px solid var(--border-light)"
-                                                : "none",
-                                    }}
-                                >
-                                    <div
-                                        className="w-9 h-9 rounded-[10px] shrink-0 animate-pulse"
-                                        style={{ background: "var(--surface-muted)" }}
-                                    />
-                                    <div className="flex-1 space-y-2">
-                                        <div
-                                            className="h-3 rounded-full w-32 animate-pulse"
-                                            style={{ background: "var(--surface-muted)" }}
-                                        />
-                                        <div
-                                            className="h-2.5 rounded-full w-20 animate-pulse"
-                                            style={{ background: "var(--surface-muted)" }}
-                                        />
-                                    </div>
-                                    <div
-                                        className="h-4 w-16 rounded-full animate-pulse"
-                                        style={{ background: "var(--surface-muted)" }}
-                                    />
-                                </div>
-                            ))
-                        ) : !recentExpenses || recentExpenses.length === 0 ? (
-                            <div className="py-10 flex flex-col items-center gap-2 text-center">
-                                <Receipt
-                                    className="w-6 h-6"
-                                    style={{ color: "var(--text-placeholder)" }}
-                                />
-                                <p
-                                    className="text-[13px] font-medium"
-                                    style={{ color: "var(--text-muted)" }}
-                                >
-                                    Henüz harcama yok.
-                                </p>
-                            </div>
-                        ) : (
-                            recentExpenses.map((expense, i) => (
-                                <ActivityRow
+                    {isLoading ? (
+                        <div className="space-y-3">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <SkeletonSettlementItem key={i} />
+                            ))}
+                        </div>
+                    ) : !recentExpenses || recentExpenses.length === 0 ? (
+                        <div
+                            className="rounded-[var(--radius-lg)] py-10 flex flex-col items-center gap-2 text-center"
+                            style={{
+                                background: "var(--surface)",
+                                border: "1px solid var(--border)",
+                            }}
+                        >
+                            <Receipt
+                                className="w-6 h-6"
+                                style={{ color: "var(--text-placeholder)" }}
+                            />
+                            <p
+                                className="text-[13px] font-medium"
+                                style={{ color: "var(--text-muted)" }}
+                            >
+                                Henüz harcama yok.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentExpenses.map((expense) => (
+                                <SplitExpenseItem
                                     key={expense.id}
                                     expense={expense}
-                                    currentUserId={currentUser?.id ?? null}
-                                    isLast={i === recentExpenses.length - 1}
-                                    onClick={() =>
-                                        router.push(
-                                            `/groups/${expense.group_id}/expenses/${expense.id}`
-                                        )
-                                    }
+                                    onPaid={handlePaySplit}
                                 />
-                            ))
-                        )}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </main>
 
