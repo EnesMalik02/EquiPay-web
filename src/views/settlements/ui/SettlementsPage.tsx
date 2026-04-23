@@ -21,13 +21,6 @@ const statusLabel: Record<SettlementStatus, string> = {
     cancelled: "İptal",
 };
 
-const statusColor: Record<SettlementStatus, string> = {
-    pending: "#9ca3af",
-    confirmed: "#00d186",
-    rejected: "#ef4444",
-    cancelled: "#9ca3af",
-};
-
 /* ── My Split Expense Item ── */
 function MySplitExpenseItem({
     expense,
@@ -48,45 +41,59 @@ function MySplitExpenseItem({
 
     return (
         <div
-            className="flex items-center gap-4 p-4 rounded-2xl border"
-            style={{ background: "var(--surface)", borderColor: "var(--border-light)", boxShadow: "var(--shadow-sm)" }}
+            className="flex items-center gap-4 p-4 rounded-2xl"
+            style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                boxShadow: "var(--shadow-sm)",
+            }}
         >
-            {/* Ikon */}
             <div
                 className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer"
                 style={{ background: isPaid ? "var(--primary-light)" : "var(--surface-muted)" }}
                 onClick={() => router.push(`/groups/${expense.group_id}/expenses/${expense.id}`)}
             >
-                <Receipt className="w-5 h-5" style={{ color: isPaid ? "var(--primary)" : "var(--text-secondary)" }} />
+                <Receipt
+                    className="w-5 h-5"
+                    style={{ color: isPaid ? "var(--primary)" : "var(--text-secondary)" }}
+                />
             </div>
 
-            {/* İçerik */}
             <div
                 className="flex-1 min-w-0 cursor-pointer"
                 onClick={() => router.push(`/groups/${expense.group_id}/expenses/${expense.id}`)}
             >
-                <p className="text-sm font-bold truncate" style={{ color: "var(--foreground)" }}>
+                <p
+                    className="text-[13.5px] font-semibold truncate"
+                    style={{ color: "var(--foreground)", letterSpacing: "-0.2px" }}
+                >
                     {expense.title}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>
                     {expense.expense_date}
                     {expense.group_name ? ` · ${expense.group_name}` : ""}
                 </p>
             </div>
 
-            {/* Tutar + aksiyon */}
             <div className="shrink-0 flex flex-col items-end gap-1.5">
-                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
+                <p
+                    className="text-[13px] font-semibold"
+                    style={{
+                        fontFamily: "var(--font-geist-mono, monospace)",
+                        color: "var(--foreground)",
+                    }}
+                >
                     ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                 </p>
                 {isPaid ? (
-                    <span className="text-[10px] font-bold" style={{ color: "var(--primary)" }}>
+                    <span className="text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
                         {isPayer ? "Sen Ödedin" : "Ödendi"}
                     </span>
                 ) : (
                     <button
                         onClick={() => onPaid(expense.id, mySplit.id)}
-                        className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#00d186] text-white hover:bg-[#00c07c] transition-colors"
+                        className="text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors active:scale-95"
+                        style={{ background: "var(--primary)", color: "#000" }}
                     >
                         Öde
                     </button>
@@ -112,37 +119,67 @@ function SettlementItem({
     const amount = `₺${parseFloat(s.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
     const isActioning = actioningId === s.id;
 
+    const statusColors: Record<SettlementStatus, string> = {
+        pending: "var(--text-muted)",
+        confirmed: "var(--primary)",
+        rejected: "var(--danger)",
+        cancelled: "var(--text-muted)",
+    };
+
     return (
         <div
-            className="flex items-center gap-4 p-4 rounded-2xl border"
-            style={{ background: "var(--surface)", borderColor: "var(--border-light)", boxShadow: "var(--shadow-sm)" }}
+            className="flex items-center gap-4 p-4 rounded-2xl"
+            style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                boxShadow: "var(--shadow-sm)",
+            }}
         >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                isOutgoing ? "bg-red-50 text-red-500" : "bg-emerald-50 text-emerald-600"
-            }`}>
-                {isOutgoing ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownLeft className="w-5 h-5" />}
+            <div
+                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                style={{
+                    background: isOutgoing ? "rgba(239,68,68,0.08)" : "var(--primary-light)",
+                    color: isOutgoing ? "var(--danger)" : "var(--primary)",
+                }}
+            >
+                {isOutgoing
+                    ? <ArrowUpRight className="w-5 h-5" />
+                    : <ArrowDownLeft className="w-5 h-5" />}
             </div>
 
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
+                <p
+                    className="text-[13.5px] font-semibold"
+                    style={{ color: "var(--foreground)", letterSpacing: "-0.2px" }}
+                >
                     {isOutgoing ? "Gönderilen" : "Alınan"} — {amount}
                 </p>
                 {s.note && (
-                    <p className="text-xs mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>{s.note}</p>
-                )}
-                {s.settled_at ? (
-                    <p className="text-xs text-[#00d186] mt-0.5">
-                        {new Date(s.settled_at).toLocaleDateString("tr-TR")} tarihinde ödendi
-                    </p>
-                ) : (
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                        {new Date(s.created_at).toLocaleDateString("tr-TR")}
+                    <p className="text-[12px] mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
+                        {s.note}
                     </p>
                 )}
+                <p
+                    className="text-[11px] mt-0.5"
+                    style={{
+                        fontFamily: "var(--font-geist-mono, monospace)",
+                        color: s.settled_at ? "var(--primary)" : "var(--text-muted)",
+                    }}
+                >
+                    {s.settled_at
+                        ? `${new Date(s.settled_at).toLocaleDateString("tr-TR")} tarihinde ödendi`
+                        : new Date(s.created_at).toLocaleDateString("tr-TR")}
+                </p>
             </div>
 
             <div className="shrink-0 flex flex-col items-end gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: statusColor[s.status] }}>
+                <span
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                    style={{
+                        fontFamily: "var(--font-geist-mono, monospace)",
+                        color: statusColors[s.status],
+                    }}
+                >
                     {statusLabel[s.status]}
                 </span>
                 {s.status === "pending" && !isOutgoing && (
@@ -150,7 +187,8 @@ function SettlementItem({
                         <button
                             onClick={() => onAction(s.id, "confirmed")}
                             disabled={isActioning}
-                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                            className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
                             title="Onayla"
                         >
                             <CheckCircle className="w-4 h-4" />
@@ -158,7 +196,8 @@ function SettlementItem({
                         <button
                             onClick={() => onAction(s.id, "rejected")}
                             disabled={isActioning}
-                            className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors disabled:opacity-50"
+                            className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            style={{ background: "rgba(239,68,68,0.08)", color: "var(--danger)" }}
                             title="Reddet"
                         >
                             <XCircle className="w-4 h-4" />
@@ -169,7 +208,8 @@ function SettlementItem({
                     <button
                         onClick={() => onAction(s.id, "cancelled")}
                         disabled={isActioning}
-                        className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        className="text-[10px] font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+                        style={{ color: "var(--text-muted)" }}
                     >
                         <Clock className="w-3 h-3" />
                         İptal Et
@@ -183,7 +223,14 @@ function SettlementItem({
 /* ── Section label ── */
 function SectionLabel({ label }: { label: string }) {
     return (
-        <p className="text-xs font-bold tracking-widest uppercase pt-2 pb-1" style={{ color: "var(--text-muted)" }}>
+        <p
+            className="text-[10px] font-semibold tracking-widest uppercase pt-2 pb-1"
+            style={{
+                fontFamily: "var(--font-geist-mono, monospace)",
+                color: "var(--text-muted)",
+                letterSpacing: "0.08em",
+            }}
+        >
             {label}
         </p>
     );
@@ -197,7 +244,6 @@ export const SettlementsPage = () => {
     const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
     const qc = useQueryClient();
 
-    /* Queries */
     const { data: allSplitExpenses = [], isLoading: expensesLoading } = useMySplitExpenses();
     const { data: settlements = [], isLoading: settlementsLoading } = useQuery({
         queryKey: ["settlements", "mine"],
@@ -206,7 +252,6 @@ export const SettlementsPage = () => {
 
     const isLoading = expensesLoading || settlementsLoading;
 
-    /* Mutations */
     const settlementMutation = useMutation({
         mutationFn: ({ id, status }: { id: string; status: SettlementStatus }) =>
             settlementApi.updateStatus(id, { status }),
@@ -232,13 +277,11 @@ export const SettlementsPage = () => {
         }
     };
 
-    /* Filtering */
     const currentUserId = currentUser?.id ?? null;
 
     const unpaidExpenses = allSplitExpenses.filter(
         (exp) => exp.my_split && parseFloat(exp.my_split.paid_amount) < parseFloat(exp.my_split.owed_amount)
     );
-
     const paidExpenses = allSplitExpenses.filter(
         (exp) => exp.my_split && parseFloat(exp.my_split.paid_amount) >= parseFloat(exp.my_split.owed_amount)
     );
@@ -251,7 +294,6 @@ export const SettlementsPage = () => {
         { id: "paid", label: "Ödenenler" },
     ];
 
-    /* Content per tab */
     const isEmptyAll = allSplitExpenses.length === 0 && settlements.length === 0;
     const isEmptyTab =
         activeTab === "all" ? isEmptyAll
@@ -259,30 +301,51 @@ export const SettlementsPage = () => {
         : paidExpenses.length === 0;
 
     return (
-        <div className="min-h-screen font-sans" style={{ background: "var(--background)" }}>
-            <main className="max-w-5xl mx-auto px-6 pt-10 pb-28">
-                <p className="text-[11px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--text-muted)" }}>
-                    Hareketler
-                </p>
-                <h1 className="text-3xl font-extrabold tracking-tight mb-8" style={{ color: "var(--foreground)" }}>
-                    Tüm Hareketler
-                </h1>
+        <div className="min-h-screen" style={{ background: "var(--background)", color: "var(--foreground)" }}>
+            <main className="max-w-5xl mx-auto px-4 pt-14 pb-28">
+                {/* Header */}
+                <header className="mb-6">
+                    <p
+                        className="text-[10px] uppercase mb-1"
+                        style={{
+                            fontFamily: "var(--font-geist-mono, monospace)",
+                            color: "var(--text-muted)",
+                            letterSpacing: "0.08em",
+                        }}
+                    >
+                        Hareketler
+                    </p>
+                    <h1
+                        className="text-[24px] font-semibold"
+                        style={{ letterSpacing: "-0.5px", lineHeight: 1.2 }}
+                    >
+                        Tüm Hareketler
+                    </h1>
+                </header>
 
                 {/* Tabs */}
-                <div className="flex gap-6 border-b mb-8" style={{ borderColor: "var(--border-light)" }}>
+                <div
+                    className="flex gap-1 p-1 rounded-[var(--radius-lg)] mb-6"
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                >
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-                                activeTab === tab.id
-                                    ? "border-[#00d186] text-black"
-                                    : "border-transparent text-gray-400 hover:text-gray-700"
-                            }`}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[var(--radius-md)] text-[12.5px] font-semibold transition-all"
+                            style={{
+                                background: activeTab === tab.id ? "var(--background)" : "transparent",
+                                color: activeTab === tab.id ? "var(--foreground)" : "var(--text-muted)",
+                                boxShadow: activeTab === tab.id ? "var(--shadow-sm)" : "none",
+                                border: activeTab === tab.id ? "1px solid var(--border)" : "1px solid transparent",
+                            }}
                         >
                             {tab.label}
                             {tab.id === "pending" && pendingCount > 0 && (
-                                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-[#00d186] text-white rounded-full">
+                                <span
+                                    className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
+                                    style={{ background: "var(--danger)", color: "#fff" }}
+                                >
                                     {pendingCount}
                                 </span>
                             )}
@@ -298,28 +361,25 @@ export const SettlementsPage = () => {
                     </div>
                 ) : isEmptyTab ? (
                     <div className="py-20 flex flex-col items-center gap-3 text-center">
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "var(--surface-muted)" }}>
-                            <Clock className="w-6 h-6" style={{ color: "var(--text-muted)" }} />
+                        <div
+                            className="w-14 h-14 rounded-[16px] flex items-center justify-center"
+                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                        >
+                            <Clock className="w-6 h-6" style={{ color: "var(--text-placeholder)" }} />
                         </div>
-                        <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+                        <p className="text-[13px] font-medium" style={{ color: "var(--text-muted)" }}>
                             Bu kategoride hareket yok.
                         </p>
                     </div>
                 ) : (
                     <div className="space-y-3">
-
-                        {/* ── TÜMÜ ── */}
                         {activeTab === "all" && (
                             <>
                                 {unpaidExpenses.length > 0 && (
                                     <>
                                         <SectionLabel label="Ödenmemiş Paylarım" />
                                         {unpaidExpenses.map((exp) => (
-                                            <MySplitExpenseItem
-                                                key={exp.id}
-                                                expense={exp}
-                                                onPaid={handlePaySplit}
-                                            />
+                                            <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
                                         ))}
                                     </>
                                 )}
@@ -327,11 +387,7 @@ export const SettlementsPage = () => {
                                     <>
                                         <SectionLabel label="Ödediğim Paylar" />
                                         {paidExpenses.map((exp) => (
-                                            <MySplitExpenseItem
-                                                key={exp.id}
-                                                expense={exp}
-                                                onPaid={handlePaySplit}
-                                            />
+                                            <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
                                         ))}
                                     </>
                                 )}
@@ -352,27 +408,15 @@ export const SettlementsPage = () => {
                             </>
                         )}
 
-                        {/* ── BEKLEYENLEr ── */}
                         {activeTab === "pending" &&
                             unpaidExpenses.map((exp) => (
-                                <MySplitExpenseItem
-                                    key={exp.id}
-                                    expense={exp}
-                                    onPaid={handlePaySplit}
-                                />
-                            ))
-                        }
+                                <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                            ))}
 
-                        {/* ── ÖDENENLEr ── */}
                         {activeTab === "paid" &&
                             paidExpenses.map((exp) => (
-                                <MySplitExpenseItem
-                                    key={exp.id}
-                                    expense={exp}
-                                    onPaid={handlePaySplit}
-                                />
-                            ))
-                        }
+                                <MySplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                            ))}
                     </div>
                 )}
             </main>

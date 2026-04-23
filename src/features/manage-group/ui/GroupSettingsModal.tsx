@@ -34,7 +34,6 @@ export const GroupSettingsModal = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // edit-info state
     const [editName, setEditName] = useState(groupName);
     const [editDescription, setEditDescription] = useState(groupDescription ?? "");
 
@@ -109,25 +108,50 @@ export const GroupSettingsModal = ({
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+            <div
+                className="absolute inset-0 backdrop-blur-sm"
+                style={{ background: "rgba(0,0,0,0.4)" }}
+                onClick={onClose}
+            />
 
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 animate-fade-in-up">
+            <div
+                className="relative w-full max-w-md rounded-3xl shadow-2xl p-6"
+                style={{ background: "var(--background)" }}
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-extrabold text-black tracking-tight">Grup Ayarları</h2>
-                        <p className="text-sm text-gray-400 font-medium mt-0.5 truncate max-w-[220px]">{groupName}</p>
+                        <h2
+                            className="text-[18px] font-semibold"
+                            style={{ color: "var(--foreground)", letterSpacing: "-0.4px" }}
+                        >
+                            Grup Ayarları
+                        </h2>
+                        <p
+                            className="text-[12px] mt-0.5 truncate max-w-[220px]"
+                            style={{ color: "var(--text-muted)" }}
+                        >
+                            {groupName}
+                        </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                     >
                         <X className="w-4 h-4" />
                     </button>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-4 text-sm font-medium">
+                    <div
+                        className="px-4 py-3 rounded-2xl mb-4 text-[13px] font-medium"
+                        style={{
+                            background: "rgba(239,68,68,0.08)",
+                            border: "1px solid rgba(239,68,68,0.2)",
+                            color: "var(--danger)",
+                        }}
+                    >
                         {error}
                     </div>
                 )}
@@ -135,70 +159,46 @@ export const GroupSettingsModal = ({
                 {/* ── IDLE ── */}
                 {step === "idle" && (
                     <div className="space-y-2">
-                        {/* Grup Bilgilerini Düzenle — sadece admin */}
                         {isAdmin && (
-                            <button
+                            <ActionRow
+                                icon={<Pencil className="w-4 h-4" />}
+                                label="Grubu Düzenle"
+                                sub="Ad ve açıklamayı güncelle"
+                                iconColor="var(--primary)"
+                                iconBg="var(--primary-light)"
                                 onClick={() => setStep("edit-info")}
-                                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-blue-50 hover:bg-blue-100 transition-colors group text-left"
-                            >
-                                <div className="w-9 h-9 rounded-xl bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center text-blue-500 shrink-0 transition-colors">
-                                    <Pencil className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-bold text-blue-700">Grubu Düzenle</p>
-                                    <p className="text-xs text-blue-400 mt-0.5">Ad ve açıklamayı güncelle</p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-blue-300 group-hover:text-blue-400 transition-colors" />
-                            </button>
+                            />
                         )}
 
-                        {/* Admin ata — sadece adminde ve başka üye varsa */}
                         {isAdmin && otherMembers.length > 0 && (
-                            <button
+                            <ActionRow
+                                icon={<ShieldCheck className="w-4 h-4" />}
+                                label="Admin Ata"
+                                sub="Başka bir üyeye admin yetkisi ver"
+                                iconColor="var(--primary)"
+                                iconBg="var(--primary-light)"
                                 onClick={() => setStep("assign-admin")}
-                                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#f0fdf4] hover:bg-green-100 transition-colors group text-left"
-                            >
-                                <div className="w-9 h-9 rounded-xl bg-green-100 group-hover:bg-green-200 flex items-center justify-center text-[#00d186] shrink-0 transition-colors">
-                                    <ShieldCheck className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-bold text-[#00a066]">Admin Ata</p>
-                                    <p className="text-xs text-green-400 mt-0.5">Başka bir üyeye admin yetkisi ver</p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-green-300 group-hover:text-green-400 transition-colors" />
-                            </button>
+                            />
                         )}
 
-                        {/* Gruptan Çık */}
-                        <button
+                        <ActionRow
+                            icon={<LogOut className="w-4 h-4" />}
+                            label="Gruptan Çık"
+                            sub="Bu grupla bağlantını kes"
+                            iconColor="#f97316"
+                            iconBg="rgba(249,115,22,0.1)"
                             onClick={() => setStep("confirm-leave")}
-                            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-orange-50 hover:bg-orange-100 transition-colors group text-left"
-                        >
-                            <div className="w-9 h-9 rounded-xl bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center text-orange-500 shrink-0 transition-colors">
-                                <LogOut className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-orange-600">Gruptan Çık</p>
-                                <p className="text-xs text-orange-400 mt-0.5">Bu grupla bağlantını kes</p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-400 transition-colors" />
-                        </button>
+                        />
 
-                        {/* Grubu Sil — sadece admin */}
                         {isAdmin && (
-                            <button
+                            <ActionRow
+                                icon={<Trash2 className="w-4 h-4" />}
+                                label="Grubu Sil"
+                                sub="Tüm veriler kalıcı olarak silinir"
+                                iconColor="var(--danger)"
+                                iconBg="rgba(239,68,68,0.08)"
                                 onClick={() => setStep("confirm-delete")}
-                                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-red-50 hover:bg-red-100 transition-colors group text-left"
-                            >
-                                <div className="w-9 h-9 rounded-xl bg-red-100 group-hover:bg-red-200 flex items-center justify-center text-red-500 shrink-0 transition-colors">
-                                    <Trash2 className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-bold text-red-600">Grubu Sil</p>
-                                    <p className="text-xs text-red-400 mt-0.5">Tüm veriler kalıcı olarak silinir</p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-red-300 group-hover:text-red-400 transition-colors" />
-                            </button>
+                            />
                         )}
                     </div>
                 )}
@@ -207,7 +207,14 @@ export const GroupSettingsModal = ({
                 {step === "edit-info" && (
                     <div className="space-y-4">
                         <div>
-                            <label className="text-xs font-bold tracking-widest uppercase text-gray-400 block mb-1.5">
+                            <label
+                                className="block text-[10px] uppercase font-semibold mb-1.5"
+                                style={{
+                                    fontFamily: "var(--font-geist-mono, monospace)",
+                                    color: "var(--text-muted)",
+                                    letterSpacing: "0.08em",
+                                }}
+                            >
                                 Grup Adı
                             </label>
                             <input
@@ -215,34 +222,53 @@ export const GroupSettingsModal = ({
                                 value={editName}
                                 onChange={(e) => setEditName(e.target.value)}
                                 maxLength={255}
-                                className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-semibold text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors"
                                 placeholder="Grup adını girin"
+                                className="w-full px-4 py-3 rounded-2xl text-[14px] font-medium outline-none transition-colors"
+                                style={{
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border)",
+                                    color: "var(--foreground)",
+                                }}
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-bold tracking-widest uppercase text-gray-400 block mb-1.5">
+                            <label
+                                className="block text-[10px] uppercase font-semibold mb-1.5"
+                                style={{
+                                    fontFamily: "var(--font-geist-mono, monospace)",
+                                    color: "var(--text-muted)",
+                                    letterSpacing: "0.08em",
+                                }}
+                            >
                                 Açıklama
                             </label>
                             <textarea
                                 value={editDescription}
                                 onChange={(e) => setEditDescription(e.target.value)}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-medium text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors resize-none"
                                 placeholder="Kısa bir açıklama ekleyin (isteğe bağlı)"
+                                className="w-full px-4 py-3 rounded-2xl text-[14px] font-medium outline-none transition-colors resize-none"
+                                style={{
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border)",
+                                    color: "var(--foreground)",
+                                }}
                             />
                         </div>
                         <div className="flex gap-3 pt-1">
                             <button
                                 onClick={reset}
                                 disabled={loading}
-                                className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                className="flex-1 py-3 rounded-2xl text-[14px] font-semibold transition-colors disabled:opacity-50"
+                                style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
                             >
                                 Vazgeç
                             </button>
                             <button
                                 onClick={handleSaveInfo}
                                 disabled={loading || !editName.trim()}
-                                className="flex-1 py-3 rounded-2xl bg-[#00d186] hover:bg-[#00c07c] text-white font-bold text-sm shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 py-3 rounded-2xl text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ background: "var(--primary)", color: "#000" }}
                             >
                                 {loading ? "Kaydediliyor..." : "Kaydet"}
                             </button>
@@ -253,24 +279,61 @@ export const GroupSettingsModal = ({
                 {/* ── ASSIGN ADMIN ── */}
                 {step === "assign-admin" && (
                     <div>
-                        <p className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-3">Yeni Admin Seç</p>
-                        <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-5 max-h-60 overflow-y-auto">
-                            {otherMembers.map((m) => (
+                        <p
+                            className="text-[10px] uppercase font-semibold mb-3"
+                            style={{
+                                fontFamily: "var(--font-geist-mono, monospace)",
+                                color: "var(--text-muted)",
+                                letterSpacing: "0.08em",
+                            }}
+                        >
+                            Yeni Admin Seç
+                        </p>
+                        <div
+                            className="rounded-2xl overflow-hidden mb-4 max-h-60 overflow-y-auto"
+                            style={{ border: "1px solid var(--border)" }}
+                        >
+                            {otherMembers.map((m, i) => (
                                 <button
                                     key={m.user_id}
                                     onClick={() => handleAssignAdmin(m.user_id)}
                                     disabled={loading}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 text-left"
+                                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors disabled:opacity-50 active:bg-[var(--surface-alt)]"
+                                    style={{
+                                        background: "var(--surface)",
+                                        borderBottom: i < otherMembers.length - 1 ? "1px solid var(--border-light)" : "none",
+                                    }}
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
+                                    <div
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0"
+                                        style={{
+                                            background: "var(--surface-muted)",
+                                            color: "var(--text-secondary)",
+                                            border: "1px solid var(--border)",
+                                        }}
+                                    >
                                         {(m.display_name ?? m.username ?? "?").charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-black truncate">{m.display_name ?? m.username}</p>
-                                        {m.username && <p className="text-xs text-gray-400">@{m.username}</p>}
+                                        <p
+                                            className="text-[13px] font-semibold truncate"
+                                            style={{ color: "var(--foreground)" }}
+                                        >
+                                            {m.display_name ?? m.username}
+                                        </p>
+                                        {m.username && (
+                                            <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                                                @{m.username}
+                                            </p>
+                                        )}
                                     </div>
                                     {m.role === "admin" && (
-                                        <span className="text-[10px] font-bold text-[#00d186] bg-[#f0fdf4] px-2 py-0.5 rounded-full">Admin</span>
+                                        <span
+                                            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+                                        >
+                                            Admin
+                                        </span>
                                     )}
                                 </button>
                             ))}
@@ -278,7 +341,8 @@ export const GroupSettingsModal = ({
                         <button
                             onClick={reset}
                             disabled={loading}
-                            className="w-full py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                            className="w-full py-3 rounded-2xl text-[14px] font-semibold transition-colors disabled:opacity-50"
+                            style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
                         >
                             Vazgeç
                         </button>
@@ -288,11 +352,19 @@ export const GroupSettingsModal = ({
                 {/* ── CONFIRM LEAVE ── */}
                 {step === "confirm-leave" && (
                     <div>
-                        <div className="flex items-start gap-3 bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-5">
-                            <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                        <div
+                            className="flex items-start gap-3 rounded-2xl p-4 mb-5"
+                            style={{
+                                background: "rgba(249,115,22,0.08)",
+                                border: "1px solid rgba(249,115,22,0.18)",
+                            }}
+                        >
+                            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#f97316" }} />
                             <div>
-                                <p className="text-sm font-bold text-orange-700 mb-1">Gruptan çıkmak istediğine emin misin?</p>
-                                <ul className="text-xs text-orange-500 space-y-1 list-disc list-inside">
+                                <p className="text-[13px] font-semibold mb-1" style={{ color: "#c2410c" }}>
+                                    Gruptan çıkmak istediğine emin misin?
+                                </p>
+                                <ul className="text-[12px] space-y-1 list-disc list-inside" style={{ color: "#ea580c" }}>
                                     <li>Net bakiyen sıfır olmalıdır.</li>
                                     <li>Gruba erişimin sona erecek.</li>
                                 </ul>
@@ -302,14 +374,16 @@ export const GroupSettingsModal = ({
                             <button
                                 onClick={reset}
                                 disabled={loading}
-                                className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                className="flex-1 py-3 rounded-2xl text-[14px] font-semibold transition-colors disabled:opacity-50"
+                                style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
                             >
                                 Vazgeç
                             </button>
                             <button
                                 onClick={handleLeave}
                                 disabled={loading}
-                                className="flex-1 py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-[0_4px_14px_rgba(249,115,22,0.35)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 py-3 rounded-2xl text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ background: "#f97316", color: "#fff" }}
                             >
                                 {loading ? "Çıkılıyor..." : "Evet, Çık"}
                             </button>
@@ -320,11 +394,19 @@ export const GroupSettingsModal = ({
                 {/* ── CONFIRM DELETE ── */}
                 {step === "confirm-delete" && (
                     <div>
-                        <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl p-4 mb-5">
-                            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                        <div
+                            className="flex items-start gap-3 rounded-2xl p-4 mb-5"
+                            style={{
+                                background: "rgba(239,68,68,0.08)",
+                                border: "1px solid rgba(239,68,68,0.18)",
+                            }}
+                        >
+                            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "var(--danger)" }} />
                             <div>
-                                <p className="text-sm font-bold text-red-700 mb-1">Grubu silmek istediğine emin misin?</p>
-                                <ul className="text-xs text-red-500 space-y-1 list-disc list-inside">
+                                <p className="text-[13px] font-semibold mb-1" style={{ color: "var(--danger)" }}>
+                                    Grubu silmek istediğine emin misin?
+                                </p>
+                                <ul className="text-[12px] space-y-1 list-disc list-inside" style={{ color: "var(--danger)" }}>
                                     <li>Gruptaki tüm bakiyelerin sıfır olması gerekir.</li>
                                     <li>Bu işlem geri alınamaz.</li>
                                 </ul>
@@ -334,14 +416,16 @@ export const GroupSettingsModal = ({
                             <button
                                 onClick={reset}
                                 disabled={loading}
-                                className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                className="flex-1 py-3 rounded-2xl text-[14px] font-semibold transition-colors disabled:opacity-50"
+                                style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
                             >
                                 Vazgeç
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={loading}
-                                className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-[0_4px_14px_rgba(239,68,68,0.35)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 py-3 rounded-2xl text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ background: "var(--danger)", color: "#fff" }}
                             >
                                 {loading ? "Siliniyor..." : "Evet, Sil"}
                             </button>
@@ -352,3 +436,43 @@ export const GroupSettingsModal = ({
         </div>
     );
 };
+
+function ActionRow({
+    icon,
+    label,
+    sub,
+    iconColor,
+    iconBg,
+    onClick,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    sub: string;
+    iconColor: string;
+    iconBg: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-colors active:opacity-80"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        >
+            <div
+                className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+                style={{ background: iconBg, color: iconColor }}
+            >
+                {icon}
+            </div>
+            <div className="flex-1">
+                <p className="text-[13.5px] font-semibold" style={{ color: "var(--foreground)", letterSpacing: "-0.2px" }}>
+                    {label}
+                </p>
+                <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    {sub}
+                </p>
+            </div>
+            <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "var(--text-placeholder)" }} />
+        </button>
+    );
+}
