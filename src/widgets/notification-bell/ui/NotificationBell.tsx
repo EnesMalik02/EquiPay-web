@@ -21,8 +21,6 @@ export const NotificationBell = ({ expanded, active }: { expanded: boolean; acti
 
     useEffect(() => {
         fetchNotifications();
-        const interval = setInterval(fetchNotifications, 30_000);
-        return () => clearInterval(interval);
     }, []);
 
     const count = notifications.filter((n) => n.type === "group_invitation").length;
