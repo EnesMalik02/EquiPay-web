@@ -31,4 +31,9 @@ export interface GroupMemberResponse {
     display_name?: string;
     username?: string;
     role?: "admin" | "member";
+    status?: "active" | "pending";
+}
+
+export interface GroupInvitationRespond {
+    action: "accept" | "decline";
 }

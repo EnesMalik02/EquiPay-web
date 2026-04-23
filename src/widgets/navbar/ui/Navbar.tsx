@@ -8,11 +8,11 @@ import {
     CreditCard,
     User,
     Settings,
-    Shield,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
 import { useUser } from "@/shared/store/UserContext";
+import { NotificationBell } from "@/widgets/notification-bell/ui/NotificationBell";
 
 const STORAGE_KEY = "equipay-sidebar-open";
 
@@ -173,6 +173,11 @@ export const Navbar = () => {
                 </nav>
 
                 <div className="flex-1" />
+
+                {/* Notifications */}
+                <div style={{ padding: "0 8px 8px" }}>
+                    <NotificationBell expanded={expanded} active={isActive("/notifications")} />
+                </div>
             </div>
 
             {/* ── User row ────────────────────────────── */}

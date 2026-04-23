@@ -1,6 +1,7 @@
 import { apiClient } from "@/shared/api/apiClient";
 import {
     GroupCreate,
+    GroupInvitationRespond,
     GroupMemberAdd,
     GroupMemberResponse,
     GroupMemberRoleUpdate,
@@ -49,6 +50,11 @@ export const groupApi = {
 
     async listMembers(groupId: string): Promise<GroupMemberResponse[]> {
         const { data } = await apiClient.get<GroupMemberResponse[]>(`/groups/${groupId}/members`);
+        return data;
+    },
+
+    async respondToInvitation(groupId: string, payload: GroupInvitationRespond): Promise<{ detail: string }> {
+        const { data } = await apiClient.post<{ detail: string }>(`/groups/${groupId}/invitations/respond`, payload);
         return data;
     },
 };

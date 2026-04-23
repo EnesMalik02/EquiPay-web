@@ -1,0 +1,1 @@
+Backend Projesinin Path'i : /Users/enes/Desktop/Projects/EquiPay-backend

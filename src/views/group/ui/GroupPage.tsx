@@ -69,6 +69,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
     const [showAddMember, setShowAddMember] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [pendingInviteMsg, setPendingInviteMsg] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -314,12 +315,28 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
             className="min-h-screen"
             style={{ background: "var(--background)", color: "var(--foreground)" }}
         >
+            {pendingInviteMsg && (
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] max-w-sm w-full px-4">
+                    <div
+                        className="flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"
+                        style={{ background: "var(--primary-light)", color: "var(--primary-ink)", border: "1px solid var(--primary-border)" }}
+                    >
+                        <Check className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
+                        <span>{pendingInviteMsg}</span>
+                    </div>
+                </div>
+            )}
             {showAddMember && (
                 <AddMemberModal
                     groupId={groupId}
                     onClose={() => setShowAddMember(false)}
                     onAdded={(member) => {
-                        setMembers((prev) => [...prev, member]);
+                        if (member.status === "pending") {
+                            setPendingInviteMsg(`Davet gönderildi. ${member.display_name || member.username || "Kullanıcı"} daveti onayladığında gruba katılacak.`);
+                            setTimeout(() => setPendingInviteMsg(null), 5000);
+                        } else {
+                            setMembers((prev) => [...prev, member]);
+                        }
                         setShowAddMember(false);
                     }}
                 />
