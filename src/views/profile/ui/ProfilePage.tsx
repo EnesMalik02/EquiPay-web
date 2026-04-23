@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useUser } from "@/shared/store/UserContext";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { logoutAction } from "@/features/auth/actions/authActions";
+import { EditProfileModal } from "@/features/edit-profile/ui/EditProfileModal";
 import {
-    User, CreditCard, Bell, Globe, Moon, Shield,
-    HelpCircle, ChevronRight, LogOut, CheckCircle, Star,
+    User, Bell,
+    ChevronRight, LogOut,
 } from "lucide-react";
 
 export const ProfilePage = () => {
     const user = useUser();
+    const [editOpen, setEditOpen] = useState(false);
 
     const displayName = user?.display_name ?? user?.username ?? "—";
 
@@ -27,12 +30,8 @@ export const ProfilePage = () => {
         sub?: string;
         onClick?: () => void;
     }[] = [
-        { icon: User,       label: "Kişisel bilgiler",  sub: "Ad, telefon, e-posta" },
-        { icon: Bell,       label: "Bildirimler",        sub: "E-posta ve push" },
-        { icon: Globe,      label: "Dil ve bölge",       sub: "Türkçe · TRY" },
-        { icon: Moon,       label: "Görünüm",            sub: "Açık" },
-        { icon: Shield,     label: "Güvenlik",           sub: "İki adımlı doğrulama açık" },
-        { icon: HelpCircle, label: "Yardım merkezi" },
+        { icon: User, label: "Kişisel bilgiler", sub: "Ad, telefon, e-posta", onClick: () => setEditOpen(true) },
+        { icon: Bell, label: "Bildirimler", sub: "E-posta ve push" },
     ];
 
     const cardStyle = {
@@ -109,6 +108,7 @@ export const ProfilePage = () => {
                                 </div>
 
                                 <button
+                                    onClick={() => setEditOpen(true)}
                                     className="px-4 py-2 rounded-xl text-sm font-semibold border transition-all shrink-0 hover:opacity-80"
                                     style={{
                                         background: "var(--surface)",
@@ -197,6 +197,10 @@ export const ProfilePage = () => {
             </main>
 
             <BottomNav />
+
+            {editOpen && user && (
+                <EditProfileModal user={user} onClose={() => setEditOpen(false)} />
+            )}
         </div>
     );
 };
