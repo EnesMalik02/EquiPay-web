@@ -57,7 +57,7 @@ export const NotificationBell = ({ expanded, active }: { expanded: boolean; acti
             <span
                 className="text-[13px] whitespace-nowrap overflow-hidden"
                 style={{
-                    color: "var(--text-secondary)",
+                    color: active ? "var(--primary-ink)" : "var(--text-secondary)",
                     fontWeight: 400,
                     letterSpacing: "-0.1px",
                     maxWidth: expanded ? 140 : 0,
