@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
-import { Plus, Users, Receipt } from "lucide-react";
+import { Plus, Users, Receipt, Bell } from "lucide-react";
 import { CreateGroupModal } from "@/features/create-group";
 import { SelectGroupModal } from "@/features/select-group/ui/SelectGroupModal";
 import { GroupResponse } from "@/entities/group/model/types";
@@ -67,29 +67,42 @@ export const HomePage = () => {
             )}
 
             {/* ── Header ─────────────────────────────────────── */}
-            <header className="px-4 pt-14 pb-4">
-                <p
-                    className="text-[10px] uppercase mb-1"
+            <header className="px-4 pt-14 pb-4 flex items-start justify-between">
+                <div>
+                    <p
+                        className="text-[10px] uppercase mb-1"
+                        style={{
+                            fontFamily: "var(--font-geist-mono, monospace)",
+                            color: "var(--text-muted)",
+                            letterSpacing: "0.08em",
+                        }}
+                    >
+                        {new Date().toLocaleDateString("tr-TR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                        })}{" "}
+                        ·{" "}
+                        {new Date().toLocaleDateString("tr-TR", { weekday: "long" })}
+                    </p>
+                    <h1
+                        className="text-[24px] font-semibold"
+                        style={{ letterSpacing: "-0.5px", lineHeight: 1.2 }}
+                    >
+                        {greeting}
+                    </h1>
+                </div>
+                <button
+                    onClick={() => router.push("/notifications")}
+                    className="w-9 h-9 rounded-[10px] flex items-center justify-center active:scale-95 transition-transform mt-1"
                     style={{
-                        fontFamily: "var(--font-geist-mono, monospace)",
-                        color: "var(--text-muted)",
-                        letterSpacing: "0.08em",
+                        background: "var(--surface)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-secondary)",
                     }}
                 >
-                    {new Date().toLocaleDateString("tr-TR", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                    })}{" "}
-                    ·{" "}
-                    {new Date().toLocaleDateString("tr-TR", { weekday: "long" })}
-                </p>
-                <h1
-                    className="text-[24px] font-semibold"
-                    style={{ letterSpacing: "-0.5px", lineHeight: 1.2 }}
-                >
-                    {greeting}
-                </h1>
+                    <Bell className="w-[18px] h-[18px]" />
+                </button>
             </header>
 
             <main className="px-4 pb-32">
