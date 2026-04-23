@@ -6,6 +6,7 @@ import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
 import { Plus, Users, Receipt, ArrowDownLeft, ArrowUpRight, Check } from "lucide-react";
 import { CreateGroupModal } from "@/features/create-group";
+import { SelectGroupModal } from "@/features/select-group/ui/SelectGroupModal";
 import { GroupResponse } from "@/entities/group/model/types";
 import { useRecentExpenses } from "@/entities/expense/hooks/useRecentExpenses";
 import { useUser } from "@/shared/store/UserContext";
@@ -137,6 +138,7 @@ export const HomePage = () => {
     const router = useRouter();
     const currentUser = useUser();
     const [showCreate, setShowCreate] = useState(false);
+    const [showSelectGroup, setShowSelectGroup] = useState(false);
     const { data: recentExpenses, isLoading } = useRecentExpenses(8);
 
     const handleCreated = (group: GroupResponse) => {
@@ -148,7 +150,7 @@ export const HomePage = () => {
         {
             label: "Harcama",
             icon: <Plus className="w-[15px] h-[15px]" />,
-            onClick: () => router.push("/groups"),
+            onClick: () => setShowSelectGroup(true),
         },
         {
             label: "Gruplar",
@@ -173,6 +175,9 @@ export const HomePage = () => {
                     onClose={() => setShowCreate(false)}
                     onCreated={handleCreated}
                 />
+            )}
+            {showSelectGroup && (
+                <SelectGroupModal onClose={() => setShowSelectGroup(false)} />
             )}
 
             {/* ── Header ─────────────────────────────────────── */}

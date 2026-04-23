@@ -38,7 +38,7 @@ export const GroupSettingsModal = ({
     const [editName, setEditName] = useState(groupName);
     const [editDescription, setEditDescription] = useState(groupDescription ?? "");
 
-    const otherMembers = members.filter((m) => m.user_id !== currentUserId && !m.left_at);
+    const otherMembers = members.filter((m) => m.user_id !== currentUserId);
 
     const handleLeave = async () => {
         setLoading(true);
@@ -257,7 +257,7 @@ export const GroupSettingsModal = ({
                         <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-5 max-h-60 overflow-y-auto">
                             {otherMembers.map((m) => (
                                 <button
-                                    key={m.id}
+                                    key={m.user_id}
                                     onClick={() => handleAssignAdmin(m.user_id)}
                                     disabled={loading}
                                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 text-left"
