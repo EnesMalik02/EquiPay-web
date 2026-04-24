@@ -12,6 +12,12 @@ export const apiClient = axios.create({
 });
 
 let isRefreshing = false;
+let refreshQueue: Array<(value: unknown) => void> = [];
+
+function drainQueue(error: unknown = null) {
+    refreshQueue.forEach((resolve) => resolve(error));
+    refreshQueue = [];
+}
 
 apiClient.interceptors.response.use(
     (response) => response,
@@ -23,7 +29,14 @@ apiClient.interceptors.response.use(
             !originalRequest._retry &&
             !originalRequest.url?.includes("/auth/refresh")
         ) {
-            if (isRefreshing) return Promise.reject(error);
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    refreshQueue.push((err) => {
+                        if (err) return reject(err);
+                        resolve(apiClient(originalRequest));
+                    });
+                });
+            }
 
             originalRequest._retry = true;
             isRefreshing = true;
@@ -31,9 +44,11 @@ apiClient.interceptors.response.use(
             try {
                 await apiClient.post("/auth/refresh");
                 isRefreshing = false;
+                drainQueue();
                 return apiClient(originalRequest);
             } catch (refreshError) {
                 isRefreshing = false;
+                drainQueue(refreshError);
                 if (typeof window !== "undefined") {
                     await fetch("/api/auth/clear-session", { method: "POST" });
                     window.location.href = "/auth/login";
