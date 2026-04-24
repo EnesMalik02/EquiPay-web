@@ -47,6 +47,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
     const [paidById, setPaidById] = useState("");
     const [splitType, setSplitType] = useState<SplitType>("equal");
     const [splits, setSplits] = useState<Record<string, string>>({});
+    const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
@@ -61,6 +62,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                     const initialSplits: Record<string, string> = {};
                     m.forEach((mem) => { initialSplits[mem.user_id] = ""; });
                     setSplits(initialSplits);
+                    setSelectedMemberIds(new Set(m.map((mem) => mem.user_id)));
                 }
             })
             .catch(() => setError("Grup bilgileri yüklenemedi."))
@@ -69,16 +71,22 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
     const parsedAmount = parseFloat(amount) || 0;
 
+    const selectedMembers = useMemo(
+        () => members.filter((m) => selectedMemberIds.has(m.user_id)),
+        [members, selectedMemberIds],
+    );
+
     const splitSum = useMemo(() =>
-        Object.values(splits).reduce((acc, v) => acc + (parseFloat(v) || 0), 0),
-    [splits]);
+        selectedMembers.reduce((acc, m) => acc + (parseFloat(splits[m.user_id]) || 0), 0),
+    [splits, selectedMembers]);
 
     const splitsValid = useMemo(() => {
         if (parsedAmount <= 0) return false;
+        if (selectedMembers.length === 0) return false;
         if (splitType === "equal") return true;
         if (splitType === "percentage") return Math.abs(splitSum - 100) < 0.01;
         return Math.abs(splitSum - parsedAmount) < 0.01;
-    }, [splitType, splitSum, parsedAmount]);
+    }, [splitType, splitSum, parsedAmount, selectedMembers.length]);
 
     const formValid =
         title.trim().length > 0 &&
@@ -87,20 +95,20 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
         splitsValid;
 
     const distributeEqually = () => {
-        if (parsedAmount <= 0 || members.length === 0) return;
+        if (parsedAmount <= 0 || selectedMembers.length === 0) return;
         if (splitType === "percentage") {
-            const base = Math.floor((100 / members.length) * 100) / 100;
-            const remainder = parseFloat((100 - base * members.length).toFixed(2));
-            const next: Record<string, string> = {};
-            members.forEach((m, i) => {
+            const base = Math.floor((100 / selectedMembers.length) * 100) / 100;
+            const remainder = parseFloat((100 - base * selectedMembers.length).toFixed(2));
+            const next: Record<string, string> = { ...splits };
+            selectedMembers.forEach((m, i) => {
                 next[m.user_id] = i === 0 ? (base + remainder).toFixed(2) : base.toFixed(2);
             });
             setSplits(next);
         } else {
-            const base = Math.floor((parsedAmount / members.length) * 100) / 100;
-            const remainder = parseFloat((parsedAmount - base * members.length).toFixed(2));
-            const next: Record<string, string> = {};
-            members.forEach((m, i) => {
+            const base = Math.floor((parsedAmount / selectedMembers.length) * 100) / 100;
+            const remainder = parseFloat((parsedAmount - base * selectedMembers.length).toFixed(2));
+            const next: Record<string, string> = { ...splits };
+            selectedMembers.forEach((m, i) => {
                 next[m.user_id] = i === 0 ? (base + remainder).toFixed(2) : base.toFixed(2);
             });
             setSplits(next);
@@ -114,17 +122,30 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
         setSplits(reset);
     };
 
+    const toggleMember = (userId: string) => {
+        setSelectedMemberIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(userId)) {
+                next.delete(userId);
+            } else {
+                next.add(userId);
+            }
+            return next;
+        });
+        setSplits((prev) => ({ ...prev, [userId]: "" }));
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!formValid) return;
         setSubmitting(true);
         setError("");
         try {
-            const splitPayload = members.map((m) => {
+            const splitPayload = selectedMembers.map((m) => {
                 if (splitType === "equal") {
-                    const base = Math.floor((parsedAmount / members.length) * 100) / 100;
-                    const idx = members.indexOf(m);
-                    const remainder = parseFloat((parsedAmount - base * members.length).toFixed(2));
+                    const base = Math.floor((parsedAmount / selectedMembers.length) * 100) / 100;
+                    const idx = selectedMembers.indexOf(m);
+                    const remainder = parseFloat((parsedAmount - base * selectedMembers.length).toFixed(2));
                     return { user_id: m.user_id, owed_amount: idx === 0 ? base + remainder : base };
                 }
                 if (splitType === "percentage") {
@@ -182,8 +203,8 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
         ? parseFloat((100 - splitSum).toFixed(2))
         : parseFloat((parsedAmount - splitSum).toFixed(2));
 
-    const perPerson = parsedAmount > 0 && members.length > 0
-        ? parsedAmount / members.length
+    const perPerson = parsedAmount > 0 && selectedMembers.length > 0
+        ? parsedAmount / selectedMembers.length
         : 0;
 
     const inputStyle = {
@@ -398,19 +419,33 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                         const memberName = m.display_name ?? m.username ?? "—";
                                         const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
                                         const initial = memberName.charAt(0).toUpperCase();
+                                        const isSelected = selectedMemberIds.has(m.user_id);
+                                        const activeCnt = selectedMemberIds.size;
+
+                                        const Checkbox = () => (
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleMember(m.user_id)}
+                                                className="w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all"
+                                                style={isSelected
+                                                    ? { background: "var(--primary)", border: "none" }
+                                                    : { background: "transparent", border: "2px solid var(--border)" }}
+                                            >
+                                                {isSelected && (
+                                                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                                                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        );
 
                                         if (splitType === "equal") {
-                                            const perPersonStr = parsedAmount > 0 && members.length > 0
-                                                ? `₺${(parsedAmount / members.length).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                                            const perPersonStr = parsedAmount > 0 && isSelected && activeCnt > 0
+                                                ? `₺${(parsedAmount / activeCnt).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
                                                 : "—";
                                             return (
-                                                <div key={m.user_id} className="flex items-center gap-3">
-                                                    <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                                                        style={{ background: "var(--primary)" }}>
-                                                        <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                                                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
-                                                    </div>
+                                                <div key={m.user_id} className="flex items-center gap-3" style={{ opacity: isSelected ? 1 : 0.4 }}>
+                                                    <Checkbox />
                                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                                                         style={{ background: avatarColor }}>
                                                         {initial}
@@ -418,9 +453,11 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                     <span className="flex-1 text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
                                                         {memberName}
                                                     </span>
-                                                    <span className="text-xs font-medium mr-2" style={{ color: "var(--text-muted)" }}>
-                                                        %{members.length > 0 ? (100 / members.length).toFixed(0) : 0}
-                                                    </span>
+                                                    {isSelected && activeCnt > 0 && (
+                                                        <span className="text-xs font-medium mr-2" style={{ color: "var(--text-muted)" }}>
+                                                            %{(100 / activeCnt).toFixed(0)}
+                                                        </span>
+                                                    )}
                                                     <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
                                                         {perPersonStr}
                                                     </span>
@@ -429,13 +466,8 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                         }
 
                                         return (
-                                            <div key={m.user_id} className="flex items-center gap-3">
-                                                <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                                                    style={{ background: "var(--primary)" }}>
-                                                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                                                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                    </svg>
-                                                </div>
+                                            <div key={m.user_id} className="flex items-center gap-3" style={{ opacity: isSelected ? 1 : 0.4 }}>
+                                                <Checkbox />
                                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                                                     style={{ background: avatarColor }}>
                                                     {initial}
@@ -454,10 +486,11 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                         onChange={(e) =>
                                                             setSplits((prev) => ({ ...prev, [m.user_id]: e.target.value }))
                                                         }
+                                                        disabled={!isSelected}
                                                         placeholder="0"
                                                         min="0"
                                                         step={splitType === "percentage" ? "1" : "0.01"}
-                                                        className="w-full pl-7 pr-3 py-2 rounded-xl text-sm font-medium outline-none transition-all"
+                                                        className="w-full pl-7 pr-3 py-2 rounded-xl text-sm font-medium outline-none transition-all disabled:cursor-not-allowed"
                                                         style={inputStyle}
                                                     />
                                                 </div>
