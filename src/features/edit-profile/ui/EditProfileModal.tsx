@@ -107,7 +107,7 @@ export const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
                         <input
                             type="text"
                             value={form.username}
-                            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value.replace(/\s/g, "") }))}
+                            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") }))}
                             placeholder="kullaniciadi"
                             className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none"
                             style={inputStyle}
