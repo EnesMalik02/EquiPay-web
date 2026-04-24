@@ -28,6 +28,10 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
+    const [showPayModal, setShowPayModal] = useState(false);
+    const [payMode, setPayMode] = useState<"full" | "partial">("full");
+    const [partialAmount, setPartialAmount] = useState("");
+    const [payError, setPayError] = useState("");
     const [statsOpen, setStatsOpen] = useState(false);
     const [barAnimated, setBarAnimated] = useState(false);
 
@@ -60,17 +64,31 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
 
     const isOwner = expense ? String(expense.paid_by) === String(currentUserId) : false;
 
-    const handlePay = async (splitId: string) => {
+    const handlePay = async (splitId: string, paidAmount?: number) => {
         if (!expense) return;
         setPayingIds((prev) => new Set(prev).add(splitId));
+        setPayError("");
         try {
-            const updated = await expenseApi.paySplit(expense.id, splitId);
+            const updated = await expenseApi.paySplit(expense.id, splitId, paidAmount);
             setExpense((prev) =>
                 prev ? { ...prev, splits: prev.splits.map((s) => s.id === splitId ? updated : s) } : prev,
             );
+            setShowPayModal(false);
+            setPartialAmount("");
+            setPayMode("full");
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { detail?: string } }; message?: string };
+            setPayError(e.response?.data?.detail ?? e.message ?? "Bir hata oluştu.");
         } finally {
             setPayingIds((prev) => { const n = new Set(prev); n.delete(splitId); return n; });
         }
+    };
+
+    const handleOpenPayModal = () => {
+        setPayMode("full");
+        setPartialAmount("");
+        setPayError("");
+        setShowPayModal(true);
     };
 
     const handleSaveNotes = async () => {
@@ -185,6 +203,130 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                 </div>
             )}
 
+            {/* ── Pay Modal ─── */}
+            {showPayModal && (() => {
+                const mySplit = expense?.splits.find((s) => String(s.user_id) === String(currentUserId));
+                if (!mySplit) return null;
+                const owed = parseFloat(mySplit.owed_amount);
+                const paid = parseFloat(mySplit.paid_amount);
+                const remaining = owed - paid;
+                const isPaying = payingIds.has(mySplit.id);
+                const partialVal = parseFloat(partialAmount);
+                const partialInvalid = payMode === "partial" && (isNaN(partialVal) || partialVal <= 0 || partialVal > remaining);
+
+                const confirm = () => {
+                    if (payMode === "full") {
+                        handlePay(mySplit.id);
+                    } else {
+                        if (partialInvalid) return;
+                        handlePay(mySplit.id, partialVal);
+                    }
+                };
+
+                return (
+                    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4">
+                        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowPayModal(false)} />
+                        <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6">
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="text-lg font-extrabold text-black">Borcunu Öde</h3>
+                                <button
+                                    onClick={() => setShowPayModal(false)}
+                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="bg-[#f0fdf4] rounded-2xl px-4 py-3 mb-5 flex items-center justify-between">
+                                <span className="text-sm font-semibold text-[#15803d]">Kalan Borcun</span>
+                                <span className="text-base font-extrabold text-[#00d186]">
+                                    ₺{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                </span>
+                            </div>
+
+                            <div className="space-y-2.5 mb-5">
+                                <button
+                                    onClick={() => setPayMode("full")}
+                                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 transition-colors"
+                                    style={{
+                                        borderColor: payMode === "full" ? "#00d186" : "#e5e7eb",
+                                        background: payMode === "full" ? "#f0fdf4" : "#f9fafb",
+                                    }}
+                                >
+                                    <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                                        style={{ borderColor: payMode === "full" ? "#00d186" : "#d1d5db" }}>
+                                        {payMode === "full" && <div className="w-2 h-2 rounded-full bg-[#00d186]" />}
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <p className="text-sm font-bold text-black">Tamamını Öde</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            ₺{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödenecek
+                                        </p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={() => setPayMode("partial")}
+                                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 transition-colors"
+                                    style={{
+                                        borderColor: payMode === "partial" ? "#00d186" : "#e5e7eb",
+                                        background: payMode === "partial" ? "#f0fdf4" : "#f9fafb",
+                                    }}
+                                >
+                                    <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                                        style={{ borderColor: payMode === "partial" ? "#00d186" : "#d1d5db" }}>
+                                        {payMode === "partial" && <div className="w-2 h-2 rounded-full bg-[#00d186]" />}
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <p className="text-sm font-bold text-black">Belirli Tutar Öde</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">Kısmi ödeme yap</p>
+                                    </div>
+                                </button>
+                            </div>
+
+                            {payMode === "partial" && (
+                                <div className="mb-4">
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">₺</span>
+                                        <input
+                                            type="number"
+                                            min="0.01"
+                                            max={remaining}
+                                            step="0.01"
+                                            value={partialAmount}
+                                            onChange={(e) => { setPartialAmount(e.target.value); setPayError(""); }}
+                                            placeholder={`Maks. ${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
+                                            className="w-full pl-8 pr-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-bold text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {payError && (
+                                <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-xl mb-4">{payError}</p>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowPayModal(false)}
+                                    disabled={isPaying}
+                                    className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                >
+                                    Vazgeç
+                                </button>
+                                <button
+                                    onClick={confirm}
+                                    disabled={isPaying || partialInvalid}
+                                    className="flex-1 py-3 rounded-2xl bg-[#00d186] hover:bg-[#00c07c] text-white font-bold text-sm shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isPaying ? "Ödeniyor..." : "Onayla"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
             <main className="max-w-5xl mx-auto px-6 pt-8 pb-12">
 
                 {/* Back + owner actions */}
@@ -266,7 +408,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                             </span>
                                         ) : (
                                             <button
-                                                onClick={() => handlePay(mySplit.id)}
+                                                onClick={handleOpenPayModal}
                                                 disabled={myPaying}
                                                 className="shrink-0 text-sm font-bold text-white bg-[#00d186] hover:bg-[#00c07c] disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-xl shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95"
                                             >

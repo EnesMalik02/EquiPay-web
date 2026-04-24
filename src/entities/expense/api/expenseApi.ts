@@ -47,9 +47,10 @@ export const expenseApi = {
         await apiClient.delete(`/expenses/${expenseId}`);
     },
 
-    async paySplit(expenseId: string, splitId: string): Promise<ExpenseSplitResponse> {
+    async paySplit(expenseId: string, splitId: string, paidAmount?: number): Promise<ExpenseSplitResponse> {
         const { data } = await apiClient.patch<ExpenseSplitResponse>(
             `/expenses/${expenseId}/splits/${splitId}/pay`,
+            paidAmount !== undefined ? { paid_amount: paidAmount } : {},
         );
         return data;
     },
