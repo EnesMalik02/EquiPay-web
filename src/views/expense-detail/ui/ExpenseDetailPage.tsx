@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    ArrowLeft, Receipt, CalendarDays, FileText, Wallet, Users,
+    ChevronLeft, Receipt, CalendarDays, FileText, Wallet, Users,
     CheckCircle2, Clock3, TrendingUp, UserCheck, ChevronDown,
     Pencil, Trash2, X, AlertTriangle,
 } from "lucide-react";
@@ -13,7 +13,6 @@ import { groupApi } from "@/entities/group/api/groupApi";
 import { ExpenseResponse } from "@/entities/expense/model/types";
 import { GroupMemberResponse } from "@/entities/group/model/types";
 import { useUser } from "@/shared/store/UserContext";
-import { Skeleton } from "@/shared/ui";
 
 interface ExpenseDetailPageProps {
     groupId: string;
@@ -35,13 +34,11 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const [statsOpen, setStatsOpen] = useState(false);
     const [barAnimated, setBarAnimated] = useState(false);
 
-    // edit notes state
     const [showEditNotes, setShowEditNotes] = useState(false);
     const [editNotes, setEditNotes] = useState("");
     const [savingNotes, setSavingNotes] = useState(false);
     const [notesError, setNotesError] = useState("");
 
-    // delete state
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState("");
@@ -56,9 +53,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
             setTimeout(() => setBarAnimated(true), 80);
         }).catch((err: unknown) => {
             const status = (err as { response?: { status?: number } })?.response?.status;
-            if (status === 403 || status === 404) {
-                router.replace("/groups");
-            }
+            if (status === 403 || status === 404) router.replace("/groups");
         }).finally(() => setLoading(false));
     }, [expenseId, groupId]);
 
@@ -122,44 +117,80 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     };
 
     return (
-        <div className="min-h-screen font-sans" style={{ background: "var(--background)", color: "var(--foreground)" }}>
+        <div className="min-h-screen" style={{ background: "var(--background)", color: "var(--foreground)" }}>
 
-            {/* ── Edit Notes Modal ─── */}
+            {/* ── Edit Notes Modal ── */}
             {showEditNotes && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowEditNotes(false)} />
-                    <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6">
+                    <div
+                        className="absolute inset-0 backdrop-blur-sm"
+                        style={{ background: "rgba(18,21,18,0.3)" }}
+                        onClick={() => setShowEditNotes(false)}
+                    />
+                    <div
+                        className="relative w-full max-w-sm p-5 animate-fade-in-up"
+                        style={{
+                            background: "var(--surface)",
+                            border: "1px solid var(--border)",
+                            borderRadius: "var(--radius-xl)",
+                            boxShadow: "var(--shadow-lg)",
+                        }}
+                    >
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-extrabold text-black">Notu Düzenle</h3>
+                            <h3 className="text-[16px] font-semibold" style={{ color: "var(--foreground)" }}>
+                                Notu Düzenle
+                            </h3>
                             <button
                                 onClick={() => setShowEditNotes(false)}
-                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
+                                style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                         {notesError && (
-                            <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-xl mb-3">{notesError}</p>
+                            <p
+                                className="text-[13px] px-3 py-2 rounded-[var(--radius-md)] mb-3"
+                                style={{ background: "var(--danger-light)", color: "var(--danger)" }}
+                            >
+                                {notesError}
+                            </p>
                         )}
                         <textarea
                             value={editNotes}
                             onChange={(e) => setEditNotes(e.target.value)}
                             rows={4}
-                            className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-medium text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors resize-none mb-4"
+                            className="w-full px-3.5 py-2.5 text-[13.5px] outline-none resize-none mb-4"
+                            style={{
+                                background: "var(--surface-muted)",
+                                border: "1px solid var(--border)",
+                                borderRadius: "var(--radius-md)",
+                                color: "var(--foreground)",
+                            }}
                             placeholder="Harcama için not ekleyin..."
                         />
-                        <div className="flex gap-3">
+                        <div className="flex gap-2.5">
                             <button
                                 onClick={() => setShowEditNotes(false)}
                                 disabled={savingNotes}
-                                className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                className="flex-1 py-2.5 text-[13px] font-medium transition-colors disabled:opacity-50"
+                                style={{
+                                    background: "var(--surface-muted)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "var(--text-secondary)",
+                                }}
                             >
                                 Vazgeç
                             </button>
                             <button
                                 onClick={handleSaveNotes}
                                 disabled={savingNotes}
-                                className="flex-1 py-3 rounded-2xl bg-[#00d186] hover:bg-[#00c07c] text-white font-bold text-sm shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95 disabled:opacity-50"
+                                className="flex-1 py-2.5 text-[13px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                                style={{
+                                    background: "var(--primary)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "#fff",
+                                }}
                             >
                                 {savingNotes ? "Kaydediliyor..." : "Kaydet"}
                             </button>
@@ -168,33 +199,67 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                 </div>
             )}
 
-            {/* ── Delete Confirm Modal ─── */}
+            {/* ── Delete Confirm Modal ── */}
             {showDeleteConfirm && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} />
-                    <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6">
-                        <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl p-4 mb-5">
-                            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                    <div
+                        className="absolute inset-0 backdrop-blur-sm"
+                        style={{ background: "rgba(18,21,18,0.3)" }}
+                        onClick={() => setShowDeleteConfirm(false)}
+                    />
+                    <div
+                        className="relative w-full max-w-sm p-5 animate-fade-in-up"
+                        style={{
+                            background: "var(--surface)",
+                            border: "1px solid var(--border)",
+                            borderRadius: "var(--radius-xl)",
+                            boxShadow: "var(--shadow-lg)",
+                        }}
+                    >
+                        <div
+                            className="flex items-start gap-3 p-3.5 rounded-[var(--radius-md)] mb-4"
+                            style={{ background: "var(--danger-light)", border: "1px solid rgba(208,73,47,0.2)" }}
+                        >
+                            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--danger)" }} />
                             <div>
-                                <p className="text-sm font-bold text-red-700 mb-1">Harcamayı silmek istediğine emin misin?</p>
-                                <p className="text-xs text-red-400">Bu işlem geri alınamaz.</p>
+                                <p className="text-[13px] font-semibold mb-0.5" style={{ color: "var(--danger)" }}>
+                                    Harcamayı silmek istediğine emin misin?
+                                </p>
+                                <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>
+                                    Bu işlem geri alınamaz.
+                                </p>
                             </div>
                         </div>
                         {deleteError && (
-                            <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-xl mb-3">{deleteError}</p>
+                            <p
+                                className="text-[13px] px-3 py-2 rounded-[var(--radius-md)] mb-3"
+                                style={{ background: "var(--danger-light)", color: "var(--danger)" }}
+                            >
+                                {deleteError}
+                            </p>
                         )}
-                        <div className="flex gap-3">
+                        <div className="flex gap-2.5">
                             <button
                                 onClick={() => setShowDeleteConfirm(false)}
                                 disabled={deleting}
-                                className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                className="flex-1 py-2.5 text-[13px] font-medium transition-colors disabled:opacity-50"
+                                style={{
+                                    background: "var(--surface-muted)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "var(--text-secondary)",
+                                }}
                             >
                                 Vazgeç
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-[0_4px_14px_rgba(239,68,68,0.35)] transition-all active:scale-95 disabled:opacity-50"
+                                className="flex-1 py-2.5 text-[13px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                                style={{
+                                    background: "var(--danger)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "#fff",
+                                }}
                             >
                                 {deleting ? "Siliniyor..." : "Evet, Sil"}
                             </button>
@@ -203,7 +268,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                 </div>
             )}
 
-            {/* ── Pay Modal ─── */}
+            {/* ── Pay Modal ── */}
             {showPayModal && (() => {
                 const mySplit = expense?.splits.find((s) => String(s.user_id) === String(currentUserId));
                 if (!mySplit) return null;
@@ -215,79 +280,97 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                 const partialInvalid = payMode === "partial" && (isNaN(partialVal) || partialVal <= 0 || partialVal > remaining);
 
                 const confirm = () => {
-                    if (payMode === "full") {
-                        handlePay(mySplit.id);
-                    } else {
-                        if (partialInvalid) return;
-                        handlePay(mySplit.id, partialVal);
-                    }
+                    if (payMode === "full") handlePay(mySplit.id);
+                    else if (!partialInvalid) handlePay(mySplit.id, partialVal);
                 };
 
                 return (
                     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-4">
-                        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowPayModal(false)} />
-                        <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6">
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="text-lg font-extrabold text-black">Borcunu Öde</h3>
+                        <div
+                            className="absolute inset-0 backdrop-blur-sm"
+                            style={{ background: "rgba(18,21,18,0.3)" }}
+                            onClick={() => setShowPayModal(false)}
+                        />
+                        <div
+                            className="relative w-full max-w-sm p-5 animate-slide-up"
+                            style={{
+                                background: "var(--surface)",
+                                border: "1px solid var(--border)",
+                                borderRadius: "var(--radius-xl)",
+                                boxShadow: "var(--shadow-lg)",
+                            }}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-[16px] font-semibold" style={{ color: "var(--foreground)" }}>
+                                    Borcunu Öde
+                                </h3>
                                 <button
                                     onClick={() => setShowPayModal(false)}
-                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center rounded-full"
+                                    style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
 
-                            <div className="bg-[#f0fdf4] rounded-2xl px-4 py-3 mb-5 flex items-center justify-between">
-                                <span className="text-sm font-semibold text-[#15803d]">Kalan Borcun</span>
-                                <span className="text-base font-extrabold text-[#00d186]">
+                            <div
+                                className="flex items-center justify-between px-4 py-3 rounded-[var(--radius-md)] mb-4"
+                                style={{ background: "var(--primary-light)" }}
+                            >
+                                <span className="text-[13px] font-medium" style={{ color: "var(--primary-ink)" }}>
+                                    Kalan Borç
+                                </span>
+                                <span
+                                    className="text-[15px] font-semibold"
+                                    style={{ fontFamily: "var(--font-geist-mono, monospace)", color: "var(--primary)" }}
+                                >
                                     ₺{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                 </span>
                             </div>
 
-                            <div className="space-y-2.5 mb-5">
-                                <button
-                                    onClick={() => setPayMode("full")}
-                                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 transition-colors"
-                                    style={{
-                                        borderColor: payMode === "full" ? "#00d186" : "#e5e7eb",
-                                        background: payMode === "full" ? "#f0fdf4" : "#f9fafb",
-                                    }}
-                                >
-                                    <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                                        style={{ borderColor: payMode === "full" ? "#00d186" : "#d1d5db" }}>
-                                        {payMode === "full" && <div className="w-2 h-2 rounded-full bg-[#00d186]" />}
-                                    </div>
-                                    <div className="text-left flex-1">
-                                        <p className="text-sm font-bold text-black">Tamamını Öde</p>
-                                        <p className="text-xs text-gray-400 mt-0.5">
-                                            ₺{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödenecek
-                                        </p>
-                                    </div>
-                                </button>
-
-                                <button
-                                    onClick={() => setPayMode("partial")}
-                                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 transition-colors"
-                                    style={{
-                                        borderColor: payMode === "partial" ? "#00d186" : "#e5e7eb",
-                                        background: payMode === "partial" ? "#f0fdf4" : "#f9fafb",
-                                    }}
-                                >
-                                    <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                                        style={{ borderColor: payMode === "partial" ? "#00d186" : "#d1d5db" }}>
-                                        {payMode === "partial" && <div className="w-2 h-2 rounded-full bg-[#00d186]" />}
-                                    </div>
-                                    <div className="text-left flex-1">
-                                        <p className="text-sm font-bold text-black">Belirli Tutar Öde</p>
-                                        <p className="text-xs text-gray-400 mt-0.5">Kısmi ödeme yap</p>
-                                    </div>
-                                </button>
+                            <div className="space-y-2 mb-4">
+                                {(["full", "partial"] as const).map((mode) => (
+                                    <button
+                                        key={mode}
+                                        onClick={() => setPayMode(mode)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+                                        style={{
+                                            borderRadius: "var(--radius-md)",
+                                            border: `1.5px solid ${payMode === mode ? "var(--primary-border)" : "var(--border)"}`,
+                                            background: payMode === mode ? "var(--primary-light)" : "var(--surface-muted)",
+                                        }}
+                                    >
+                                        <div
+                                            className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                                            style={{ borderColor: payMode === mode ? "var(--primary)" : "var(--border)" }}
+                                        >
+                                            {payMode === mode && (
+                                                <div className="w-2 h-2 rounded-full" style={{ background: "var(--primary)" }} />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[13px] font-medium" style={{ color: "var(--foreground)" }}>
+                                                {mode === "full" ? "Tamamını Öde" : "Belirli Tutar Öde"}
+                                            </p>
+                                            <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                                {mode === "full"
+                                                    ? `₺${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödenecek`
+                                                    : "Kısmi ödeme yap"}
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
 
                             {payMode === "partial" && (
-                                <div className="mb-4">
+                                <div className="mb-3">
                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">₺</span>
+                                        <span
+                                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-medium"
+                                            style={{ color: "var(--text-muted)" }}
+                                        >
+                                            ₺
+                                        </span>
                                         <input
                                             type="number"
                                             min="0.01"
@@ -296,28 +379,50 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                             value={partialAmount}
                                             onChange={(e) => { setPartialAmount(e.target.value); setPayError(""); }}
                                             placeholder={`Maks. ${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
-                                            className="w-full pl-8 pr-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-bold text-black placeholder-gray-300 outline-none focus:border-[#00d186] focus:bg-white transition-colors"
+                                            className="w-full pl-8 pr-4 py-2.5 text-[13.5px] outline-none"
+                                            style={{
+                                                background: "var(--surface-muted)",
+                                                border: "1px solid var(--border)",
+                                                borderRadius: "var(--radius-md)",
+                                                color: "var(--foreground)",
+                                                fontFamily: "var(--font-geist-mono, monospace)",
+                                            }}
                                         />
                                     </div>
                                 </div>
                             )}
 
                             {payError && (
-                                <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-xl mb-4">{payError}</p>
+                                <p
+                                    className="text-[13px] px-3 py-2 rounded-[var(--radius-md)] mb-3"
+                                    style={{ background: "var(--danger-light)", color: "var(--danger)" }}
+                                >
+                                    {payError}
+                                </p>
                             )}
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-2.5">
                                 <button
                                     onClick={() => setShowPayModal(false)}
                                     disabled={isPaying}
-                                    className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors disabled:opacity-50"
+                                    className="flex-1 py-2.5 text-[13px] font-medium disabled:opacity-50"
+                                    style={{
+                                        background: "var(--surface-muted)",
+                                        borderRadius: "var(--radius-md)",
+                                        color: "var(--text-secondary)",
+                                    }}
                                 >
                                     Vazgeç
                                 </button>
                                 <button
                                     onClick={confirm}
                                     disabled={isPaying || partialInvalid}
-                                    className="flex-1 py-3 rounded-2xl bg-[#00d186] hover:bg-[#00c07c] text-white font-bold text-sm shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 py-2.5 text-[13px] font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{
+                                        background: "var(--primary)",
+                                        borderRadius: "var(--radius-md)",
+                                        color: "#fff",
+                                    }}
                                 >
                                     {isPaying ? "Ödeniyor..." : "Onayla"}
                                 </button>
@@ -327,60 +432,67 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                 );
             })()}
 
-            <main className="max-w-5xl mx-auto px-6 pt-8 pb-12">
+            {/* ── Top nav ── */}
+            <div className="flex items-center justify-between px-4 pt-14 pb-3">
+                <button
+                    onClick={() => router.push(`/groups/${groupId}`)}
+                    className="w-9 h-9 rounded-[10px] flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                    aria-label="Geri dön"
+                >
+                    <ChevronLeft className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
+                </button>
 
-                {/* Back + owner actions */}
-                <div className="flex items-center justify-between mb-8">
-                    <button
-                        onClick={() => router.push(`/groups/${groupId}`)}
-                        className="flex items-center gap-2 text-sm font-semibold transition-colors"
-                        style={{ color: "var(--text-secondary)" }}
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Geri Dön
-                    </button>
-                    {isOwner && expense && (
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => {
-                                    setEditNotes(expense.notes ?? "");
-                                    setNotesError("");
-                                    setShowEditNotes(true);
-                                }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors"
-                                style={{ background: "var(--surface)", border: "1px solid var(--border-light)", color: "var(--text-secondary)" }}
-                            >
-                                <Pencil className="w-3.5 h-3.5" />
-                                Notu Düzenle
-                            </button>
-                            <button
-                                onClick={() => { setDeleteError(""); setShowDeleteConfirm(true); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors bg-red-50 text-red-500 hover:bg-red-100"
-                            >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                Sil
-                            </button>
-                        </div>
-                    )}
-                </div>
+                <span className="text-[13px] font-medium" style={{ color: "var(--foreground)" }}>
+                    Harcama Detayı
+                </span>
 
+                {isOwner && expense ? (
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={() => { setEditNotes(expense.notes ?? ""); setNotesError(""); setShowEditNotes(true); }}
+                            className="w-9 h-9 rounded-[10px] flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                            aria-label="Notu düzenle"
+                        >
+                            <Pencil className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
+                        </button>
+                        <button
+                            onClick={() => { setDeleteError(""); setShowDeleteConfirm(true); }}
+                            className="w-9 h-9 rounded-[10px] flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+                            style={{ background: "var(--danger-light)", border: "1px solid rgba(208,73,47,0.2)" }}
+                            aria-label="Sil"
+                        >
+                            <Trash2 className="w-4 h-4" style={{ color: "var(--danger)" }} />
+                        </button>
+                    </div>
+                ) : (
+                    <div className="w-9" />
+                )}
+            </div>
+
+            <main className="px-4 pb-32">
                 {loading ? (
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-4">
-                            <Skeleton className="w-14 h-14 shrink-0" rounded="lg" />
-                            <div className="space-y-2 flex-1">
-                                <Skeleton className="h-6 w-48" />
-                                <Skeleton className="h-3 w-24" rounded="full" />
-                            </div>
+                    <div className="space-y-3">
+                        <div
+                            className="rounded-[var(--radius-lg)] p-5 animate-pulse"
+                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                        >
+                            <div className="w-12 h-12 rounded-[var(--radius-md)] mb-3" style={{ background: "var(--surface-muted)" }} />
+                            <div className="h-6 w-32 rounded-full mb-2" style={{ background: "var(--surface-muted)" }} />
+                            <div className="h-4 w-20 rounded-full" style={{ background: "var(--surface-muted)" }} />
                         </div>
-                        <Skeleton className="h-24 w-full" rounded="lg" />
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <Skeleton key={i} className="h-14 w-full" rounded="lg" />
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-14 rounded-[var(--radius-lg)] animate-pulse"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                            />
                         ))}
                     </div>
                 ) : expense ? (
-                    <div>
-                        {/* Amount hero */}
+                    <>
+                        {/* ── Hero card ── */}
                         {(() => {
                             const mySplit = expense.splits.find((s) => String(s.user_id) === String(currentUserId));
                             const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
@@ -389,74 +501,110 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                             const myPaying = mySplit ? payingIds.has(mySplit.id) : false;
 
                             return (
-                                <div className="flex items-center justify-between gap-4 mb-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-[#f0fdf4] flex items-center justify-center text-[#00d186] shrink-0">
-                                            <Receipt className="w-6 h-6" />
-                                        </div>
+                                <div
+                                    className="rounded-[var(--radius-lg)] p-5 mb-3"
+                                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                                >
+                                    <div
+                                        className="w-12 h-12 rounded-[var(--radius-md)] flex items-center justify-center mb-4"
+                                        style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+                                    >
+                                        <Receipt className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex items-end justify-between gap-3">
                                         <div>
-                                            <p className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
+                                            <p
+                                                className="text-[22px] font-semibold mb-0.5"
+                                                style={{
+                                                    fontFamily: "var(--font-geist-mono, monospace)",
+                                                    color: "var(--foreground)",
+                                                    letterSpacing: "-0.5px",
+                                                }}
+                                            >
                                                 ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                             </p>
-                                            <p className="text-sm font-medium mt-0.5" style={{ color: "var(--text-muted)" }}>{expense.title}</p>
+                                            <p className="text-[14px] font-medium" style={{ color: "var(--text-secondary)" }}>
+                                                {expense.title}
+                                            </p>
                                         </div>
+                                        {mySplit && myOwed > 0 && !isOwner && (
+                                            mySettled ? (
+                                                <span
+                                                    className="text-[12px] font-semibold px-3 py-1.5 rounded-full shrink-0"
+                                                    style={{ background: "var(--primary-light)", color: "var(--primary-ink)" }}
+                                                >
+                                                    Ödendi ✓
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    onClick={handleOpenPayModal}
+                                                    disabled={myPaying}
+                                                    className="text-[13px] font-semibold px-4 py-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                                    style={{
+                                                        background: "var(--primary)",
+                                                        borderRadius: "var(--radius-md)",
+                                                        color: "#fff",
+                                                    }}
+                                                >
+                                                    {myPaying ? "Ödeniyor..." : "Borcumu Öde"}
+                                                </button>
+                                            )
+                                        )}
                                     </div>
-                                    {mySplit && myOwed > 0 && !isOwner && (
-                                        mySettled ? (
-                                            <span className="shrink-0 text-sm font-bold text-[#00d186] bg-[#f0fdf4] px-4 py-2 rounded-xl">
-                                                Borç Ödendi
-                                            </span>
-                                        ) : (
-                                            <button
-                                                onClick={handleOpenPayModal}
-                                                disabled={myPaying}
-                                                className="shrink-0 text-sm font-bold text-white bg-[#00d186] hover:bg-[#00c07c] disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-xl shadow-[0_4px_14px_rgba(0,209,134,0.35)] transition-all active:scale-95"
-                                            >
-                                                {myPaying ? "Ödeniyor..." : "Borcumu Öde"}
-                                            </button>
-                                        )
-                                    )}
                                 </div>
                             );
                         })()}
 
-                        {/* ── Expense Stats ─────────────────────────── */}
+                        {/* ── Expense Stats ── */}
                         {(() => {
-                            const total = parseFloat(expense.amount);
-                            const totalPaid = expense.splits.reduce((s, sp) => s + parseFloat(sp.paid_amount), 0);
-                            const totalPending = total - totalPaid;
-                            const settledCount = expense.splits.filter((sp) => parseFloat(sp.paid_amount) >= parseFloat(sp.owed_amount)).length;
-                            const totalCount = expense.splits.length;
-                            const perPerson = totalCount > 0 ? total / totalCount : 0;
-                            const progressPct = total > 0 ? Math.min(100, Math.round((totalPaid / total) * 100)) : 0;
+                            // Ödeyen kişinin kendi borcu stats'tan hariç tutulur;
+                            // o kişi harcamayı zaten peşin ödedi, kendine ödeme yapmaz.
+                            const debtSplits = expense.splits.filter(
+                                (sp) => String(sp.user_id) !== String(expense.paid_by),
+                            );
+                            const totalOwed = debtSplits.reduce((s, sp) => s + parseFloat(sp.owed_amount), 0);
+                            const totalPaid = debtSplits.reduce((s, sp) => s + parseFloat(sp.paid_amount), 0);
+                            const totalPending = totalOwed - totalPaid;
+                            const settledCount = debtSplits.filter(
+                                (sp) => parseFloat(sp.paid_amount) >= parseFloat(sp.owed_amount),
+                            ).length;
+                            const totalCount = debtSplits.length;
+                            const progressPct = totalOwed > 0
+                                ? Math.min(100, Math.round((totalPaid / totalOwed) * 100))
+                                : 100;
+
+                            const splitTypeLabel: Record<string, string> = {
+                                equal: "Eşit",
+                                exact: "Tutara Göre",
+                                percentage: "Yüzde",
+                            };
 
                             return (
                                 <div
-                                    className="rounded-2xl mb-6 overflow-hidden"
-                                    style={{
-                                        background: "var(--surface)",
-                                        border: "1px solid var(--border-light)",
-                                        boxShadow: "var(--shadow-sm)",
-                                    }}
+                                    className="rounded-[var(--radius-lg)] mb-3 overflow-hidden"
+                                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                                 >
                                     <button
                                         onClick={() => setStatsOpen((v) => !v)}
                                         className="w-full flex items-center justify-between px-4 py-3.5 cursor-pointer"
                                     >
                                         <div className="flex items-center gap-2.5">
-                                            <div className="h-2 w-24 rounded-full overflow-hidden" style={{ background: "var(--surface-muted)" }}>
+                                            <div
+                                                className="h-1.5 w-20 rounded-full overflow-hidden"
+                                                style={{ background: "var(--surface-muted)" }}
+                                            >
                                                 <div
                                                     className="h-full rounded-full"
                                                     style={{
                                                         width: barAnimated ? `${progressPct}%` : "0%",
                                                         transition: "width 900ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                                                        background: progressPct === 100 ? "var(--primary)" : "linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%)",
+                                                        background: "var(--primary)",
                                                     }}
                                                 />
                                             </div>
                                             <span
-                                                className="text-xs font-bold"
-                                                style={{ color: progressPct === 100 ? "var(--primary)" : "var(--text-secondary)" }}
+                                                className="text-[12px] font-medium"
+                                                style={{ color: progressPct === 100 ? "var(--primary)" : "var(--text-muted)" }}
                                             >
                                                 %{progressPct} ödendi
                                             </span>
@@ -479,39 +627,71 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                         }}
                                     >
                                         <div className="overflow-hidden" style={{ minHeight: 0 }}>
-                                            <div className="px-4 pb-4 grid grid-cols-2 gap-2.5">
-                                                <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "var(--primary-light)" }}>
+                                            <div className="px-4 pb-4 grid grid-cols-2 gap-2">
+                                                <div
+                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
+                                                    style={{ background: "var(--primary-light)" }}
+                                                >
                                                     <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "var(--primary)" }} />
                                                     <div>
-                                                        <p className="text-[10px] font-semibold" style={{ color: "var(--primary)" }}>Ödenen</p>
-                                                        <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--primary-ink)" }}>
+                                                            Ödenen
+                                                        </p>
+                                                        <p
+                                                            className="text-[13px] font-semibold leading-tight"
+                                                            style={{
+                                                                fontFamily: "var(--font-geist-mono, monospace)",
+                                                                color: "var(--foreground)",
+                                                            }}
+                                                        >
                                                             ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "var(--surface-muted)" }}>
+                                                <div
+                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
+                                                    style={{ background: "var(--surface-muted)" }}
+                                                >
                                                     <Clock3 className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
                                                     <div>
-                                                        <p className="text-[10px] font-semibold" style={{ color: "var(--text-secondary)" }}>Bekleyen</p>
-                                                        <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+                                                            Bekleyen
+                                                        </p>
+                                                        <p
+                                                            className="text-[13px] font-semibold leading-tight"
+                                                            style={{
+                                                                fontFamily: "var(--font-geist-mono, monospace)",
+                                                                color: "var(--foreground)",
+                                                            }}
+                                                        >
                                                             ₺{totalPending.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "var(--surface-muted)" }}>
+                                                <div
+                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
+                                                    style={{ background: "var(--surface-muted)" }}
+                                                >
                                                     <TrendingUp className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
                                                     <div>
-                                                        <p className="text-[10px] font-semibold" style={{ color: "var(--text-secondary)" }}>Kişi Başı</p>
-                                                        <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
-                                                            ₺{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+                                                            Bölüşüm
+                                                        </p>
+                                                        <p className="text-[13px] font-semibold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                            {splitTypeLabel[expense.split_type] ?? expense.split_type}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "var(--surface-muted)" }}>
+                                                <div
+                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
+                                                    style={{ background: "var(--surface-muted)" }}
+                                                >
                                                     <UserCheck className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
                                                     <div>
-                                                        <p className="text-[10px] font-semibold" style={{ color: "var(--text-secondary)" }}>Ödeyenler</p>
-                                                        <p className="text-sm font-extrabold leading-tight" style={{ color: "var(--foreground)" }}>
+                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+                                                            Ödeyenler
+                                                        </p>
+                                                        <p className="text-[13px] font-semibold leading-tight" style={{ color: "var(--foreground)" }}>
                                                             {settledCount}/{totalCount} kişi
                                                         </p>
                                                     </div>
@@ -523,70 +703,142 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                             );
                         })()}
 
-                        {/* Meta rows */}
-                        <div className="rounded-2xl divide-y divide-gray-100 mb-8" style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}>
-                            <div className="flex items-center gap-3 px-4 py-3.5">
-                                <Wallet className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
-                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Ödeyen</span>
-                                <span className="text-sm font-bold truncate" style={{ color: "var(--foreground)" }}>
-                                    {(() => {
+                        {/* ── Meta rows ── */}
+                        <div
+                            className="rounded-[var(--radius-lg)] overflow-hidden mb-3"
+                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                        >
+                            {[
+                                {
+                                    icon: <Wallet className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
+                                    label: "Ödeyen",
+                                    value: (() => {
                                         const p = members.find((m) => String(m.user_id) === String(expense.paid_by));
                                         return p?.display_name ?? p?.username ?? expense.paid_by;
-                                    })()}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3 px-4 py-3.5">
-                                <CalendarDays className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
-                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Tarih</span>
-                                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{expense.expense_date}</span>
-                            </div>
-                            <div className="flex items-center gap-3 px-4 py-3.5">
-                                <span className="w-4 h-4 text-xs font-black flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>₺</span>
-                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Para Birimi</span>
-                                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{expense.currency}</span>
-                            </div>
-                            <div className="flex items-start gap-3 px-4 py-3.5">
+                                    })(),
+                                },
+                                {
+                                    icon: <CalendarDays className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
+                                    label: "Tarih",
+                                    value: expense.expense_date,
+                                },
+                                {
+                                    icon: <span className="w-4 h-4 text-[12px] font-bold flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>₺</span>,
+                                    label: "Para Birimi",
+                                    value: expense.currency,
+                                },
+                            ].map((row, i, arr) => (
+                                <div
+                                    key={row.label}
+                                    className="flex items-center gap-3 px-4 py-3.5"
+                                    style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border-light)" : "none" }}
+                                >
+                                    {row.icon}
+                                    <span className="text-[13px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>
+                                        {row.label}
+                                    </span>
+                                    <span
+                                        className="text-[13px] font-medium"
+                                        style={{
+                                            fontFamily: row.label === "Tarih" ? "var(--font-geist-mono, monospace)" : undefined,
+                                            color: "var(--foreground)",
+                                        }}
+                                    >
+                                        {row.value}
+                                    </span>
+                                </div>
+                            ))}
+                            <div
+                                className="flex items-start gap-3 px-4 py-3.5"
+                                style={{ borderTop: "1px solid var(--border-light)" }}
+                            >
                                 <FileText className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--text-muted)" }} />
-                                <span className="text-sm font-medium w-28 shrink-0" style={{ color: "var(--text-secondary)" }}>Not</span>
-                                <span className="text-sm font-medium flex-1" style={{ color: expense.notes ? "var(--text-secondary)" : "var(--text-muted)" }}>
-                                    {expense.notes || (isOwner ? "Not yok · düzenlemek için yukarıdaki butonu kullan" : "—")}
+                                <span className="text-[13px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>Not</span>
+                                <span
+                                    className="text-[13px] flex-1"
+                                    style={{ color: expense.notes ? "var(--text-secondary)" : "var(--text-placeholder)" }}
+                                >
+                                    {expense.notes || (isOwner ? "Not yok · düzenlemek için kalem ikonuna tıkla" : "—")}
                                 </span>
                             </div>
                         </div>
 
-                        {/* Splits */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <Users className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
-                                <p className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Paylaşım</p>
+                        {/* ── Splits ── */}
+                        <div className="mb-3">
+                            <div className="flex items-center gap-2 px-1 mb-2">
+                                <Users className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+                                <span
+                                    className="text-[10px] uppercase font-medium tracking-wider"
+                                    style={{ color: "var(--text-muted)" }}
+                                >
+                                    Paylaşım
+                                </span>
                             </div>
-                            <div className="rounded-2xl divide-y divide-gray-100" style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}>
-                                {expense.splits.map((split) => {
+                            <div
+                                className="rounded-[var(--radius-lg)] overflow-hidden"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                            >
+                                {expense.splits.map((split, i) => {
                                     const member = members.find((m) => String(m.user_id) === String(split.user_id));
                                     const name = member?.display_name ?? member?.username ?? String(split.user_id);
                                     const owed = parseFloat(split.owed_amount);
                                     const paid = parseFloat(split.paid_amount);
                                     const settled = paid >= owed;
+                                    const isPayer = String(split.user_id) === String(expense.paid_by);
 
                                     return (
-                                        <div key={split.id} className="flex items-center gap-3 px-4 py-3.5">
-                                            <div className="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold shrink-0"
-                                                style={{ background: "var(--surface-muted)", borderColor: "var(--border-light)", color: "var(--text-secondary)" }}>
+                                        <div
+                                            key={split.id}
+                                            className="flex items-center gap-3 px-4 py-3.5"
+                                            style={{
+                                                borderBottom: i < expense.splits.length - 1
+                                                    ? "1px solid var(--border-light)"
+                                                    : "none",
+                                            }}
+                                        >
+                                            <div
+                                                className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0"
+                                                style={{
+                                                    background: isPayer ? "var(--primary-light)" : "var(--surface-muted)",
+                                                    color: isPayer ? "var(--primary-ink)" : "var(--text-secondary)",
+                                                }}
+                                            >
                                                 {name.charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="flex-1 text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>{name}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[13.5px] font-medium truncate" style={{ color: "var(--foreground)" }}>
+                                                    {name}
+                                                </p>
+                                                {isPayer && (
+                                                    <p className="text-[11px]" style={{ color: "var(--primary)" }}>Ödeyen</p>
+                                                )}
+                                            </div>
                                             <div className="text-right shrink-0">
-                                                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
+                                                <p
+                                                    className="text-[13px] font-semibold"
+                                                    style={{
+                                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                                        color: "var(--foreground)",
+                                                    }}
+                                                >
                                                     ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 </p>
-                                                {settled ? (
-                                                    <p className="text-[10px] font-semibold text-[#00d186] mt-0.5">Ödendi</p>
+                                                {isPayer ? (
+                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                                        hissesi
+                                                    </p>
+                                                ) : settled ? (
+                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--primary)" }}>
+                                                        Ödendi ✓
+                                                    </p>
                                                 ) : paid > 0 ? (
-                                                    <p className="text-[10px] font-semibold text-orange-400 mt-0.5">
+                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--warning)" }}>
                                                         ₺{paid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödendi
                                                     </p>
                                                 ) : (
-                                                    <p className="text-[10px] font-semibold text-red-400 mt-0.5">Bekliyor</p>
+                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--danger)" }}>
+                                                        Bekliyor
+                                                    </p>
                                                 )}
                                             </div>
                                         </div>
@@ -594,9 +846,8 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                 })}
                             </div>
                         </div>
-                    </div>
+                    </>
                 ) : null}
-
             </main>
             <BottomNav />
         </div>
