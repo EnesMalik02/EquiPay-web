@@ -13,25 +13,38 @@ interface AddMemberModalProps {
     onAdded: (member: GroupMemberResponse) => void;
 }
 
-type SearchMode = "phone" | "email";
+type SearchMode = "phone" | "email" | "username";
+
+const MODES: { id: SearchMode; label: string }[] = [
+    { id: "phone", label: "Telefon" },
+    { id: "email", label: "Email" },
+    { id: "username", label: "Kullanıcı Adı" },
+];
 
 export const AddMemberModal = ({ groupId, onClose, onAdded }: AddMemberModalProps) => {
     const [mode, setMode] = useState<SearchMode>("phone");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    const currentValue = mode === "phone" ? phone.trim() : mode === "email" ? email.trim() : username.trim();
+    const isDisabled = loading || !currentValue;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const value = mode === "phone" ? phone.trim() : email.trim();
-        if (!value) return;
+        if (!currentValue) return;
 
         setLoading(true);
         setError("");
 
         try {
-            const payload = mode === "phone" ? { phone: value } : { email: value };
+            const payload =
+                mode === "phone" ? { phone: currentValue } :
+                mode === "email" ? { email: currentValue } :
+                { username: currentValue };
+
             const member = await groupApi.addMember(groupId, payload);
             onAdded(member);
         } catch (err: unknown) {
@@ -47,108 +60,186 @@ export const AddMemberModal = ({ groupId, onClose, onAdded }: AddMemberModalProp
         }
     };
 
-    const isDisabled = loading || (mode === "phone" ? !phone.trim() : !email.trim());
+    const handleModeChange = (m: SearchMode) => {
+        setMode(m);
+        setError("");
+    };
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+            <div
+                className="absolute inset-0 backdrop-blur-sm"
+                style={{ background: "rgba(18,21,18,0.3)" }}
+                onClick={onClose}
+            />
 
-            {/* Modal */}
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 animate-fade-in-up">
+            <div
+                className="relative w-full max-w-sm p-5 animate-fade-in-up"
+                style={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--radius-xl)",
+                    boxShadow: "var(--shadow-lg)",
+                }}
+            >
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-extrabold text-black tracking-tight">Üye Ekle</h2>
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-[16px] font-semibold" style={{ color: "var(--foreground)" }}>
+                        Üye Ekle
+                    </h2>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
+                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                     >
                         <X className="w-4 h-4" />
                     </button>
                 </div>
 
                 {/* Mode toggle */}
-                <div className="flex bg-gray-100 rounded-xl p-1 mb-5">
-                    <button
-                        type="button"
-                        onClick={() => { setMode("phone"); setError(""); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                            mode === "phone"
-                                ? "bg-white text-black shadow-sm"
-                                : "text-gray-500 hover:text-gray-700"
-                        }`}
-                    >
-                        Telefon
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => { setMode("email"); setError(""); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                            mode === "email"
-                                ? "bg-white text-black shadow-sm"
-                                : "text-gray-500 hover:text-gray-700"
-                        }`}
-                    >
-                        Email
-                    </button>
+                <div
+                    className="flex p-1 rounded-[var(--radius-md)] mb-4 gap-1"
+                    style={{ background: "var(--surface-muted)" }}
+                >
+                    {MODES.map((m) => (
+                        <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => handleModeChange(m.id)}
+                            className="flex-1 py-2 text-[12px] font-medium transition-all"
+                            style={{
+                                borderRadius: "var(--radius-sm)",
+                                background: mode === m.id ? "var(--surface)" : "transparent",
+                                color: mode === m.id ? "var(--foreground)" : "var(--text-muted)",
+                                boxShadow: mode === m.id ? "var(--shadow-xs)" : "none",
+                            }}
+                        >
+                            {m.label}
+                        </button>
+                    ))}
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-4 text-sm font-medium">
+                    <p
+                        className="text-[13px] px-3 py-2.5 rounded-[var(--radius-md)] mb-4"
+                        style={{ background: "var(--danger-light)", color: "var(--danger)" }}
+                    >
                         {error}
-                    </div>
+                    </p>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {mode === "phone" ? (
+                    {mode === "phone" && (
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1.5" htmlFor="member-phone">
-                                Telefon Numarası <span className="text-red-400">*</span>
+                            <label
+                                className="block text-[12px] font-medium mb-1.5"
+                                style={{ color: "var(--text-secondary)" }}
+                                htmlFor="member-phone"
+                            >
+                                Telefon Numarası
                             </label>
                             <PhoneInput
                                 id="member-phone"
                                 defaultCountry="TR"
                                 value={phone}
                                 onChange={(val) => setPhone(val || "")}
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4"
+                                className="w-full px-3.5 py-2.5 text-[13.5px] [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-2.5 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-5 [&_.PhoneInputCountryIcon]:h-4"
+                                style={{
+                                    background: "var(--surface-muted)",
+                                    border: "1px solid var(--border)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "var(--foreground)",
+                                } as React.CSSProperties}
                                 placeholder="(505) 123 45 67"
                             />
-                            <p className="text-xs text-gray-400 mt-1.5">
-                                Eklemek istediğin kişinin kayıtlı telefon numarasını gir.
-                            </p>
                         </div>
-                    ) : (
+                    )}
+
+                    {mode === "email" && (
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1.5" htmlFor="member-email">
-                                Email Adresi <span className="text-red-400">*</span>
+                            <label
+                                className="block text-[12px] font-medium mb-1.5"
+                                style={{ color: "var(--text-secondary)" }}
+                                htmlFor="member-email"
+                            >
+                                Email Adresi
                             </label>
                             <input
                                 id="member-email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium"
+                                className="w-full px-3.5 py-2.5 text-[13.5px] outline-none"
+                                style={{
+                                    background: "var(--surface-muted)",
+                                    border: "1px solid var(--border)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "var(--foreground)",
+                                }}
                                 placeholder="ornek@email.com"
-                                required
                             />
-                            <p className="text-xs text-gray-400 mt-1.5">
-                                Eklemek istediğin kişinin kayıtlı email adresini gir.
-                            </p>
                         </div>
                     )}
 
-                    <div className="flex gap-3 pt-2">
+                    {mode === "username" && (
+                        <div>
+                            <label
+                                className="block text-[12px] font-medium mb-1.5"
+                                style={{ color: "var(--text-secondary)" }}
+                                htmlFor="member-username"
+                            >
+                                Kullanıcı Adı
+                            </label>
+                            <div className="relative">
+                                <span
+                                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px]"
+                                    style={{ color: "var(--text-placeholder)" }}
+                                >
+                                    @
+                                </span>
+                                <input
+                                    id="member-username"
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value.replace(/\s/g, ""))}
+                                    className="w-full pl-8 pr-3.5 py-2.5 text-[13.5px] outline-none"
+                                    style={{
+                                        background: "var(--surface-muted)",
+                                        border: "1px solid var(--border)",
+                                        borderRadius: "var(--radius-md)",
+                                        color: "var(--foreground)",
+                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                    }}
+                                    placeholder="kullanici_adi"
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex gap-2.5 pt-1">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
+                            className="flex-1 py-2.5 text-[13px] font-medium transition-colors"
+                            style={{
+                                background: "var(--surface-muted)",
+                                borderRadius: "var(--radius-md)",
+                                color: "var(--text-secondary)",
+                            }}
                         >
                             İptal
                         </button>
                         <button
                             type="submit"
                             disabled={isDisabled}
-                            className="flex-1 py-3 px-4 bg-[#00d186] hover:bg-[#00c07c] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(0,209,134,0.39)] transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="flex-1 py-2.5 text-[13px] font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                                background: "var(--primary)",
+                                borderRadius: "var(--radius-md)",
+                                color: "#fff",
+                            }}
                         >
                             {loading ? "Ekleniyor..." : "Ekle"}
                         </button>
