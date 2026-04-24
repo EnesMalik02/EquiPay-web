@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Clock, ArrowUpRight, ArrowDownLeft } from "lucide
 import { SkeletonSettlementItem, SplitExpenseItem } from "@/shared/ui";
 import { useState } from "react";
 import { useMySplitExpenses } from "@/entities/expense/hooks/useMySplitExpenses";
-import { expenseApi } from "@/entities/expense/api/expenseApi";
+
 
 type Tab = "all" | "pending" | "paid";
 
@@ -157,7 +157,6 @@ export const SettlementsPage = () => {
     const currentUser = useUser();
     const [activeTab, setActiveTab] = useState<Tab>("all");
     const [actioningId, setActioningId] = useState<string | null>(null);
-    const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
     const qc = useQueryClient();
 
     const { data: allSplitExpenses = [], isLoading: expensesLoading } = useMySplitExpenses();
@@ -182,16 +181,6 @@ export const SettlementsPage = () => {
 
     const handleSettlementAction = (id: string, status: SettlementStatus) =>
         settlementMutation.mutate({ id, status });
-
-    const handlePaySplit = async (expenseId: string, splitId: string) => {
-        setPayingIds((p) => new Set(p).add(splitId));
-        try {
-            await expenseApi.paySplit(expenseId, splitId);
-            qc.invalidateQueries({ queryKey: ["expenses", "my-splits"] });
-        } finally {
-            setPayingIds((p) => { const n = new Set(p); n.delete(splitId); return n; });
-        }
-    };
 
     const currentUserId = currentUser?.id ?? null;
 
@@ -295,7 +284,7 @@ export const SettlementsPage = () => {
                                     <>
                                         <SectionLabel label="Ödenmemiş Paylarım" />
                                         {unpaidExpenses.map((exp) => (
-                                            <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                            <SplitExpenseItem key={exp.id} expense={exp}  />
                                         ))}
                                     </>
                                 )}
@@ -303,7 +292,7 @@ export const SettlementsPage = () => {
                                     <>
                                         <SectionLabel label="Ödediğim Paylar" />
                                         {paidExpenses.map((exp) => (
-                                            <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                            <SplitExpenseItem key={exp.id} expense={exp}  />
                                         ))}
                                     </>
                                 )}
@@ -326,12 +315,12 @@ export const SettlementsPage = () => {
 
                         {activeTab === "pending" &&
                             unpaidExpenses.map((exp) => (
-                                <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                <SplitExpenseItem key={exp.id} expense={exp}  />
                             ))}
 
                         {activeTab === "paid" &&
                             paidExpenses.map((exp) => (
-                                <SplitExpenseItem key={exp.id} expense={exp} onPaid={handlePaySplit} />
+                                <SplitExpenseItem key={exp.id} expense={exp}  />
                             ))}
                     </div>
                 )}

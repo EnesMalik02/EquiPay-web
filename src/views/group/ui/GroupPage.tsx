@@ -63,6 +63,7 @@ function toSplitExpense(
         currency: expense.currency,
         notes: expense.notes,
         expense_date: expense.expense_date,
+        created_at: expense.created_at ?? null,
         is_fully_paid: expense.is_fully_paid,
         my_split: raw ? { id: raw.id, owed_amount: raw.owed_amount, paid_amount: raw.paid_amount } : null,
     };
@@ -170,12 +171,6 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     }
 
     const totalSpend = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
-
-    const handlePaySplit = async (expenseId: string, splitId: string) => {
-        await expenseApi.paySplit(expenseId, splitId);
-        const updated = await expenseApi.listByGroup(groupId, { limit: 20, offset: 0 });
-        setExpenses(updated);
-    };
 
     const tabs: { id: Tab; label: string; count: number }[] = [
         { id: "expenses", label: "Harcamalar", count: expenses.length },
@@ -506,7 +501,6 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                                         key={exp.id}
                                                         variant="row"
                                                         expense={toSplitExpense(exp, group.name, currentUserId)}
-                                                        onPaid={handlePaySplit}
                                                         payerName={payerName}
                                                         isLast={isLastInGroup && isLastGroup}
                                                     />

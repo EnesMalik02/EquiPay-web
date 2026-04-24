@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { GroupList } from "@/widgets/group-list/ui/GroupList";
 import { Plus, Users, Receipt, Bell } from "lucide-react";
@@ -11,13 +11,12 @@ import { SelectGroupModal } from "@/features/select-group/ui/SelectGroupModal";
 import { GroupResponse } from "@/entities/group/model/types";
 import { useMySplitExpenses } from "@/entities/expense/hooks/useMySplitExpenses";
 import { useUser } from "@/shared/store/UserContext";
-import { expenseApi } from "@/entities/expense/api/expenseApi";
+
 import { SplitExpenseItem, SkeletonSettlementItem } from "@/shared/ui";
 
 export const HomePage = () => {
     const router = useRouter();
     const currentUser = useUser();
-    const qc = useQueryClient();
     const [showCreate, setShowCreate] = useState(false);
     const [showSelectGroup, setShowSelectGroup] = useState(false);
     const { data: recentExpenses, isLoading } = useMySplitExpenses({ limit: 10 });
@@ -25,11 +24,6 @@ export const HomePage = () => {
     const handleCreated = (group: GroupResponse) => {
         setShowCreate(false);
         router.push(`/groups/${group.id}`);
-    };
-
-    const handlePaySplit = async (expenseId: string, splitId: string) => {
-        await expenseApi.paySplit(expenseId, splitId);
-        qc.invalidateQueries({ queryKey: ["expenses", "my-splits"] });
     };
 
     const quickActions = [
@@ -230,7 +224,6 @@ export const HomePage = () => {
                                 <SplitExpenseItem
                                     key={expense.id}
                                     expense={expense}
-                                    onPaid={handlePaySplit}
                                 />
                             ))}
                         </div>

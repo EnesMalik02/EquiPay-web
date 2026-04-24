@@ -71,6 +71,7 @@ export interface ExpenseWithMySplitResponse {
     currency: string;
     notes?: string | null;
     expense_date: string;
+    created_at: string | null;
     is_fully_paid: boolean;
     my_split: MySplitSummary | null;
 }
