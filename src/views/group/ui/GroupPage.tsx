@@ -61,7 +61,6 @@ function toSplitExpense(
         title: expense.title,
         amount: expense.amount,
         currency: expense.currency,
-        notes: expense.notes,
         expense_date: expense.expense_date,
         created_at: expense.created_at ?? null,
         is_fully_paid: expense.is_fully_paid,
