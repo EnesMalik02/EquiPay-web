@@ -404,13 +404,6 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                             {opt.label}
                                         </button>
                                     ))}
-                                    <button
-                                        type="button"
-                                        className="flex-1 py-2 text-sm font-bold rounded-lg transition-all"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        Paylara göre
-                                    </button>
                                 </div>
 
                                 {/* Member rows */}
