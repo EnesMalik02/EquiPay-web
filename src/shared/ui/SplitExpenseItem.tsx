@@ -3,14 +3,11 @@
 import { useRouter } from "next/navigation";
 import { Receipt, Check, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
-import { useUser } from "@/shared/store/UserContext";
 
 interface SplitExpenseItemProps {
     expense: ExpenseWithMySplitResponse;
     /** card: standalone rounded card (default). row: flat list row inside a container. */
     variant?: "card" | "row";
-    /** row variant: resolved payer display name */
-    payerName?: string;
     /** row variant: hide bottom border on last item */
     isLast?: boolean;
 }
@@ -18,32 +15,27 @@ interface SplitExpenseItemProps {
 export function SplitExpenseItem({
     expense,
     variant = "card",
-    payerName,
     isLast = false,
 }: SplitExpenseItemProps) {
     const router = useRouter();
-    const currentUser = useUser();
-    const mySplit = expense.my_split;
-    const owed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
-    const paid = mySplit ? parseFloat(mySplit.paid_amount) : 0;
-    const remaining = Math.max(0, owed - paid);
-    const isPaid = expense.is_fully_paid || (mySplit ? paid >= owed : false);
-    const isPayer = String(expense.paid_by) === String(currentUser?.id);
-    const totalAmount = parseFloat(expense.amount);
-    // Amount the payer is owed by others (total minus payer's own share)
-    const creditorAmount = totalAmount - owed;
+    const amount = parseFloat(expense.user_amount.amount);
+    const isPaid = amount === 0;
+    const isPayer = expense.user_amount.direction === "credit";
 
     const dateStr = expense.created_at
         ? new Date(expense.created_at).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" })
-        : expense.expense_date?.slice(5).replace("-", "/") ?? "";
+        : "";
 
     const navigateToExpense = () => {
-        if (expense.group_id) {
-            router.push(`/groups/${expense.group_id}/expenses/${expense.id}`);
+        const groupId = expense.group?.group_id;
+        if (groupId) {
+            router.push(`/groups/${groupId}/expenses/${expense.id}`);
         } else {
             router.push(`/expenses/${expense.id}`);
         }
     };
+
+    const payerDisplayName = isPayer ? "Sen" : expense.paid_by.name;
 
     /* ── Row variant ──────────────────────────────── */
     if (variant === "row") {
@@ -84,7 +76,7 @@ export function SplitExpenseItem({
                         {expense.title}
                     </p>
                     <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                        {isPayer ? "Sen" : (payerName ?? "Bilinmeyen")} ödedi
+                        {payerDisplayName} ödedi
                         <span className="mx-1.5" style={{ color: "var(--text-placeholder)" }}>·</span>
                         <span style={{ fontFamily: "var(--font-geist-mono, monospace)", fontSize: "11px" }}>
                             {dateStr}
@@ -93,35 +85,24 @@ export function SplitExpenseItem({
                 </div>
 
                 <div className="text-right shrink-0">
-                    <p
-                        className="text-[13px] font-medium"
-                        style={{
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                            color: "var(--text-secondary)",
-                        }}
-                    >
-                        ₺{totalAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                    </p>
                     {isPaid ? (
                         <span
-                            className="inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-0.5"
+                            className="inline-block text-[10px] px-1.5 py-0.5 rounded-full"
                             style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                         >
                             Ödendi
                         </span>
-                    ) : mySplit ? (
+                    ) : (
                         <p
-                            className="text-[11px] mt-0.5 font-medium"
+                            className="text-[13px] font-medium"
                             style={{
                                 fontFamily: "var(--font-geist-mono, monospace)",
                                 color: isPayer ? "var(--primary)" : "var(--danger)",
                             }}
                         >
-                            {isPayer
-                                ? `+₺${creditorAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
-                                : `−₺${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
+                            {isPayer ? "+" : "−"}₺{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                         </p>
-                    ) : null}
+                    )}
                 </div>
             </div>
         );
@@ -130,18 +111,11 @@ export function SplitExpenseItem({
     /* ── Card variant (default) ───────────────────── */
     const statusLabel = (() => {
         if (isPaid) return isPayer ? "Tamamen Ödendi" : "Ödendi";
-        if (isPayer) return `Alacağın: ₺${creditorAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-        if (paid > 0 && remaining > 0) return `Kalan: ₺${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-        return `Borcun: ₺${owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+        if (isPayer) return `Alacağın: ₺${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+        return `Borcun: ₺${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
     })();
 
-    const statusColor = isPaid
-        ? "var(--primary)"
-        : isPayer
-        ? "var(--primary)"
-        : "var(--danger)";
-
-    const displayAmount = isPayer ? creditorAmount : remaining > 0 ? remaining : owed;
+    const statusColor = isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)";
 
     return (
         <div
@@ -172,7 +146,7 @@ export function SplitExpenseItem({
                 </p>
                 <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>
                     {dateStr}
-                    {expense.group_name ? ` · ${expense.group_name}` : ""}
+                    {expense.group?.name ? ` · ${expense.group.name}` : ""}
                 </p>
             </div>
 
@@ -184,7 +158,7 @@ export function SplitExpenseItem({
                         color: "var(--foreground)",
                     }}
                 >
-                    {isPayer ? "+" : isPaid ? "" : "−"}₺{displayAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                    {isPayer ? "+" : isPaid ? "" : "−"}₺{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                 </p>
                 <span className="text-[11px] font-semibold" style={{ color: statusColor }}>
                     {statusLabel}

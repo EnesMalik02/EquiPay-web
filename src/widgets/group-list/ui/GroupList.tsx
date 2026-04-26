@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { groupApi, GroupResponse, GroupListCard } from "@/entities/group";
+import { groupApi, GroupResponse, GroupWithStatsResponse, GroupListCard } from "@/entities/group";
 import { CreateGroupModal } from "@/features/create-group";
 
 interface GroupListProps {
@@ -15,7 +15,7 @@ interface GroupListProps {
 
 export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => {
     const router = useRouter();
-    const [groups, setGroups] = useState<GroupResponse[]>([]);
+    const [groups, setGroups] = useState<GroupWithStatsResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -49,7 +49,6 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
     }, []);
 
     const handleGroupCreated = (group: GroupResponse) => {
-        setGroups((prev) => [group, ...prev]);
         setShowCreateModal(false);
         router.push(`/groups/${group.id}`);
     };

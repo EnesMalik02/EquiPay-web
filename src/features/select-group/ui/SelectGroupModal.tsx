@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { X, Users, ChevronRight, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { groupApi } from "@/entities/group/api/groupApi";
-import { GroupResponse } from "@/entities/group/model/types";
+import { GroupWithStatsResponse } from "@/entities/group/model/types";
 
 interface SelectGroupModalProps {
     onClose: () => void;
@@ -13,7 +13,7 @@ interface SelectGroupModalProps {
 
 export const SelectGroupModal = ({ onClose }: SelectGroupModalProps) => {
     const router = useRouter();
-    const [groups, setGroups] = useState<GroupResponse[]>([]);
+    const [groups, setGroups] = useState<GroupWithStatsResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [visible, setVisible] = useState(false);
 
@@ -31,7 +31,7 @@ export const SelectGroupModal = ({ onClose }: SelectGroupModalProps) => {
         setTimeout(onClose, 300);
     };
 
-    const handleSelect = (group: GroupResponse) => {
+    const handleSelect = (group: GroupWithStatsResponse) => {
         setVisible(false);
         setTimeout(() => {
             onClose();

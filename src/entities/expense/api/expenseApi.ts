@@ -3,7 +3,7 @@ import {
     ExpenseCreate,
     ExpenseUpdate,
     ExpenseResponse,
-    ExpenseDetailResponse,
+    ExpenseFullDetailResponse,
     ExpenseWithMySplitResponse,
     ExpenseSplitResponse,
     ListExpensesParams,
@@ -26,8 +26,8 @@ export const expenseApi = {
         return data;
     },
 
-    async getById(expenseId: string): Promise<ExpenseDetailResponse> {
-        const { data } = await apiClient.get<ExpenseDetailResponse>(`/expenses/${expenseId}`);
+    async getById(expenseId: string): Promise<ExpenseFullDetailResponse> {
+        const { data } = await apiClient.get<ExpenseFullDetailResponse>(`/expenses/${expenseId}`);
         return data;
     },
 

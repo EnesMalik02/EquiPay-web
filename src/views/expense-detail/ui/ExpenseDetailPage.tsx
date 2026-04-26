@@ -9,9 +9,7 @@ import {
 } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
-import { groupApi } from "@/entities/group/api/groupApi";
-import { ExpenseResponse } from "@/entities/expense/model/types";
-import { GroupMemberResponse } from "@/entities/group/model/types";
+import { ExpenseFullDetailResponse } from "@/entities/expense/model/types";
 import { useUser } from "@/shared/store/UserContext";
 
 interface ExpenseDetailPageProps {
@@ -23,8 +21,8 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const router = useRouter();
     const currentUserId = useUser()?.id ?? null;
 
-    const [expense, setExpense] = useState<ExpenseResponse | null>(null);
-    const [members, setMembers] = useState<GroupMemberResponse[]>([]);
+    const [expense, setExpense] = useState<ExpenseFullDetailResponse | null>(null);
+    const [splitIdMap, setSplitIdMap] = useState<Map<string, string>>(new Map());
     const [loading, setLoading] = useState(true);
     const [payingIds, setPayingIds] = useState<Set<string>>(new Set());
     const [showPayModal, setShowPayModal] = useState(false);
@@ -44,30 +42,26 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const [deleteError, setDeleteError] = useState("");
 
     useEffect(() => {
-        Promise.all([
-            expenseApi.getById(expenseId),
-            groupApi.listMembers(groupId),
-        ]).then(([exp, mems]) => {
+        expenseApi.getById(expenseId).then((exp) => {
             setExpense(exp);
-            setMembers(mems);
+            setSplitIdMap(new Map(exp.splits.map((s) => [s.user.id, s.id])));
             setTimeout(() => setBarAnimated(true), 80);
         }).catch((err: unknown) => {
             const status = (err as { response?: { status?: number } })?.response?.status;
             if (status === 403 || status === 404) router.replace("/groups");
         }).finally(() => setLoading(false));
-    }, [expenseId, groupId]);
+    }, [expenseId]);
 
-    const isOwner = expense ? String(expense.paid_by) === String(currentUserId) : false;
+    const isOwner = expense ? String(expense.paid_by.id) === String(currentUserId) : false;
 
     const handlePay = async (splitId: string, paidAmount?: number) => {
         if (!expense) return;
         setPayingIds((prev) => new Set(prev).add(splitId));
         setPayError("");
         try {
-            const updated = await expenseApi.paySplit(expense.id, splitId, paidAmount);
-            setExpense((prev) =>
-                prev ? { ...prev, splits: prev.splits.map((s) => s.id === splitId ? updated : s) } : prev,
-            );
+            await expenseApi.paySplit(expense.id, splitId, paidAmount);
+            const refreshed = await expenseApi.getById(expenseId);
+            setExpense(refreshed);
             setShowPayModal(false);
             setPartialAmount("");
             setPayMode("full");
@@ -270,18 +264,18 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
 
             {/* ── Pay Modal ── */}
             {showPayModal && (() => {
-                const mySplit = expense?.splits.find((s) => String(s.user_id) === String(currentUserId));
+                const mySplit = expense?.splits.find((s) => String(s.user.id) === String(currentUserId));
+                const mySplitId = currentUserId ? splitIdMap.get(currentUserId) : undefined;
                 if (!mySplit) return null;
-                const owed = parseFloat(mySplit.owed_amount);
-                const paid = parseFloat(mySplit.paid_amount);
-                const remaining = owed - paid;
-                const isPaying = payingIds.has(mySplit.id);
+                const remaining = parseFloat(mySplit.remaining_amount);
+                const isPaying = mySplitId ? payingIds.has(mySplitId) : false;
                 const partialVal = parseFloat(partialAmount);
                 const partialInvalid = payMode === "partial" && (isNaN(partialVal) || partialVal <= 0 || partialVal > remaining);
 
                 const confirm = () => {
-                    if (payMode === "full") handlePay(mySplit.id);
-                    else if (!partialInvalid) handlePay(mySplit.id, partialVal);
+                    if (!mySplitId) { setPayError("Ödeme bilgisi yüklenemedi, sayfayı yenileyin."); return; }
+                    if (payMode === "full") handlePay(mySplitId);
+                    else if (!partialInvalid) handlePay(mySplitId, partialVal);
                 };
 
                 return (
@@ -494,11 +488,11 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                     <>
                         {/* ── Hero card ── */}
                         {(() => {
-                            const mySplit = expense.splits.find((s) => String(s.user_id) === String(currentUserId));
+                            const mySplit = expense.splits.find((s) => String(s.user.id) === String(currentUserId));
                             const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
-                            const myPaid = mySplit ? parseFloat(mySplit.paid_amount) : 0;
-                            const mySettled = myOwed > 0 && myPaid >= myOwed;
-                            const myPaying = mySplit ? payingIds.has(mySplit.id) : false;
+                            const mySettled = mySplit?.status === "paid";
+                            const mySplitId = currentUserId ? splitIdMap.get(currentUserId) : undefined;
+                            const myPaying = mySplitId ? payingIds.has(mySplitId) : false;
 
                             return (
                                 <div
@@ -560,14 +554,12 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                             // Ödeyen kişinin kendi borcu stats'tan hariç tutulur;
                             // o kişi harcamayı zaten peşin ödedi, kendine ödeme yapmaz.
                             const debtSplits = expense.splits.filter(
-                                (sp) => String(sp.user_id) !== String(expense.paid_by),
+                                (sp) => String(sp.user.id) !== String(expense.paid_by.id),
                             );
                             const totalOwed = debtSplits.reduce((s, sp) => s + parseFloat(sp.owed_amount), 0);
                             const totalPaid = debtSplits.reduce((s, sp) => s + parseFloat(sp.paid_amount), 0);
                             const totalPending = totalOwed - totalPaid;
-                            const settledCount = debtSplits.filter(
-                                (sp) => parseFloat(sp.paid_amount) >= parseFloat(sp.owed_amount),
-                            ).length;
+                            const settledCount = debtSplits.filter((sp) => sp.status === "paid").length;
                             const totalCount = debtSplits.length;
                             const progressPct = totalOwed > 0
                                 ? Math.min(100, Math.round((totalPaid / totalOwed) * 100))
@@ -712,10 +704,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                 {
                                     icon: <Wallet className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
                                     label: "Ödeyen",
-                                    value: (() => {
-                                        const p = members.find((m) => String(m.user_id) === String(expense.paid_by));
-                                        return p?.display_name ?? p?.username ?? expense.paid_by;
-                                    })(),
+                                    value: expense.paid_by.name,
                                 },
                                 {
                                     icon: <CalendarDays className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
@@ -779,16 +768,14 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                 style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                             >
                                 {expense.splits.map((split, i) => {
-                                    const member = members.find((m) => String(m.user_id) === String(split.user_id));
-                                    const name = member?.display_name ?? member?.username ?? String(split.user_id);
+                                    const name = split.user.name;
                                     const owed = parseFloat(split.owed_amount);
                                     const paid = parseFloat(split.paid_amount);
-                                    const settled = paid >= owed;
-                                    const isPayer = String(split.user_id) === String(expense.paid_by);
+                                    const isPayer = String(split.user.id) === String(expense.paid_by.id);
 
                                     return (
                                         <div
-                                            key={split.id}
+                                            key={split.user.id}
                                             className="flex items-center gap-3 px-4 py-3.5"
                                             style={{
                                                 borderBottom: i < expense.splits.length - 1
@@ -827,7 +814,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                     <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
                                                         hissesi
                                                     </p>
-                                                ) : settled ? (
+                                                ) : split.status === "paid" ? (
                                                     <p className="text-[11px] mt-0.5" style={{ color: "var(--primary)" }}>
                                                         Ödendi ✓
                                                     </p>

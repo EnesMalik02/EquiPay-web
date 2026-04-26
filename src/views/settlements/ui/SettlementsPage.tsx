@@ -185,10 +185,10 @@ export const SettlementsPage = () => {
     const currentUserId = currentUser?.id ?? null;
 
     const unpaidExpenses = allSplitExpenses.filter(
-        (exp) => exp.my_split && parseFloat(exp.my_split.paid_amount) < parseFloat(exp.my_split.owed_amount)
+        (exp) => parseFloat(exp.user_amount.amount) > 0
     );
     const paidExpenses = allSplitExpenses.filter(
-        (exp) => exp.my_split && parseFloat(exp.my_split.paid_amount) >= parseFloat(exp.my_split.owed_amount)
+        (exp) => parseFloat(exp.user_amount.amount) === 0
     );
 
     const pendingCount = unpaidExpenses.length;

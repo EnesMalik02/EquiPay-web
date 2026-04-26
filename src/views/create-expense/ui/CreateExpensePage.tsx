@@ -9,7 +9,7 @@ import {
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
-import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
+import { GroupMemberResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
 import { Skeleton } from "@/shared/ui";
 
 type SplitType = "equal" | "exact" | "percentage";
@@ -35,7 +35,7 @@ interface CreateExpensePageProps {
 export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
     const router = useRouter();
 
-    const [group, setGroup] = useState<GroupResponse | null>(null);
+    const [group, setGroup] = useState<GroupWithStatsResponse | null>(null);
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
     const [dataLoading, setDataLoading] = useState(true);
 

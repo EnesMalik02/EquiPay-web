@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Search, Users, ChevronRight } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
-import { GroupResponse } from "@/entities/group/model/types";
+import { GroupResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
 import { CreateGroupModal } from "@/features/create-group";
 
 const GROUP_TINTS = [
@@ -36,7 +36,7 @@ function formatTimeAgo(dateStr: string): string {
     return `${Math.floor(diffDays / 30)} ay önce`;
 }
 
-function GroupRow({ group, onClick }: { group: GroupResponse; onClick: () => void }) {
+function GroupRow({ group, onClick }: { group: GroupWithStatsResponse; onClick: () => void }) {
     const tint = getTint(group.name);
     return (
         <div
@@ -84,6 +84,21 @@ function GroupRow({ group, onClick }: { group: GroupResponse; onClick: () => voi
                 </div>
             </div>
 
+            {(() => {
+                const bal = parseFloat(group.balance);
+                if (bal === 0) return null;
+                return (
+                    <span
+                        className="text-[12px] font-semibold shrink-0 mr-1"
+                        style={{
+                            fontFamily: "var(--font-geist-mono, monospace)",
+                            color: bal > 0 ? "var(--primary)" : "var(--danger)",
+                        }}
+                    >
+                        {bal > 0 ? "+" : ""}₺{Math.abs(bal).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                    </span>
+                );
+            })()}
             <ChevronRight
                 className="w-4 h-4 shrink-0"
                 style={{ color: "var(--text-placeholder)" }}
@@ -94,7 +109,7 @@ function GroupRow({ group, onClick }: { group: GroupResponse; onClick: () => voi
 
 export const GroupsPage = () => {
     const router = useRouter();
-    const [groups, setGroups] = useState<GroupResponse[]>([]);
+    const [groups, setGroups] = useState<GroupWithStatsResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [query, setQuery] = useState("");
     const [showCreate, setShowCreate] = useState(false);
@@ -108,7 +123,6 @@ export const GroupsPage = () => {
     }, []);
 
     const handleCreated = (group: GroupResponse) => {
-        setGroups((prev) => [group, ...prev]);
         setShowCreate(false);
         router.push(`/groups/${group.id}`);
     };

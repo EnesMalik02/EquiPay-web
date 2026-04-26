@@ -7,6 +7,11 @@ export interface GroupResponse {
     member_count?: number;
 }
 
+export interface GroupWithStatsResponse extends GroupResponse {
+    member_count: number;
+    balance: string;
+}
+
 export interface GroupCreate {
     name: string;
     description?: string;

@@ -1,6 +1,7 @@
 // Model
 export type {
     GroupResponse,
+    GroupWithStatsResponse,
     GroupCreate,
     GroupUpdate,
     GroupMemberAdd,

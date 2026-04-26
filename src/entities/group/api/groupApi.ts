@@ -7,11 +7,12 @@ import {
     GroupMemberRoleUpdate,
     GroupResponse,
     GroupUpdate,
+    GroupWithStatsResponse,
 } from "../model/types";
 
 export const groupApi = {
-    async list(): Promise<GroupResponse[]> {
-        const { data } = await apiClient.get<GroupResponse[]>("/groups");
+    async list(): Promise<GroupWithStatsResponse[]> {
+        const { data } = await apiClient.get<GroupWithStatsResponse[]>("/groups");
         return data;
     },
 
@@ -20,8 +21,8 @@ export const groupApi = {
         return data;
     },
 
-    async get(groupId: string): Promise<GroupResponse> {
-        const { data } = await apiClient.get<GroupResponse>(`/groups/${groupId}`);
+    async get(groupId: string): Promise<GroupWithStatsResponse> {
+        const { data } = await apiClient.get<GroupWithStatsResponse>(`/groups/${groupId}`);
         return data;
     },
 

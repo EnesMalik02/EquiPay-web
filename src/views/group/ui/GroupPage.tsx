@@ -14,7 +14,7 @@ import {
 import { UserAvatar, SplitExpenseItem } from "@/shared/ui";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
-import { GroupMemberResponse, GroupResponse } from "@/entities/group/model/types";
+import { GroupMemberResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { ExpenseResponse, ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
@@ -49,22 +49,29 @@ function groupByMonth(expenses: ExpenseResponse[]): MonthGroup[] {
 
 function toSplitExpense(
     expense: ExpenseResponse,
+    groupId: string,
     groupName: string,
     currentUserId: string | null,
+    members: GroupMemberResponse[],
 ): ExpenseWithMySplitResponse {
     const raw = expense.splits?.find((sp) => sp.user_id === currentUserId);
+    const owed = raw ? parseFloat(raw.owed_amount) : 0;
+    const paid = raw ? parseFloat(raw.paid_amount) : 0;
+    const outstanding = Math.max(0, owed - paid);
+    const isPayer = expense.paid_by === currentUserId;
+    const payer = members.find((m) => m.user_id === expense.paid_by);
+    const payerName = payer?.display_name ?? payer?.username ?? "Bilinmeyen";
     return {
         id: expense.id,
-        group_id: expense.group_id,
-        group_name: groupName,
-        paid_by: expense.paid_by,
         title: expense.title,
-        amount: expense.amount,
-        currency: expense.currency,
-        expense_date: expense.expense_date,
+        group: { group_id: groupId, name: groupName },
+        paid_by: { name: payerName },
         created_at: expense.created_at ?? null,
-        is_fully_paid: expense.is_fully_paid,
-        my_split: raw ? { id: raw.id, owed_amount: raw.owed_amount, paid_amount: raw.paid_amount } : null,
+        user_amount: {
+            direction: isPayer ? "credit" : "debit",
+            amount: String(outstanding),
+            currency: expense.currency,
+        },
     };
 }
 
@@ -80,7 +87,7 @@ interface GroupPageProps {
 export const GroupPage = ({ groupId }: GroupPageProps) => {
     const router = useRouter();
     const currentUserId = useUser()?.id ?? null;
-    const [group, setGroup] = useState<GroupResponse | null>(null);
+    const [group, setGroup] = useState<GroupWithStatsResponse | null>(null);
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
     const [expenses, setExpenses] = useState<ExpenseResponse[]>([]);
     const [loading, setLoading] = useState(true);
@@ -221,7 +228,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                             currentUserId={currentUserId}
                             members={members}
                             onClose={() => setShowSettings(false)}
-                            onUpdated={(updated) => setGroup(updated)}
+                            onUpdated={(updated) => setGroup((prev) => prev ? { ...prev, ...updated } : null)}
                         />
                     );
                 })()}
@@ -491,16 +498,13 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                                 </span>
                                             </div>
                                             {mg.items.map((exp, i) => {
-                                                const payer = members.find((m) => m.user_id === exp.paid_by);
-                                                const payerName = payer?.display_name ?? payer?.username ?? "Bilinmeyen";
                                                 const isLastInGroup = i === mg.items.length - 1;
                                                 const isLastGroup = mi === arr.length - 1;
                                                 return (
                                                     <SplitExpenseItem
                                                         key={exp.id}
                                                         variant="row"
-                                                        expense={toSplitExpense(exp, group.name, currentUserId)}
-                                                        payerName={payerName}
+                                                        expense={toSplitExpense(exp, groupId, group.name, currentUserId, members)}
                                                         isLast={isLastInGroup && isLastGroup}
                                                     />
                                                 );
