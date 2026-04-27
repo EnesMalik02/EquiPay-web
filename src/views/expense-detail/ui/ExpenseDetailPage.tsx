@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     ChevronLeft, Receipt, CalendarDays, FileText, Wallet, Users,
-    CheckCircle2, Clock3, TrendingUp, UserCheck, ChevronDown,
-    Pencil, Trash2, X, AlertTriangle,
+    CheckCircle2, Clock3, Pencil, X, AlertTriangle,
+    Bell, Settings2, Plus, ChevronRight, Hash, History,
 } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
@@ -16,6 +16,70 @@ interface ExpenseDetailPageProps {
     groupId: string;
     expenseId: string;
 }
+
+const MOCK_ACTIVITY = [
+    {
+        id: 1,
+        icon: "plus",
+        actor: "Enes",
+        action: "harcamayı oluşturdu",
+        time: "18 Nis · 19:30",
+    },
+    {
+        id: 2,
+        icon: "file",
+        actor: "Enes",
+        action: "fiş ekledi (carrefour-receipt.pdf)",
+        time: "18 Nis · 19:32",
+    },
+    {
+        id: 3,
+        icon: "check",
+        actor: "Kerem",
+        action: "₺171,37 ödedi",
+        time: "21 Nis · 14:08",
+    },
+    {
+        id: 4,
+        icon: "bell",
+        actor: "Sistem",
+        action: "Ayşe ve Merve'ye hatırlatma gönderildi",
+        time: "23 Nis · 09:14",
+    },
+];
+
+function ActivityIcon({ type }: { type: string }) {
+    const base = "w-7 h-7 rounded-full flex items-center justify-center shrink-0";
+    if (type === "plus")
+        return (
+            <div className={base} style={{ background: "var(--primary-light)" }}>
+                <Plus className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
+            </div>
+        );
+    if (type === "file")
+        return (
+            <div className={base} style={{ background: "var(--surface-muted)" }}>
+                <FileText className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+            </div>
+        );
+    if (type === "check")
+        return (
+            <div className={base} style={{ background: "var(--primary-light)" }}>
+                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
+            </div>
+        );
+    return (
+        <div className={base} style={{ background: "var(--surface-muted)" }}>
+            <Bell className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+        </div>
+    );
+}
+
+const splitTypeLabel: Record<string, string> = {
+    equal: "Eşit paylaşım",
+    exact: "Tutara göre",
+    percentage: "Yüzde",
+};
 
 export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps) => {
     const router = useRouter();
@@ -29,8 +93,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const [payMode, setPayMode] = useState<"full" | "partial">("full");
     const [partialAmount, setPartialAmount] = useState("");
     const [payError, setPayError] = useState("");
-    const [statsOpen, setStatsOpen] = useState(false);
-    const [barAnimated, setBarAnimated] = useState(false);
 
     const [showEditNotes, setShowEditNotes] = useState(false);
     const [editNotes, setEditNotes] = useState("");
@@ -45,7 +107,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
         expenseApi.getById(expenseId).then((exp) => {
             setExpense(exp);
             setSplitIdMap(new Map(exp.splits.map((s) => [s.user.id, s.id])));
-            setTimeout(() => setBarAnimated(true), 80);
         }).catch((err: unknown) => {
             const status = (err as { response?: { status?: number } })?.response?.status;
             if (status === 403 || status === 404) router.replace("/groups");
@@ -306,7 +367,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
-
                             <div
                                 className="flex items-center justify-between px-4 py-3 rounded-[var(--radius-md)] mb-4"
                                 style={{ background: "var(--primary-light)" }}
@@ -321,7 +381,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     ₺{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                 </span>
                             </div>
-
                             <div className="space-y-2 mb-4">
                                 {(["full", "partial"] as const).map((mode) => (
                                     <button
@@ -355,7 +414,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     </button>
                                 ))}
                             </div>
-
                             {payMode === "partial" && (
                                 <div className="mb-3">
                                     <div className="relative">
@@ -385,7 +443,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     </div>
                                 </div>
                             )}
-
                             {payError && (
                                 <p
                                     className="text-[13px] px-3 py-2 rounded-[var(--radius-md)] mb-3"
@@ -394,7 +451,6 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     {payError}
                                 </p>
                             )}
-
                             <div className="flex gap-2.5">
                                 <button
                                     onClick={() => setShowPayModal(false)}
@@ -427,381 +483,459 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
             })()}
 
             {/* ── Top nav ── */}
-            <div className="flex items-center justify-between px-4 pt-14 pb-3">
+            <div className="px-4 md:px-8 pt-14 pb-2">
                 <button
                     onClick={() => router.push(`/groups/${groupId}`)}
-                    className="w-9 h-9 rounded-[10px] flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
-                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                    aria-label="Geri dön"
+                    className="flex items-center gap-1.5 mb-4 active:opacity-70 transition-opacity"
+                    style={{ color: "var(--text-secondary)" }}
                 >
-                    <ChevronLeft className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="text-[13px] font-medium">Gruba Dön</span>
                 </button>
 
-                <span className="text-[13px] font-medium" style={{ color: "var(--foreground)" }}>
-                    Harcama Detayı
-                </span>
-
-                {isOwner && expense ? (
-                    <div className="flex items-center gap-1.5">
-                        <button
-                            onClick={() => { setEditNotes(expense.notes ?? ""); setNotesError(""); setShowEditNotes(true); }}
-                            className="w-9 h-9 rounded-[10px] flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
-                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                            aria-label="Notu düzenle"
-                        >
-                            <Pencil className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
-                        </button>
-                        <button
-                            onClick={() => { setDeleteError(""); setShowDeleteConfirm(true); }}
-                            className="w-9 h-9 rounded-[10px] flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
-                            style={{ background: "var(--danger-light)", border: "1px solid rgba(208,73,47,0.2)" }}
-                            aria-label="Sil"
-                        >
-                            <Trash2 className="w-4 h-4" style={{ color: "var(--danger)" }} />
-                        </button>
-                    </div>
-                ) : (
-                    <div className="w-9" />
-                )}
+                <div className="flex items-center justify-between">
+                    <h1 className="text-[22px] font-bold" style={{ color: "var(--foreground)" }}>
+                        Harcama Detayı
+                    </h1>
+                    {expense && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium transition-all active:scale-95"
+                                style={{
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border)",
+                                    borderRadius: "var(--radius-md)",
+                                    color: "var(--text-secondary)",
+                                }}
+                            >
+                                <Receipt className="w-3.5 h-3.5" />
+                                <span>Fişi gör</span>
+                            </button>
+                            {isOwner && (
+                                <>
+                                    <button
+                                        onClick={() => { setEditNotes(expense.notes ?? ""); setNotesError(""); setShowEditNotes(true); }}
+                                        className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium transition-all active:scale-95"
+                                        style={{
+                                            background: "var(--surface)",
+                                            border: "1px solid var(--border)",
+                                            borderRadius: "var(--radius-md)",
+                                            color: "var(--text-secondary)",
+                                        }}
+                                    >
+                                        <Settings2 className="w-3.5 h-3.5" />
+                                        <span>Düzenle</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { setDeleteError(""); setShowDeleteConfirm(true); }}
+                                        className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium transition-all active:scale-95"
+                                        style={{
+                                            background: "var(--danger-light)",
+                                            border: "1px solid rgba(208,73,47,0.2)",
+                                            borderRadius: "var(--radius-md)",
+                                            color: "var(--danger)",
+                                        }}
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                        <span>Sil</span>
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            <main className="px-4 pb-32">
+            <main className="px-4 md:px-8 pb-32 mt-4">
                 {loading ? (
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-w-6xl mx-auto">
                         <div
                             className="rounded-[var(--radius-lg)] p-5 animate-pulse"
                             style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                         >
-                            <div className="w-12 h-12 rounded-[var(--radius-md)] mb-3" style={{ background: "var(--surface-muted)" }} />
-                            <div className="h-6 w-32 rounded-full mb-2" style={{ background: "var(--surface-muted)" }} />
-                            <div className="h-4 w-20 rounded-full" style={{ background: "var(--surface-muted)" }} />
+                            <div className="h-5 w-40 rounded-full mb-4" style={{ background: "var(--surface-muted)" }} />
+                            <div className="h-8 w-52 rounded-full mb-2" style={{ background: "var(--surface-muted)" }} />
+                            <div className="h-4 w-28 rounded-full" style={{ background: "var(--surface-muted)" }} />
                         </div>
-                        {Array.from({ length: 4 }).map((_, i) => (
+                        {Array.from({ length: 3 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="h-14 rounded-[var(--radius-lg)] animate-pulse"
+                                className="h-24 rounded-[var(--radius-lg)] animate-pulse"
                                 style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                             />
                         ))}
                     </div>
                 ) : expense ? (
-                    <>
-                        {/* ── Hero card ── */}
-                        {(() => {
-                            const mySplit = expense.splits.find((s) => String(s.user.id) === String(currentUserId));
-                            const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
-                            const mySettled = mySplit?.status === "paid";
-                            const mySplitId = currentUserId ? splitIdMap.get(currentUserId) : undefined;
-                            const myPaying = mySplitId ? payingIds.has(mySplitId) : false;
+                    <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start">
 
-                            return (
-                                <div
-                                    className="rounded-[var(--radius-lg)] p-5 mb-3"
-                                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                                >
+                        {/* ── Left column ── */}
+                        <div className="space-y-4">
+
+                            {/* Hero card */}
+                            {(() => {
+                                const mySplit = expense.splits.find((s) => String(s.user.id) === String(currentUserId));
+                                const myOwed = mySplit ? parseFloat(mySplit.owed_amount) : 0;
+                                const mySettled = mySplit?.status === "paid";
+                                const mySplitId = currentUserId ? splitIdMap.get(currentUserId) : undefined;
+                                const myPaying = mySplitId ? payingIds.has(mySplitId) : false;
+
+                                const formatDate = (d: string | null) => {
+                                    if (!d) return "—";
+                                    try {
+                                        return new Intl.DateTimeFormat("tr-TR", {
+                                            day: "numeric", month: "long", year: "numeric",
+                                        }).format(new Date(d));
+                                    } catch { return d; }
+                                };
+
+                                return (
                                     <div
-                                        className="w-12 h-12 rounded-[var(--radius-md)] flex items-center justify-center mb-4"
-                                        style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+                                        className="rounded-[var(--radius-lg)] p-5"
+                                        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                                     >
-                                        <Receipt className="w-5 h-5" />
+                                        {/* Tags row + total */}
+                                        <div className="flex items-start justify-between gap-3 mb-4">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span
+                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                                                    style={{ background: "var(--primary)", color: "#fff" }}
+                                                >
+                                                    {splitTypeLabel[expense.split_type] ?? expense.split_type}
+                                                </span>
+                                                <span
+                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+                                                    style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
+                                                >
+                                                    {expense.currency}
+                                                </span>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                                    TOPLAM
+                                                </p>
+                                                <p
+                                                    className="text-[26px] font-bold leading-none"
+                                                    style={{
+                                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                                        color: "var(--foreground)",
+                                                        letterSpacing: "-1px",
+                                                    }}
+                                                >
+                                                    ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Title + date */}
+                                        <div className="mb-5">
+                                            <h2 className="text-[20px] font-semibold mb-1" style={{ color: "var(--foreground)" }}>
+                                                {expense.title}
+                                            </h2>
+                                            <p className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                                                {formatDate(expense.expense_date)}
+                                            </p>
+                                        </div>
+
+                                        {/* Info boxes */}
+                                        <div
+                                            className="grid grid-cols-2 rounded-[var(--radius-md)] overflow-hidden"
+                                            style={{ border: "1px solid var(--border-light)" }}
+                                        >
+                                            <div className="px-3.5 py-3" style={{ borderRight: "1px solid var(--border-light)" }}>
+                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
+                                                    ÖDEYEN
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+                                                        style={{ background: "var(--primary)", color: "#fff" }}
+                                                    >
+                                                        {expense.paid_by.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <p className="text-[12px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                                                        {expense.paid_by.name}
+                                                        {String(expense.paid_by.id) === String(currentUserId) && (
+                                                            <span className="ml-1 text-[11px] font-normal" style={{ color: "var(--text-muted)" }}>(sen)</span>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="px-3.5 py-3" style={{ borderRight: "1px solid var(--border-light)" }}>
+                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
+                                                    GRUP
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                                                        style={{ background: "var(--primary)" }}
+                                                    />
+                                                    <p className="text-[12px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                                                        {expense.group?.name ?? "—"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Pay button for non-owners */}
+                                        {mySplit && myOwed > 0 && !isOwner && (
+                                            <div className="mt-4">
+                                                {mySettled ? (
+                                                    <div
+                                                        className="flex items-center justify-center gap-2 py-2.5 rounded-[var(--radius-md)]"
+                                                        style={{ background: "var(--primary-light)" }}
+                                                    >
+                                                        <CheckCircle2 className="w-4 h-4" style={{ color: "var(--primary)" }} />
+                                                        <span className="text-[13px] font-semibold" style={{ color: "var(--primary-ink)" }}>
+                                                            Borcun ödendi
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleOpenPayModal}
+                                                        disabled={myPaying}
+                                                        className="w-full py-2.5 text-[13px] font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        style={{
+                                                            background: "var(--primary)",
+                                                            borderRadius: "var(--radius-md)",
+                                                            color: "#fff",
+                                                        }}
+                                                    >
+                                                        {myPaying ? "Ödeniyor..." : `Borcumu Öde · ₺${myOwed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex items-end justify-between gap-3">
-                                        <div>
+                                );
+                            })()}
+
+                            {/* Tahsilat Durumu */}
+                            {(() => {
+                                const debtSplits = expense.splits.filter(
+                                    (sp) => String(sp.user.id) !== String(expense.paid_by.id),
+                                );
+                                const totalOwed = debtSplits.reduce((s, sp) => s + parseFloat(sp.owed_amount), 0);
+                                const totalPaid = debtSplits.reduce((s, sp) => s + parseFloat(sp.paid_amount), 0);
+                                const totalPending = totalOwed - totalPaid;
+                                const settledCount = debtSplits.filter((sp) => sp.status === "paid").length;
+                                const pendingCount = debtSplits.length - settledCount;
+                                const progressPct = totalOwed > 0
+                                    ? Math.min(100, Math.round((totalPaid / totalOwed) * 100))
+                                    : 100;
+
+                                return (
+                                    <div
+                                        className="rounded-[var(--radius-lg)] p-5"
+                                        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                                    >
+                                        <p className="text-[10px] uppercase tracking-wider font-medium mb-3" style={{ color: "var(--text-muted)" }}>
+                                            TAHSİLAT DURUMU
+                                        </p>
+                                        <div className="flex items-end justify-between gap-3 mb-3">
                                             <p
-                                                className="text-[22px] font-semibold mb-0.5"
+                                                className="text-[24px] font-bold leading-none"
                                                 style={{
                                                     fontFamily: "var(--font-geist-mono, monospace)",
                                                     color: "var(--foreground)",
                                                     letterSpacing: "-0.5px",
                                                 }}
                                             >
-                                                ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                <span className="text-[14px] font-normal ml-1" style={{ color: "var(--text-muted)" }}>
+                                                    / ₺{totalOwed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                </span>
                                             </p>
-                                            <p className="text-[14px] font-medium" style={{ color: "var(--text-secondary)" }}>
-                                                {expense.title}
-                                            </p>
-                                        </div>
-                                        {mySplit && myOwed > 0 && !isOwner && (
-                                            mySettled ? (
+                                            <div className="flex items-center gap-2 shrink-0">
                                                 <span
-                                                    className="text-[12px] font-semibold px-3 py-1.5 rounded-full shrink-0"
+                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
                                                     style={{ background: "var(--primary-light)", color: "var(--primary-ink)" }}
                                                 >
-                                                    Ödendi ✓
+                                                    %{progressPct} tamamlandı
                                                 </span>
-                                            ) : (
-                                                <button
-                                                    onClick={handleOpenPayModal}
-                                                    disabled={myPaying}
-                                                    className="text-[13px] font-semibold px-4 py-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                                                    style={{
-                                                        background: "var(--primary)",
-                                                        borderRadius: "var(--radius-md)",
-                                                        color: "#fff",
-                                                    }}
-                                                >
-                                                    {myPaying ? "Ödeniyor..." : "Borcumu Öde"}
-                                                </button>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })()}
+                                                {pendingCount > 0 && (
+                                                    <span
+                                                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                                                        style={{ background: "rgba(234,115,28,0.12)", color: "var(--warning)" }}
+                                                    >
+                                                        {pendingCount} bekliyor
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
 
-                        {/* ── Expense Stats ── */}
-                        {(() => {
-                            // Ödeyen kişinin kendi borcu stats'tan hariç tutulur;
-                            // o kişi harcamayı zaten peşin ödedi, kendine ödeme yapmaz.
-                            const debtSplits = expense.splits.filter(
-                                (sp) => String(sp.user.id) !== String(expense.paid_by.id),
-                            );
-                            const totalOwed = debtSplits.reduce((s, sp) => s + parseFloat(sp.owed_amount), 0);
-                            const totalPaid = debtSplits.reduce((s, sp) => s + parseFloat(sp.paid_amount), 0);
-                            const totalPending = totalOwed - totalPaid;
-                            const settledCount = debtSplits.filter((sp) => sp.status === "paid").length;
-                            const totalCount = debtSplits.length;
-                            const progressPct = totalOwed > 0
-                                ? Math.min(100, Math.round((totalPaid / totalOwed) * 100))
-                                : 100;
-
-                            const splitTypeLabel: Record<string, string> = {
-                                equal: "Eşit",
-                                exact: "Tutara Göre",
-                                percentage: "Yüzde",
-                            };
-
-                            return (
-                                <div
-                                    className="rounded-[var(--radius-lg)] mb-3 overflow-hidden"
-                                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                                >
-                                    <button
-                                        onClick={() => setStatsOpen((v) => !v)}
-                                        className="w-full flex items-center justify-between px-4 py-3.5 cursor-pointer"
-                                    >
-                                        <div className="flex items-center gap-2.5">
+                                        {/* Progress bar */}
+                                        <div
+                                            className="h-2 w-full rounded-full overflow-hidden mb-4"
+                                            style={{ background: "var(--surface-muted)" }}
+                                        >
                                             <div
-                                                className="h-1.5 w-20 rounded-full overflow-hidden"
-                                                style={{ background: "var(--surface-muted)" }}
-                                            >
-                                                <div
-                                                    className="h-full rounded-full"
-                                                    style={{
-                                                        width: barAnimated ? `${progressPct}%` : "0%",
-                                                        transition: "width 900ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                                                        background: "var(--primary)",
-                                                    }}
-                                                />
-                                            </div>
-                                            <span
-                                                className="text-[12px] font-medium"
-                                                style={{ color: progressPct === 100 ? "var(--primary)" : "var(--text-muted)" }}
-                                            >
-                                                %{progressPct} ödendi
-                                            </span>
+                                                className="h-full rounded-full transition-all duration-700 ease-out"
+                                                style={{
+                                                    width: `${progressPct}%`,
+                                                    background: "var(--primary)",
+                                                }}
+                                            />
                                         </div>
-                                        <ChevronDown
-                                            className="w-4 h-4 shrink-0"
-                                            style={{
-                                                color: "var(--text-muted)",
-                                                transform: statsOpen ? "rotate(180deg)" : "rotate(0deg)",
-                                                transition: "transform 250ms ease-out",
-                                            }}
-                                        />
-                                    </button>
 
-                                    <div
-                                        style={{
-                                            display: "grid",
-                                            gridTemplateRows: statsOpen ? "1fr" : "0fr",
-                                            transition: "grid-template-rows 280ms ease-out",
-                                        }}
-                                    >
-                                        <div className="overflow-hidden" style={{ minHeight: 0 }}>
-                                            <div className="px-4 pb-4 grid grid-cols-2 gap-2">
-                                                <div
-                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
-                                                    style={{ background: "var(--primary-light)" }}
-                                                >
-                                                    <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "var(--primary)" }} />
-                                                    <div>
-                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--primary-ink)" }}>
-                                                            Ödenen
-                                                        </p>
-                                                        <p
-                                                            className="text-[13px] font-semibold leading-tight"
-                                                            style={{
-                                                                fontFamily: "var(--font-geist-mono, monospace)",
-                                                                color: "var(--foreground)",
-                                                            }}
-                                                        >
-                                                            ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
-                                                    style={{ background: "var(--surface-muted)" }}
-                                                >
-                                                    <Clock3 className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
-                                                    <div>
-                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
-                                                            Bekleyen
-                                                        </p>
-                                                        <p
-                                                            className="text-[13px] font-semibold leading-tight"
-                                                            style={{
-                                                                fontFamily: "var(--font-geist-mono, monospace)",
-                                                                color: "var(--foreground)",
-                                                            }}
-                                                        >
-                                                            ₺{totalPending.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
-                                                    style={{ background: "var(--surface-muted)" }}
-                                                >
-                                                    <TrendingUp className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
-                                                    <div>
-                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
-                                                            Bölüşüm
-                                                        </p>
-                                                        <p className="text-[13px] font-semibold leading-tight" style={{ color: "var(--foreground)" }}>
-                                                            {splitTypeLabel[expense.split_type] ?? expense.split_type}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className="flex items-center gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5"
-                                                    style={{ background: "var(--surface-muted)" }}
-                                                >
-                                                    <UserCheck className="w-4 h-4 shrink-0" style={{ color: "var(--text-secondary)" }} />
-                                                    <div>
-                                                        <p className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
-                                                            Ödeyenler
-                                                        </p>
-                                                        <p className="text-[13px] font-semibold leading-tight" style={{ color: "var(--foreground)" }}>
-                                                            {settledCount}/{totalCount} kişi
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--primary)" }} />
+                                                <span className="text-[12px]" style={{ color: "var(--text-muted)" }}>
+                                                    Ödenen:
+                                                    <span
+                                                        className="ml-1 font-semibold"
+                                                        style={{ fontFamily: "var(--font-geist-mono, monospace)", color: "var(--foreground)" }}
+                                                    >
+                                                        ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock3 className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+                                                <span className="text-[12px]" style={{ color: "var(--text-muted)" }}>
+                                                    Bekleyen:
+                                                    <span
+                                                        className="ml-1 font-semibold"
+                                                        style={{ fontFamily: "var(--font-geist-mono, monospace)", color: "var(--foreground)" }}
+                                                    >
+                                                        ₺{totalPending.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    </span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })()}
+                                );
+                            })()}
 
-                        {/* ── Meta rows ── */}
-                        <div
-                            className="rounded-[var(--radius-lg)] overflow-hidden mb-3"
-                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                        >
-                            {[
-                                {
-                                    icon: <Wallet className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
-                                    label: "Ödeyen",
-                                    value: expense.paid_by.name,
-                                },
-                                {
-                                    icon: <CalendarDays className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
-                                    label: "Tarih",
-                                    value: expense.expense_date,
-                                },
-                                {
-                                    icon: <span className="w-4 h-4 text-[12px] font-bold flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>₺</span>,
-                                    label: "Para Birimi",
-                                    value: expense.currency,
-                                },
-                            ].map((row, i, arr) => (
-                                <div
-                                    key={row.label}
-                                    className="flex items-center gap-3 px-4 py-3.5"
-                                    style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border-light)" : "none" }}
-                                >
-                                    {row.icon}
-                                    <span className="text-[13px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>
-                                        {row.label}
-                                    </span>
-                                    <span
-                                        className="text-[13px] font-medium"
-                                        style={{
-                                            fontFamily: row.label === "Tarih" ? "var(--font-geist-mono, monospace)" : undefined,
-                                            color: "var(--foreground)",
-                                        }}
-                                    >
-                                        {row.value}
-                                    </span>
-                                </div>
-                            ))}
+                            {/* Not */}
                             <div
-                                className="flex items-start gap-3 px-4 py-3.5"
-                                style={{ borderTop: "1px solid var(--border-light)" }}
+                                className="rounded-[var(--radius-lg)] p-5"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                             >
-                                <FileText className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--text-muted)" }} />
-                                <span className="text-[13px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>Not</span>
-                                <span
-                                    className="text-[13px] flex-1"
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+                                        <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>Not</span>
+                                    </div>
+                                    {isOwner && (
+                                        <button
+                                            onClick={() => { setEditNotes(expense.notes ?? ""); setNotesError(""); setShowEditNotes(true); }}
+                                            className="w-7 h-7 flex items-center justify-center rounded-[var(--radius-sm)] transition-colors active:scale-90"
+                                            style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+                                <p
+                                    className="text-[13px] leading-relaxed"
                                     style={{ color: expense.notes ? "var(--text-secondary)" : "var(--text-placeholder)" }}
                                 >
                                     {expense.notes || (isOwner ? "Not yok · düzenlemek için kalem ikonuna tıkla" : "—")}
-                                </span>
+                                </p>
                             </div>
-                        </div>
 
-                        {/* ── Splits ── */}
-                        <div className="mb-3">
-                            <div className="flex items-center gap-2 px-1 mb-2">
-                                <Users className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
-                                <span
-                                    className="text-[10px] uppercase font-medium tracking-wider"
-                                    style={{ color: "var(--text-muted)" }}
-                                >
-                                    Paylaşım
-                                </span>
-                            </div>
+                            {/* Paylaşım */}
                             <div
                                 className="rounded-[var(--radius-lg)] overflow-hidden"
                                 style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                             >
-                                {expense.splits.map((split, i) => {
-                                    const name = split.user.name;
-                                    const owed = parseFloat(split.owed_amount);
-                                    const paid = parseFloat(split.paid_amount);
-                                    const isPayer = String(split.user.id) === String(expense.paid_by.id);
-
-                                    return (
-                                        <div
-                                            key={split.user.id}
-                                            className="flex items-center gap-3 px-4 py-3.5"
-                                            style={{
-                                                borderBottom: i < expense.splits.length - 1
-                                                    ? "1px solid var(--border-light)"
-                                                    : "none",
-                                            }}
+                                {/* Header */}
+                                <div
+                                    className="flex items-center justify-between px-4 py-3.5"
+                                    style={{ borderBottom: "1px solid var(--border-light)" }}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Users className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+                                        <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
+                                            Paylaşım
+                                        </span>
+                                        <span
+                                            className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                                            style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                                         >
+                                            {expense.splits.length} kişi
+                                        </span>
+                                    </div>
+
+                                    {/*
+                                    <button
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium transition-all active:scale-95"
+                                        style={{
+                                            background: "var(--surface-muted)",
+                                            borderRadius: "var(--radius-md)",
+                                            color: "var(--text-secondary)",
+                                        }}
+                                    >
+                                        <Bell className="w-3 h-3" />
+                                        Hatırlat
+                                    </button>
+                                    */}
+                                </div>
+
+                                {/* Column headers */}
+                                <div
+                                    className="grid px-4 py-2"
+                                    style={{
+                                        gridTemplateColumns: "1fr 60px 90px 100px 24px",
+                                        borderBottom: "1px solid var(--border-light)",
+                                    }}
+                                >
+                                    {["ÜYE", "YÜZDE", "PAY", "DURUM"].map((h) => (
+                                        <span key={h} className="text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--text-muted)" }}>
+                                            {h}
+                                        </span>
+                                    ))}
+                                    <span />
+                                </div>
+
+                                {/* Scrollable list */}
+                                <div className="overflow-y-auto" style={{ maxHeight: "300px" }}>
+                                    {expense.splits.map((split, i) => {
+                                        const name = split.user.name;
+                                        const owed = parseFloat(split.owed_amount);
+                                        const total = parseFloat(expense.amount);
+                                        const pct = total > 0 ? Math.round((owed / total) * 100) : 0;
+                                        const isPayer = String(split.user.id) === String(expense.paid_by.id);
+                                        const isMe = String(split.user.id) === String(currentUserId);
+
+                                        return (
                                             <div
-                                                className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0"
+                                                key={split.user.id}
+                                                className="grid items-center px-4 py-3"
                                                 style={{
-                                                    background: isPayer ? "var(--primary-light)" : "var(--surface-muted)",
-                                                    color: isPayer ? "var(--primary-ink)" : "var(--text-secondary)",
+                                                    gridTemplateColumns: "1fr 60px 90px 100px 24px",
+                                                    borderTop: i > 0 ? "1px solid var(--border-light)" : "none",
                                                 }}
                                             >
-                                                {name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[13.5px] font-medium truncate" style={{ color: "var(--foreground)" }}>
-                                                    {name}
-                                                </p>
-                                                {isPayer && (
-                                                    <p className="text-[11px]" style={{ color: "var(--primary)" }}>Ödeyen</p>
-                                                )}
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <p
+                                                {/* Member */}
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div
+                                                        className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0"
+                                                        style={{
+                                                            background: isPayer ? "var(--primary)" : "var(--surface-muted)",
+                                                            color: isPayer ? "#fff" : "var(--text-secondary)",
+                                                        }}
+                                                    >
+                                                        {name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[13px] font-medium truncate" style={{ color: "var(--foreground)" }}>
+                                                            {name}{isMe && <span className="ml-1 text-[11px] font-normal" style={{ color: "var(--text-muted)" }}>(sen)</span>}
+                                                        </p>
+                                                        <p className="text-[11px]" style={{ color: isPayer ? "var(--primary)" : "var(--text-muted)" }}>
+                                                            {isPayer ? "Ödeyen" : split.status === "paid" ? "Ödedi" : "Ödeme bekleniyor"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Percentage */}
+                                                <span className="text-[13px] font-medium" style={{ color: "var(--text-secondary)" }}>
+                                                    %{pct}
+                                                </span>
+
+                                                {/* Amount */}
+                                                <span
                                                     className="text-[13px] font-semibold"
                                                     style={{
                                                         fontFamily: "var(--font-geist-mono, monospace)",
@@ -809,31 +943,194 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                     }}
                                                 >
                                                     ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                                </p>
+                                                </span>
+
+                                                {/* Status */}
                                                 {isPayer ? (
-                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                                                        hissesi
-                                                    </p>
+                                                    <span
+                                                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block w-fit"
+                                                        style={{ background: "var(--primary-light)", color: "var(--primary-ink)" }}
+                                                    >
+                                                        ✓ Ödendi
+                                                    </span>
                                                 ) : split.status === "paid" ? (
-                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--primary)" }}>
-                                                        Ödendi ✓
-                                                    </p>
-                                                ) : paid > 0 ? (
-                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--warning)" }}>
-                                                        ₺{paid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödendi
-                                                    </p>
+                                                    <span
+                                                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block w-fit"
+                                                        style={{ background: "var(--primary-light)", color: "var(--primary-ink)" }}
+                                                    >
+                                                        ✓ Ödendi
+                                                    </span>
                                                 ) : (
-                                                    <p className="text-[11px] mt-0.5" style={{ color: "var(--danger)" }}>
+                                                    <span
+                                                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block w-fit"
+                                                        style={{ background: "rgba(234,115,28,0.12)", color: "var(--warning)" }}
+                                                    >
                                                         Bekliyor
-                                                    </p>
+                                                    </span>
                                                 )}
+
+                                                {/* Chevron */}
+                                                <ChevronRight className="w-3.5 h-3.5" style={{ color: "var(--border)" }} />
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
-                    </>
+
+                        {/* ── Right sidebar ── */}
+                        <div className="space-y-4">
+
+                            {/* Detaylar */}
+                            <div
+                                className="rounded-[var(--radius-lg)] overflow-hidden"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                            >
+                                <div className="px-4 py-3.5" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                                    <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>Detaylar</span>
+                                </div>
+                                {[
+                                    {
+                                        icon: <CalendarDays className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
+                                        label: "Tarih",
+                                        value: expense.expense_date ?? "—",
+                                        mono: true,
+                                    },
+                                    {
+                                        icon: <span className="w-4 h-4 text-[12px] font-bold flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>₺</span>,
+                                        label: "Para birimi",
+                                        value: expense.currency,
+                                    },
+                                    {
+                                        icon: <Users className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
+                                        label: "Paylaşım",
+                                        value: `${splitTypeLabel[expense.split_type] ?? expense.split_type} · ${expense.splits.length} kişi`,
+                                    },
+                                    {
+                                        icon: <Clock3 className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
+                                        label: "Oluşturuldu",
+                                        value: expense.created_at
+                                            ? new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(expense.created_at))
+                                            : "—",
+                                        mono: true,
+                                    }
+                                    //{
+                                    //    icon: <Hash className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
+                                    //    label: "Harcama ID",
+                                    //    value: expense.id.slice(0, 12).toUpperCase(),
+                                    //    mono: true,
+                                    //},
+                                ].map((row, i, arr) => (
+                                    <div
+                                        key={row.label}
+                                        className="flex items-center gap-3 px-4 py-3"
+                                        style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border-light)" : "none" }}
+                                    >
+                                        {row.icon}
+                                        <span className="text-[12px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>
+                                            {row.label}
+                                        </span>
+                                        <span
+                                            className="text-[12px] font-medium text-right flex-1"
+                                            style={{
+                                                fontFamily: row.mono ? "var(--font-geist-mono, monospace)" : undefined,
+                                                color: "var(--foreground)",
+                                            }}
+                                        >
+                                            {row.value}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Fiş */}
+                            <div
+                                className="rounded-[var(--radius-lg)] overflow-hidden"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                            >
+                                <div
+                                    className="flex items-center justify-between px-4 py-3.5"
+                                    style={{ borderBottom: "1px solid var(--border-light)" }}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Receipt className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+                                        <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>Fiş</span>
+                                    </div>
+                                    <span
+                                        className="text-[10px] font-semibold px-2 py-0.5 rounded"
+                                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
+                                    >
+                                        PDF
+                                    </span>
+                                </div>
+                                <div className="p-4">
+                                    <div
+                                        className="flex flex-col items-center justify-center py-6 rounded-[var(--radius-md)]"
+                                        style={{ background: "var(--surface-muted)" }}
+                                    >
+                                        <FileText className="w-8 h-8 mb-2" style={{ color: "var(--border)" }} />
+                                        <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>
+                                            Fiş yüklenmemiş
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2 mt-3">
+                                        <button
+                                            className="flex-1 py-2 text-[12px] font-medium transition-all active:scale-95"
+                                            style={{
+                                                background: "var(--surface-muted)",
+                                                borderRadius: "var(--radius-md)",
+                                                color: "var(--text-secondary)",
+                                            }}
+                                        >
+                                            Görüntüle
+                                        </button>
+                                        <button
+                                            className="flex-1 py-2 text-[12px] font-medium transition-all active:scale-95"
+                                            style={{
+                                                background: "var(--surface-muted)",
+                                                borderRadius: "var(--radius-md)",
+                                                color: "var(--text-secondary)",
+                                            }}
+                                        >
+                                            İndir
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Aktivite */}
+                            <div
+                                className="rounded-[var(--radius-lg)] overflow-hidden"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                            >
+                                <div
+                                    className="flex items-center gap-2 px-4 py-3.5"
+                                    style={{ borderBottom: "1px solid var(--border-light)" }}
+                                >
+                                    <History className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+                                    <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>Aktivite</span>
+                                </div>
+                                <div className="p-4 space-y-4">
+                                    {MOCK_ACTIVITY.map((item) => (
+                                        <div key={item.id} className="flex items-start gap-3">
+                                            <ActivityIcon type={item.icon} />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[12.5px] leading-snug" style={{ color: "var(--text-secondary)" }}>
+                                                    <span className="font-semibold" style={{ color: "var(--foreground)" }}>
+                                                        {item.actor}
+                                                    </span>
+                                                    {" "}{item.action}
+                                                </p>
+                                                <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                                    {item.time}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 ) : null}
             </main>
             <BottomNav />
