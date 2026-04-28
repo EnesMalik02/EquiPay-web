@@ -128,22 +128,12 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
                         Array.from({ length: 3 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="shrink-0 rounded-2xl animate-shimmer relative overflow-hidden min-w-[260px] w-[260px] h-[160px]"
+                                className="shrink-0 rounded-2xl animate-shimmer relative overflow-hidden min-w-[240px] w-[240px] h-[160px]"
+                                style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
                             >
-                                {/* Icon placeholder */}
-                                <div
-                                    className="absolute top-4 left-4 w-9 h-9 rounded-xl"
-                                    style={{ background: "rgba(255,255,255,0.35)" }}
-                                />
-                                {/* Text placeholders */}
-                                <div
-                                    className="absolute bottom-4 left-4 h-3 rounded-full"
-                                    style={{ width: "120px", background: "rgba(255,255,255,0.35)" }}
-                                />
-                                <div
-                                    className="absolute bottom-9 left-4 h-2 rounded-full"
-                                    style={{ width: "56px", background: "rgba(255,255,255,0.22)" }}
-                                />
+                                <div className="absolute top-4 left-4 w-12 h-12 rounded-[14px]" style={{ background: "var(--surface-muted)" }} />
+                                <div className="absolute bottom-4 left-4 h-3 rounded-full" style={{ width: "100px", background: "var(--surface-muted)" }} />
+                                <div className="absolute bottom-9 left-4 h-2 rounded-full" style={{ width: "60px", background: "var(--surface-muted)" }} />
                             </div>
                         ))
                     ) : groups.length === 0 ? (
@@ -157,11 +147,10 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
                         </button>
                     ) : (
                         <>
-                            {groups.map((group, idx) => (
+                            {groups.map((group) => (
                                 <GroupListCard
                                     key={group.id}
                                     group={group}
-                                    isFeatured={idx === 0}
                                     onClick={() => router.push(`/groups/${group.id}`)}
                                 />
                             ))}

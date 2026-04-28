@@ -1,86 +1,135 @@
 "use client";
 
-import { Users } from "lucide-react";
-import { GroupResponse } from "../model/types";
+import { Users, ChevronRight } from "lucide-react";
+import { GroupWithStatsResponse } from "../model/types";
 
-const CARD_PALETTES: { bg: string; text: string; sub: string; icon: string }[] = [
-    { bg: "#DCF0E2", text: "#0E5C30", sub: "#1F8A4C", icon: "#B8E5CA" },
-    { bg: "#DBEAFE", text: "#1E3A8A", sub: "#2563EB", icon: "#BFDBFE" },
-    { bg: "#FEF3C7", text: "#78350F", sub: "#D97706", icon: "#FDE68A" },
-    { bg: "#EDE9FE", text: "#4C1D95", sub: "#7C3AED", icon: "#DDD6FE" },
-    { bg: "#FFE4E6", text: "#881337", sub: "#E11D48", icon: "#FECDD3" },
-    { bg: "#CCFBF1", text: "#134E4A", sub: "#0D9488", icon: "#99F6E4" },
+const AVATAR_COLORS = [
+    "#1F8A4C", "#2563EB", "#D97706", "#7C3AED",
+    "#E11D48", "#0D9488", "#EA580C", "#0891B2",
 ];
 
-function cardPalette(name: string) {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return CARD_PALETTES[Math.abs(hash) % CARD_PALETTES.length];
+function avatarColor(seed: string, offset = 0): string {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = seed.charCodeAt(i) + ((h << 5) - h);
+    return AVATAR_COLORS[(Math.abs(h) + offset) % AVATAR_COLORS.length];
+}
+
+function relativeTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 2) return "az önce";
+    if (mins < 60) return `${mins} dk önce`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} saat önce`;
+    if (hrs < 48) return "dün";
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days} gün önce`;
+    return `${Math.floor(days / 7)} hafta önce`;
 }
 
 interface GroupListCardProps {
-    group: GroupResponse;
+    group: GroupWithStatsResponse;
     onClick: () => void;
-    isFeatured?: boolean;
 }
 
-export const GroupListCard = ({ group, onClick, isFeatured = false }: GroupListCardProps) => {
-    const palette = cardPalette(group.name);
-    const initial = group.name.charAt(0).toUpperCase();
+export const GroupListCard = ({ group, onClick }: GroupListCardProps) => {
+    const iconBg = avatarColor(group.name);
+    const timeStr = group.updated_at ? relativeTime(group.updated_at) : "";
+    const isDebt = group.balance_direction === "debt";
+    const isSettled = group.balance_direction === "settled";
+    const balanceColor = isSettled ? "var(--text-muted)" : isDebt ? "#D0492F" : "#1F8A4C";
+
+    const memberCount = group.member_count ?? 0;
+    const visibleAvatars = Math.min(memberCount, 4);
 
     return (
         <button
             onClick={onClick}
-            className="shrink-0 rounded-2xl relative overflow-hidden text-left transition-transform active:scale-[0.97] cursor-pointer min-w-[260px] w-[260px] h-[160px]"
-            style={{ background: palette.bg, border: `1px solid ${palette.icon}` }}
+            className="shrink-0 rounded-2xl text-left transition-transform active:scale-[0.97] cursor-pointer min-w-[240px] w-[240px] p-4 flex flex-col gap-3"
+            style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                boxShadow: "var(--shadow-sm)",
+            }}
         >
-            {/* Decorative initial */}
-            <span
-                className="absolute -right-3 -top-3 font-black leading-none select-none pointer-events-none"
-                style={{
-                    fontSize: "100px",
-                    color: palette.icon,
-                    letterSpacing: "-4px",
-                    opacity: 0.5,
-                }}
-            >
-                {initial}
-            </span>
-
-            <div className="absolute inset-0 p-4 flex flex-col justify-between">
+            {/* Top row: icon + chevron */}
+            <div className="flex items-start justify-between">
                 <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: palette.icon }}
+                    className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0"
+                    style={{ background: iconBg }}
                 >
-                    <Users className="w-4 h-4" style={{ color: palette.text }} />
+                    <Users className="w-5 h-5" style={{ color: "#fff" }} />
+                </div>
+                <ChevronRight
+                    className="w-4 h-4 mt-1"
+                    style={{ color: "var(--text-placeholder)" }}
+                />
+            </div>
+
+            {/* Name + time */}
+            <div className="flex-1">
+                <p
+                    className="font-semibold leading-snug line-clamp-2"
+                    style={{ fontSize: "14px", color: "var(--foreground)", letterSpacing: "-0.2px" }}
+                >
+                    {group.name}
+                </p>
+                {timeStr && (
+                    <p
+                        className="mt-0.5"
+                        style={{
+                            fontSize: "11px",
+                            color: "var(--text-muted)",
+                            fontFamily: "var(--font-geist-mono, monospace)",
+                        }}
+                    >
+                        {timeStr}
+                    </p>
+                )}
+            </div>
+
+            {/* Bottom: avatars + balance */}
+            <div className="flex items-center justify-between gap-2">
+                {/* Member avatars */}
+                <div className="flex items-center" style={{ gap: "-4px" }}>
+                    {Array.from({ length: visibleAvatars }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold border-2"
+                            style={{
+                                fontSize: "9px",
+                                background: avatarColor(group.id, i),
+                                borderColor: "var(--surface)",
+                                marginLeft: i === 0 ? 0 : -6,
+                                zIndex: visibleAvatars - i,
+                                position: "relative",
+                            }}
+                        >
+                            {String.fromCharCode(65 + ((group.name.charCodeAt(i % group.name.length) + i) % 26))}
+                        </div>
+                    ))}
                 </div>
 
-                <div>
-                    <p
-                        className="font-bold leading-tight line-clamp-1"
-                        style={{ fontSize: "15px", color: palette.text }}
+                {/* Balance */}
+                {isSettled ? (
+                    <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
                     >
-                        {group.name}
+                        Denk
+                    </span>
+                ) : (
+                    <p
+                        className="font-semibold shrink-0"
+                        style={{
+                            fontSize: "12px",
+                            color: balanceColor,
+                            fontFamily: "var(--font-geist-mono, monospace)",
+                        }}
+                    >
+                        {group.balance_formatted}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                        {group.member_count !== undefined && (
-                            <span
-                                className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                                style={{ background: palette.icon, color: palette.text }}
-                            >
-                                {group.member_count} üye
-                            </span>
-                        )}
-                        {isFeatured && (
-                            <span
-                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ background: palette.icon, color: palette.sub }}
-                            >
-                                Son aktif
-                            </span>
-                        )}
-                    </div>
-                </div>
+                )}
             </div>
         </button>
     );
