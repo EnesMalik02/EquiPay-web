@@ -136,22 +136,6 @@ function SettlementItem({
     );
 }
 
-/* ── Section label ── */
-function SectionLabel({ label }: { label: string }) {
-    return (
-        <p
-            className="text-[10px] font-semibold tracking-widest uppercase pt-2 pb-1"
-            style={{
-                fontFamily: "var(--font-geist-mono, monospace)",
-                color: "var(--text-muted)",
-                letterSpacing: "0.08em",
-            }}
-        >
-            {label}
-        </p>
-    );
-}
-
 /* ── Main Page ── */
 export const SettlementsPage = () => {
     const currentUser = useUser();
@@ -193,13 +177,26 @@ export const SettlementsPage = () => {
 
     const pendingCount = unpaidExpenses.length;
 
+    type AllItem =
+        | { kind: "expense"; data: (typeof allSplitExpenses)[0] }
+        | { kind: "settlement"; data: SettlementResponse };
+
+    const allItemsSorted: AllItem[] = [
+        ...allSplitExpenses.map((d): AllItem => ({ kind: "expense", data: d })),
+        ...settlements.map((d): AllItem => ({ kind: "settlement", data: d })),
+    ].sort((a, b) => {
+        const tA = a.data.created_at ? new Date(a.data.created_at).getTime() : 0;
+        const tB = b.data.created_at ? new Date(b.data.created_at).getTime() : 0;
+        return tB - tA;
+    });
+
     const tabs: { id: Tab; label: string }[] = [
         { id: "all", label: "Tümü" },
         { id: "pending", label: "Bekleyenler" },
         { id: "paid", label: "Ödenenler" },
     ];
 
-    const isEmptyAll = allSplitExpenses.length === 0 && settlements.length === 0;
+    const isEmptyAll = allItemsSorted.length === 0;
     const isEmptyTab =
         activeTab === "all" ? isEmptyAll
         : activeTab === "pending" ? unpaidExpenses.length === 0
@@ -278,39 +275,16 @@ export const SettlementsPage = () => {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {activeTab === "all" && (
-                            <>
-                                {unpaidExpenses.length > 0 && (
-                                    <>
-                                        <SectionLabel label="Ödenmemiş Paylarım" />
-                                        {unpaidExpenses.map((exp) => (
-                                            <SplitExpenseItem key={exp.id} expense={exp}  />
-                                        ))}
-                                    </>
-                                )}
-                                {paidExpenses.length > 0 && (
-                                    <>
-                                        <SectionLabel label="Ödediğim Paylar" />
-                                        {paidExpenses.map((exp) => (
-                                            <SplitExpenseItem key={exp.id} expense={exp}  />
-                                        ))}
-                                    </>
-                                )}
-                                {settlements.length > 0 && (
-                                    <>
-                                        <SectionLabel label="Ödeme Transferleri" />
-                                        {settlements.map((s) => (
-                                            <SettlementItem
-                                                key={s.id}
-                                                s={s}
-                                                currentUserId={currentUserId}
-                                                onAction={handleSettlementAction}
-                                                actioningId={actioningId}
-                                            />
-                                        ))}
-                                    </>
-                                )}
-                            </>
+                        {activeTab === "all" && allItemsSorted.map((item) =>
+                            item.kind === "expense"
+                                ? <SplitExpenseItem key={item.data.id} expense={item.data} />
+                                : <SettlementItem
+                                    key={item.data.id}
+                                    s={item.data}
+                                    currentUserId={currentUserId}
+                                    onAction={handleSettlementAction}
+                                    actioningId={actioningId}
+                                />
                         )}
 
                         {activeTab === "pending" &&
