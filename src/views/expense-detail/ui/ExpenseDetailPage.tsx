@@ -11,6 +11,7 @@ import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { ExpenseFullDetailResponse } from "@/entities/expense/model/types";
 import { useUser } from "@/shared/store/UserContext";
+import { getCurrencySymbol } from "@/shared/lib/currency";
 
 interface ExpenseDetailPageProps {
     groupId: string;
@@ -114,6 +115,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     }, [expenseId]);
 
     const isOwner = expense ? String(expense.paid_by.id) === String(currentUserId) : false;
+    const currencySymbol = getCurrencySymbol(expense?.currency ?? "TRY");
 
     const handlePay = async (splitId: string, paidAmount?: number) => {
         if (!expense) return;
@@ -378,7 +380,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     className="text-[15px] font-semibold"
                                     style={{ fontFamily: "var(--font-geist-mono, monospace)", color: "var(--primary)" }}
                                 >
-                                    ₺{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                    {currencySymbol}{remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                 </span>
                             </div>
                             <div className="space-y-2 mb-4">
@@ -407,7 +409,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                             </p>
                                             <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
                                                 {mode === "full"
-                                                    ? `₺${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödenecek`
+                                                    ? `${currencySymbol}${remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ödenecek`
                                                     : "Kısmi ödeme yap"}
                                             </p>
                                         </div>
@@ -421,7 +423,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-medium"
                                             style={{ color: "var(--text-muted)" }}
                                         >
-                                            ₺
+                                            {currencySymbol}
                                         </span>
                                         <input
                                             type="number"
@@ -621,7 +623,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                         letterSpacing: "-1px",
                                                     }}
                                                 >
-                                                    ₺{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    {currencySymbol}{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 </p>
                                             </div>
                                         </div>
@@ -700,7 +702,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                             color: "#fff",
                                                         }}
                                                     >
-                                                        {myPaying ? "Ödeniyor..." : `Borcumu Öde · ₺${myOwed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
+                                                        {myPaying ? "Ödeniyor..." : `Borcumu Öde · ${currencySymbol}${myOwed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
                                                     </button>
                                                 )}
                                             </div>
@@ -740,9 +742,9 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                     letterSpacing: "-0.5px",
                                                 }}
                                             >
-                                                ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                {currencySymbol}{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 <span className="text-[14px] font-normal ml-1" style={{ color: "var(--text-muted)" }}>
-                                                    / ₺{totalOwed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    / {currencySymbol}{totalOwed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 </span>
                                             </p>
                                             <div className="flex items-center gap-2 shrink-0">
@@ -786,7 +788,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                         className="ml-1 font-semibold"
                                                         style={{ fontFamily: "var(--font-geist-mono, monospace)", color: "var(--foreground)" }}
                                                     >
-                                                        ₺{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                        {currencySymbol}{totalPaid.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                     </span>
                                                 </span>
                                             </div>
@@ -798,7 +800,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                         className="ml-1 font-semibold"
                                                         style={{ fontFamily: "var(--font-geist-mono, monospace)", color: "var(--foreground)" }}
                                                     >
-                                                        ₺{totalPending.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                        {currencySymbol}{totalPending.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                     </span>
                                                 </span>
                                             </div>
@@ -942,7 +944,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                         color: "var(--foreground)",
                                                     }}
                                                 >
-                                                    ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    {currencySymbol}{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 </span>
 
                                                 {/* Status */}
@@ -997,7 +999,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                         mono: true,
                                     },
                                     {
-                                        icon: <span className="w-4 h-4 text-[12px] font-bold flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>₺</span>,
+                                        icon: <span className="w-4 h-4 text-[12px] font-bold flex items-center justify-center shrink-0" style={{ color: "var(--text-muted)" }}>{currencySymbol}</span>,
                                         label: "Para birimi",
                                         value: expense.currency,
                                     },

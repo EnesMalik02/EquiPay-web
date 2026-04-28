@@ -10,7 +10,8 @@ export interface GroupResponse {
 
 export interface GroupWithStatsResponse extends GroupResponse {
     member_count: number;
-    balance: string;
+    balance_formatted: string;
+    balance_direction: "receivable" | "debt" | "settled";
 }
 
 export interface GroupCreate {

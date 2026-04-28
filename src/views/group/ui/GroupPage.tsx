@@ -20,6 +20,7 @@ import { ExpenseResponse, ExpenseWithMySplitResponse } from "@/entities/expense/
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
 import { GroupSettingsModal } from "@/features/manage-group/ui/GroupSettingsModal";
 import { useUser } from "@/shared/store/UserContext";
+import { getCurrencySymbol } from "@/shared/lib/currency";
 
 type Tab = "expenses" | "members";
 
@@ -75,9 +76,9 @@ function toSplitExpense(
     };
 }
 
-function formatMoney(val: number | string): string {
+function formatMoney(val: number | string, symbol: string): string {
     const n = typeof val === "string" ? parseFloat(val) : val;
-    return `₺${Math.abs(n).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+    return `${symbol}${Math.abs(n).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
 }
 
 interface GroupPageProps {
@@ -177,6 +178,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     }
 
     const totalSpend = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
+    const currencySymbol = getCurrencySymbol(group.currency_code);
 
     const tabs: { id: Tab; label: string; count: number }[] = [
         { id: "expenses", label: "Harcamalar", count: expenses.length },
@@ -361,7 +363,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 color: "var(--foreground)",
                             }}
                         >
-                            {formatMoney(totalSpend)}
+                            {formatMoney(totalSpend, currencySymbol)}
                         </p>
                     </div>
                     <button
@@ -494,7 +496,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                                         color: "var(--text-muted)",
                                                     }}
                                                 >
-                                                    {mg.items.length} harcama · {formatMoney(mg.total)}
+                                                    {mg.items.length} harcama · {formatMoney(mg.total, currencySymbol)}
                                                 </span>
                                             </div>
                                             {mg.items.map((exp, i) => {

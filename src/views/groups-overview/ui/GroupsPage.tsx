@@ -84,21 +84,17 @@ function GroupRow({ group, onClick }: { group: GroupWithStatsResponse; onClick: 
                 </div>
             </div>
 
-            {(() => {
-                const bal = parseFloat(group.balance);
-                if (bal === 0) return null;
-                return (
-                    <span
-                        className="text-[12px] font-semibold shrink-0 mr-1"
-                        style={{
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                            color: bal > 0 ? "var(--primary)" : "var(--danger)",
-                        }}
-                    >
-                        {bal > 0 ? "+" : ""}₺{Math.abs(bal).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                    </span>
-                );
-            })()}
+            {group.balance_direction !== "settled" && (
+                <span
+                    className="text-[12px] font-semibold shrink-0 mr-1"
+                    style={{
+                        fontFamily: "var(--font-geist-mono, monospace)",
+                        color: group.balance_direction === "receivable" ? "var(--primary)" : "var(--danger)",
+                    }}
+                >
+                    {group.balance_formatted}
+                </span>
+            )}
             <ChevronRight
                 className="w-4 h-4 shrink-0"
                 style={{ color: "var(--text-placeholder)" }}

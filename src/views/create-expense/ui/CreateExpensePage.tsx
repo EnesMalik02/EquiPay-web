@@ -11,6 +11,7 @@ import { groupApi } from "@/entities/group/api/groupApi";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { GroupMemberResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
 import { Skeleton } from "@/shared/ui";
+import { getCurrencySymbol } from "@/shared/lib/currency";
 
 type SplitType = "equal" | "exact" | "percentage";
 
@@ -70,6 +71,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
     }, [groupId]);
 
     const parsedAmount = parseFloat(amount) || 0;
+    const currencySymbol = getCurrencySymbol(group?.currency_code ?? "TRY");
 
     const selectedMembers = useMemo(
         () => members.filter((m) => selectedMemberIds.has(m.user_id)),
@@ -159,6 +161,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                 paid_by: paidById,
                 title: title.trim(),
                 amount: parsedAmount,
+                currency: group?.currency_code,
                 notes: notes.trim() || undefined,
                 expense_date: expenseDate || undefined,
                 split_type: splitType,
@@ -287,7 +290,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                         </label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold select-none" style={{ color: "var(--text-muted)" }}>
-                                                ₺
+                                                {currencySymbol}
                                             </span>
                                             <input
                                                 type="number"
@@ -434,7 +437,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                                         if (splitType === "equal") {
                                             const perPersonStr = parsedAmount > 0 && isSelected && activeCnt > 0
-                                                ? `₺${(parsedAmount / activeCnt).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                                                ? `${currencySymbol}${(parsedAmount / activeCnt).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
                                                 : "—";
                                             return (
                                                 <div key={m.user_id} className="flex items-center gap-3" style={{ opacity: isSelected ? 1 : 0.4 }}>
@@ -471,7 +474,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                 <div className="relative w-28 shrink-0">
                                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold select-none"
                                                         style={{ color: "var(--text-muted)" }}>
-                                                        {splitType === "percentage" ? "%" : "₺"}
+                                                        {splitType === "percentage" ? "%" : currencySymbol}
                                                     </span>
                                                     <input
                                                         type="number"
@@ -505,14 +508,14 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                 ? splitsValid
                                                     ? "✓ Toplam eşleşiyor"
                                                     : splitDiff > 0
-                                                        ? `${splitType === "percentage" ? `%${splitDiff.toFixed(0)}` : `₺${splitDiff.toFixed(2)}`} daha girilmesi gerekiyor`
-                                                        : `${splitType === "percentage" ? `%${Math.abs(splitDiff).toFixed(0)}` : `₺${Math.abs(splitDiff).toFixed(2)}`} fazla`
+                                                        ? `${splitType === "percentage" ? `%${splitDiff.toFixed(0)}` : `${currencySymbol}${splitDiff.toFixed(2)}`} daha girilmesi gerekiyor`
+                                                        : `${splitType === "percentage" ? `%${Math.abs(splitDiff).toFixed(0)}` : `${currencySymbol}${Math.abs(splitDiff).toFixed(2)}`} fazla`
                                                 : "Önce toplam tutarı gir"}
                                         </span>
                                         <span>
                                             {splitType === "percentage"
                                                 ? `${splitSum.toFixed(0)} / 100%`
-                                                : `${splitSum.toFixed(2)} / ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "—"} ₺`}
+                                                : `${splitSum.toFixed(2)} / ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "—"} ${currencySymbol}`}
                                         </span>
                                     </div>
                                 )}
@@ -580,7 +583,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                         <div className="flex justify-between text-sm">
                                             <span style={{ color: "var(--text-secondary)" }}>Tutar</span>
                                             <span className="font-semibold" style={{ color: "var(--foreground)" }}>
-                                                ₺{parsedAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                {currencySymbol}{parsedAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                         {group && (
@@ -595,14 +598,14 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                             <div className="flex justify-between text-sm">
                                                 <span style={{ color: "var(--text-secondary)" }}>Kişi başı</span>
                                                 <span className="font-semibold" style={{ color: "var(--foreground)" }}>
-                                                    ₺{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                    {currencySymbol}{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         )}
                                         <div className="flex justify-between text-sm">
                                             <span style={{ color: "var(--text-secondary)" }}>Senin payın</span>
                                             <span className="font-semibold" style={{ color: "var(--danger)" }}>
-                                                -₺{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                -{currencySymbol}{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </div>
@@ -612,7 +615,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                 Alacağın
                                             </span>
                                             <span className="text-lg font-extrabold" style={{ color: "var(--primary)" }}>
-                                                +₺{(parsedAmount - perPerson).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                +{currencySymbol}{(parsedAmount - perPerson).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </div>
