@@ -125,11 +125,11 @@ export function SplitExpenseItem({
         >
             <div
                 className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: isPaid ? "var(--primary-light)" : "var(--surface-muted)" }}
+                style={{ background: isPaid ? "var(--primary-light)" : isPayer ? "var(--primary-light)" : "rgba(239,68,68,0.08)" }}
             >
                 <Receipt
                     className="w-5 h-5"
-                    style={{ color: isPaid ? "var(--primary)" : "var(--text-secondary)" }}
+                    style={{ color: isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)" }}
                 />
             </div>
 
