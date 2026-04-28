@@ -111,13 +111,7 @@ export function SplitExpenseItem({
     }
 
     /* ── Card variant (default) ───────────────────── */
-    const statusLabel = (() => {
-        if (isPaid) return isPayer ? "Tamamen Ödendi" : "Ödendi";
-        if (isPayer) return `Alacağın: ${currencySymbol}${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-        return `Borcun: ${currencySymbol}${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-    })();
-
-    const statusColor = isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)";
+    const amountColor = isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)";
 
     return (
         <div
@@ -153,18 +147,24 @@ export function SplitExpenseItem({
             </div>
 
             <div className="shrink-0 flex flex-col items-end gap-1">
-                <p
-                    className="text-[13px] font-semibold"
-                    style={{
-                        fontFamily: "var(--font-geist-mono, monospace)",
-                        color: "var(--foreground)",
-                    }}
-                >
-                    {isPayer ? "+" : isPaid ? "" : "−"}{currencySymbol}{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                </p>
-                <span className="text-[11px] font-semibold" style={{ color: statusColor }}>
-                    {statusLabel}
-                </span>
+                {isPaid ? (
+                    <span
+                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block w-fit"
+                        style={{ background: "var(--primary-light)", color: "var(--primary-ink)" }}
+                    >
+                        ✓ Ödendi
+                    </span>
+                ) : (
+                    <p
+                        className="text-[13px] font-semibold"
+                        style={{
+                            fontFamily: "var(--font-geist-mono, monospace)",
+                            color: amountColor,
+                        }}
+                    >
+                        {isPayer ? "+" : "−"}{currencySymbol}{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                    </p>
+                )}
             </div>
         </div>
     );
