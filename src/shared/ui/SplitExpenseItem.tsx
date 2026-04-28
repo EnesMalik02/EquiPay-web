@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Receipt, Check, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
+import { getCurrencySymbol } from "@/shared/lib/currency";
 
 interface SplitExpenseItemProps {
     expense: ExpenseWithMySplitResponse;
@@ -19,6 +20,7 @@ export function SplitExpenseItem({
 }: SplitExpenseItemProps) {
     const router = useRouter();
     const amount = parseFloat(expense.user_amount.amount);
+    const currencySymbol = getCurrencySymbol(expense.user_amount.currency);
     const isPaid = amount === 0;
     const isPayer = expense.user_amount.direction === "credit";
 
@@ -100,7 +102,7 @@ export function SplitExpenseItem({
                                 color: isPayer ? "var(--primary)" : "var(--danger)",
                             }}
                         >
-                            {isPayer ? "+" : "−"}₺{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                            {isPayer ? "+" : "−"}{currencySymbol}{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                         </p>
                     )}
                 </div>
@@ -111,8 +113,8 @@ export function SplitExpenseItem({
     /* ── Card variant (default) ───────────────────── */
     const statusLabel = (() => {
         if (isPaid) return isPayer ? "Tamamen Ödendi" : "Ödendi";
-        if (isPayer) return `Alacağın: ₺${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-        return `Borcun: ₺${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+        if (isPayer) return `Alacağın: ${currencySymbol}${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
+        return `Borcun: ${currencySymbol}${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
     })();
 
     const statusColor = isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)";
@@ -158,7 +160,7 @@ export function SplitExpenseItem({
                         color: "var(--foreground)",
                     }}
                 >
-                    {isPayer ? "+" : isPaid ? "" : "−"}₺{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                    {isPayer ? "+" : isPaid ? "" : "−"}{currencySymbol}{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                 </p>
                 <span className="text-[11px] font-semibold" style={{ color: statusColor }}>
                     {statusLabel}
