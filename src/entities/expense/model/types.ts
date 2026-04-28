@@ -71,6 +71,7 @@ export interface ExpenseWithMySplitResponse {
     group: GroupBrief | null;
     paid_by: PaidByBrief;
     created_at: string | null;
+    updated_at?: string | null;
     user_amount: UserAmount;
 }
 

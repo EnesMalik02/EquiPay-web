@@ -185,9 +185,13 @@ export const SettlementsPage = () => {
         ...allSplitExpenses.map((d): AllItem => ({ kind: "expense", data: d })),
         ...settlements.map((d): AllItem => ({ kind: "settlement", data: d })),
     ].sort((a, b) => {
-        const tA = a.data.created_at ? new Date(a.data.created_at).getTime() : 0;
-        const tB = b.data.created_at ? new Date(b.data.created_at).getTime() : 0;
-        return tB - tA;
+        const getT = (item: AllItem) => {
+            if (item.kind === "expense") {
+                return new Date(item.data.updated_at ?? item.data.created_at ?? 0).getTime();
+            }
+            return item.data.created_at ? new Date(item.data.created_at).getTime() : 0;
+        };
+        return getT(b) - getT(a);
     });
 
     const tabs: { id: Tab; label: string }[] = [
