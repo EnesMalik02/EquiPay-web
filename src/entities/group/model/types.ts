@@ -2,6 +2,7 @@ export interface GroupResponse {
     id: string;
     name: string;
     description?: string;
+    currency_code: string;
     created_at: string;
     updated_at?: string;
     member_count?: number;
@@ -15,6 +16,7 @@ export interface GroupWithStatsResponse extends GroupResponse {
 export interface GroupCreate {
     name: string;
     description?: string;
+    currency_code: string;
 }
 
 export interface GroupUpdate {

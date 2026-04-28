@@ -13,6 +13,7 @@ interface CreateGroupModalProps {
 export const CreateGroupModal = ({ onClose, onCreated }: CreateGroupModalProps) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+    const [currencyCode, setCurrencyCode] = useState("TRY");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -27,6 +28,7 @@ export const CreateGroupModal = ({ onClose, onCreated }: CreateGroupModalProps) 
             const group = await groupApi.create({
                 name: name.trim(),
                 description: description.trim() || undefined,
+                currency_code: currencyCode,
             });
             onCreated(group);
         } catch (err: unknown) {
@@ -94,6 +96,24 @@ export const CreateGroupModal = ({ onClose, onCreated }: CreateGroupModalProps) 
                             maxLength={120}
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 outline-none transition-all text-black font-medium placeholder-gray-400"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1.5" htmlFor="group-currency">
+                            Para Birimi <span className="text-red-400">*</span>
+                        </label>
+                        <select
+                            id="group-currency"
+                            value={currencyCode}
+                            onChange={(e) => setCurrencyCode(e.target.value)}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 outline-none transition-all text-black font-medium"
+                        >
+                            <option value="TRY">₺ Türk Lirası (TRY)</option>
+                            <option value="USD">$ Amerikan Doları (USD)</option>
+                            <option value="EUR">€ Euro (EUR)</option>
+                            <option value="JPY">¥ Japon Yeni (JPY)</option>
+                        </select>
+                        <p className="mt-1 text-xs text-gray-400">Para birimi grup oluşturulduktan sonra değiştirilemez.</p>
                     </div>
 
                     <div className="flex gap-3 pt-2">
