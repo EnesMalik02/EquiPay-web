@@ -15,8 +15,7 @@ import { UserAvatar, SplitExpenseItem } from "@/shared/ui";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
-import { expenseApi } from "@/entities/expense/api/expenseApi";
-import { ExpenseResponse, ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
+import { useMySplitExpenses } from "@/entities/expense/hooks/useMySplitExpenses";
 import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
 import { GroupSettingsModal } from "@/features/manage-group/ui/GroupSettingsModal";
 import { useUser } from "@/shared/store/UserContext";
@@ -25,57 +24,6 @@ import { formatMoney } from "@/shared/lib/ui";
 
 type Tab = "expenses" | "members";
 
-interface MonthGroup {
-    label: string;
-    items: ExpenseResponse[];
-    total: number;
-}
-
-function groupByMonth(expenses: ExpenseResponse[]): MonthGroup[] {
-    const map = new Map<string, ExpenseResponse[]>();
-    for (const exp of expenses) {
-        const [year, month] = exp.created_at.split("-");
-        const label = new Date(Number(year), Number(month) - 1).toLocaleDateString("tr-TR", {
-            month: "long",
-            year: "numeric",
-        });
-        if (!map.has(label)) map.set(label, []);
-        map.get(label)!.push(exp);
-    }
-    return Array.from(map.entries()).map(([label, items]) => ({
-        label,
-        items,
-        total: items.reduce((s, e) => s + parseFloat(e.amount), 0),
-    }));
-}
-
-function toSplitExpense(
-    expense: ExpenseResponse,
-    groupId: string,
-    groupName: string,
-    currentUserId: string | null,
-    members: GroupMemberResponse[],
-): ExpenseWithMySplitResponse {
-    const raw = expense.splits?.find((sp) => sp.user_id === currentUserId);
-    const owed = raw ? parseFloat(raw.owed_amount) : 0;
-    const paid = raw ? parseFloat(raw.paid_amount) : 0;
-    const outstanding = Math.max(0, owed - paid);
-    const isPayer = expense.paid_by === currentUserId;
-    const payer = members.find((m) => m.user_id === expense.paid_by);
-    const payerName = payer?.display_name ?? payer?.username ?? "Bilinmeyen";
-    return {
-        id: expense.id,
-        title: expense.title,
-        group: { group_id: groupId, name: groupName },
-        paid_by: { name: payerName },
-        created_at: expense.created_at ?? null,
-        user_amount: {
-            direction: isPayer ? "credit" : "debit",
-            amount: String(outstanding),
-            currency: expense.currency,
-        },
-    };
-}
 
 
 interface GroupPageProps {
@@ -87,7 +35,6 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const currentUserId = useUser()?.id ?? null;
     const [group, setGroup] = useState<GroupWithStatsResponse | null>(null);
     const [members, setMembers] = useState<GroupMemberResponse[]>([]);
-    const [expenses, setExpenses] = useState<ExpenseResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
@@ -95,17 +42,17 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const [showSettings, setShowSettings] = useState(false);
     const [pendingInviteMsg, setPendingInviteMsg] = useState<string | null>(null);
 
+    const { data: expenses = [], isLoading: expensesLoading } = useMySplitExpenses({ group_id: groupId, limit: 50 });
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [groupData, membersData, expensesData] = await Promise.all([
+                const [groupData, membersData] = await Promise.all([
                     groupApi.get(groupId),
                     groupApi.listMembers(groupId),
-                    expenseApi.listByGroup(groupId, { limit: 20, offset: 0 }),
                 ]);
                 setGroup(groupData);
                 setMembers(membersData);
-                setExpenses(expensesData);
             } catch {
                 setError("Grup bilgileri yüklenemedi.");
             } finally {
@@ -116,7 +63,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     }, [groupId]);
 
     /* ── Loading ─────────────────────────────────────── */
-    if (loading) {
+    if (loading || expensesLoading) {
         return (
             <div className="min-h-screen" style={{ background: "var(--background)" }}>
                 <div className="flex items-center justify-between px-4 pt-14 pb-3">
@@ -460,101 +407,11 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 </p>
                             </div>
                         ) : (
-                            (() => {
-                                const unpaid = expenses.filter((e) => !e.is_fully_paid);
-                                const paid = expenses.filter((e) => e.is_fully_paid);
-
-                                const renderMonthGroups = (items: ExpenseResponse[]) =>
-                                    groupByMonth(items).map((mg, mi, arr) => (
-                                        <div key={mg.label}>
-                                            <div
-                                                className="flex items-center gap-3 px-5 py-2.5"
-                                                style={{
-                                                    background: "var(--surface-alt)",
-                                                    borderBottom: "1px solid var(--border-light)",
-                                                    borderTop: mi > 0 ? "1px solid var(--border-light)" : "none",
-                                                }}
-                                            >
-                                                <span
-                                                    className="text-[10px] uppercase font-medium"
-                                                    style={{
-                                                        fontFamily: "var(--font-geist-mono, monospace)",
-                                                        color: "var(--text-muted)",
-                                                        letterSpacing: "0.08em",
-                                                    }}
-                                                >
-                                                    {mg.label}
-                                                </span>
-                                                <div className="flex-1 h-px" style={{ background: "var(--border-light)" }} />
-                                                <span
-                                                    style={{
-                                                        fontFamily: "var(--font-geist-mono, monospace)",
-                                                        fontSize: "11px",
-                                                        color: "var(--text-muted)",
-                                                    }}
-                                                >
-                                                    {mg.items.length} harcama · {formatMoney(mg.total, currencySymbol)}
-                                                </span>
-                                            </div>
-                                            {mg.items.map((exp, i) => {
-                                                const isLastInGroup = i === mg.items.length - 1;
-                                                const isLastGroup = mi === arr.length - 1;
-                                                return (
-                                                    <SplitExpenseItem
-                                                        key={exp.id}
-                                                        variant="row"
-                                                        expense={toSplitExpense(exp, groupId, group.name, currentUserId, members)}
-                                                        isLast={isLastInGroup && isLastGroup}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    ));
-
-                                return (
-                                    <>
-                                        {unpaid.length > 0 && (
-                                            <div
-                                                className="rounded-[var(--radius-lg)] overflow-hidden mb-4"
-                                                style={{
-                                                    background: "var(--surface)",
-                                                    border: "1px solid var(--border)",
-                                                }}
-                                            >
-                                                {renderMonthGroups(unpaid)}
-                                            </div>
-                                        )}
-
-                                        {paid.length > 0 && (
-                                            <>
-                                                <div className="flex items-center gap-3 my-4">
-                                                    <div className="h-px flex-1" style={{ background: "var(--border)" }} />
-                                                    <span
-                                                        className="text-[10px] uppercase"
-                                                        style={{
-                                                            fontFamily: "var(--font-geist-mono, monospace)",
-                                                            color: "var(--text-muted)",
-                                                            letterSpacing: "0.08em",
-                                                        }}
-                                                    >
-                                                        Ödenenler
-                                                    </span>
-                                                    <div className="h-px flex-1" style={{ background: "var(--border)" }} />
-                                                </div>
-                                                <div
-                                                    className="rounded-[var(--radius-lg)] overflow-hidden"
-                                                    style={{
-                                                        background: "var(--surface)",
-                                                        border: "1px solid var(--border)",
-                                                    }}
-                                                >
-                                                    {renderMonthGroups(paid)}
-                                                </div>
-                                            </>
-                                        )}
-                                    </>
-                                );
-                            })()
+                            <div className="space-y-3">
+                                {expenses.map((exp) => (
+                                    <SplitExpenseItem key={exp.id} expense={exp} />
+                                ))}
+                            </div>
                         )}
                     </>
                 )}

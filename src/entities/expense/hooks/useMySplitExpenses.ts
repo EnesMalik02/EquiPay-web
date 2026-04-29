@@ -5,6 +5,7 @@ interface Params {
     limit?: number;
     offset?: number;
     status?: "all" | "pending" | "paid";
+    group_id?: string;
 }
 
 const sortByUpdated = (list: import("../model/types").ExpenseWithMySplitResponse[]) =>

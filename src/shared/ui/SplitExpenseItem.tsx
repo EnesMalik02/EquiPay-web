@@ -1,23 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Receipt, Check, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Receipt } from "lucide-react";
 import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 import { getCurrencySymbol } from "@/shared/lib/currency";
 
 interface SplitExpenseItemProps {
     expense: ExpenseWithMySplitResponse;
-    /** card: standalone rounded card (default). row: flat list row inside a container. */
-    variant?: "card" | "row";
-    /** row variant: hide bottom border on last item */
-    isLast?: boolean;
 }
 
-export function SplitExpenseItem({
-    expense,
-    variant = "card",
-    isLast = false,
-}: SplitExpenseItemProps) {
+export function SplitExpenseItem({ expense }: SplitExpenseItemProps) {
     const router = useRouter();
     const amount = parseFloat(expense.user_amount.amount);
     const currencySymbol = getCurrencySymbol(expense.user_amount.currency);
@@ -37,80 +29,6 @@ export function SplitExpenseItem({
         }
     };
 
-    const payerDisplayName = isPayer ? "Sen" : expense.paid_by.name;
-
-    /* ── Row variant ──────────────────────────────── */
-    if (variant === "row") {
-        const iconColor = isPaid
-            ? "var(--text-muted)"
-            : isPayer
-            ? "var(--primary)"
-            : "var(--danger)";
-
-        return (
-            <div
-                onClick={navigateToExpense}
-                className="flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors active:bg-[var(--surface-alt)]"
-                style={{ borderBottom: isLast ? "none" : "1px solid var(--border-light)" }}
-            >
-                <div
-                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                    style={{
-                        background: "var(--surface-alt)",
-                        border: "1px solid var(--border)",
-                        color: iconColor,
-                    }}
-                >
-                    {isPaid ? (
-                        <Check className="w-[14px] h-[14px]" />
-                    ) : isPayer ? (
-                        <ArrowDownLeft className="w-[14px] h-[14px]" />
-                    ) : (
-                        <ArrowUpRight className="w-[14px] h-[14px]" />
-                    )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                    <p
-                        className="font-medium text-[13.5px] truncate"
-                        style={{ color: "var(--foreground)", letterSpacing: "-0.2px" }}
-                    >
-                        {expense.title}
-                    </p>
-                    <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                        {payerDisplayName} ödedi
-                        <span className="mx-1.5" style={{ color: "var(--text-placeholder)" }}>·</span>
-                        <span style={{ fontFamily: "var(--font-geist-mono, monospace)", fontSize: "11px" }}>
-                            {dateStr}
-                        </span>
-                    </p>
-                </div>
-
-                <div className="text-right shrink-0">
-                    {isPaid ? (
-                        <span
-                            className="inline-block text-[10px] px-1.5 py-0.5 rounded-full"
-                            style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
-                        >
-                            Ödendi
-                        </span>
-                    ) : (
-                        <p
-                            className="text-[13px] font-medium"
-                            style={{
-                                fontFamily: "var(--font-geist-mono, monospace)",
-                                color: isPayer ? "var(--primary)" : "var(--danger)",
-                            }}
-                        >
-                            {isPayer ? "+" : "−"}{currencySymbol}{amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                        </p>
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    /* ── Card variant (default) ───────────────────── */
     const amountColor = isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)";
 
     return (

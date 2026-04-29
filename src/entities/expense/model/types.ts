@@ -68,6 +68,11 @@ export interface UserAmount {
 export interface ExpenseWithMySplitResponse {
     id: string;
     title: string;
+    amount: string;
+    currency: string;
+    expense_date: string | null;
+    is_fully_paid: boolean;
+    split_id: string | null;
     group: GroupBrief | null;
     paid_by: PaidByBrief;
     created_at: string | null;
