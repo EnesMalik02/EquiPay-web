@@ -447,10 +447,58 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {expenses.map((exp) => (
-                                    <SplitExpenseItem key={exp.id} expense={exp} />
-                                ))}
+                            <div className="space-y-6">
+                                {(() => {
+                                    const groups: { key: string; label: string; items: typeof expenses }[] = [];
+                                    const seen = new Map<string, typeof expenses>();
+                                    for (const exp of expenses) {
+                                        const raw = exp.expense_date ?? exp.created_at;
+                                        const d = raw ? new Date(raw) : new Date(0);
+                                        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                                        const label = d.toLocaleDateString("tr-TR", { month: "long", year: "numeric" }).toUpperCase();
+                                        if (!seen.has(key)) {
+                                            seen.set(key, []);
+                                            groups.push({ key, label, items: seen.get(key)! });
+                                        }
+                                        seen.get(key)!.push(exp);
+                                    }
+                                    return groups.map(({ key, label, items }) => {
+                                        const groupTotal = items.reduce((s, e) => s + parseFloat(e.amount), 0);
+                                        return (
+                                            <div key={key}>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                        <span
+                                                            className="text-[11px] font-semibold tracking-widest"
+                                                            style={{
+                                                                fontFamily: "var(--font-geist-mono, monospace)",
+                                                                color: "var(--text-muted)",
+                                                                letterSpacing: "0.1em",
+                                                            }}
+                                                        >
+                                                            {label}
+                                                        </span>
+                                                        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+                                                    </div>
+                                                    <span
+                                                        className="text-[11px] ml-3 shrink-0"
+                                                        style={{
+                                                            fontFamily: "var(--font-geist-mono, monospace)",
+                                                            color: "var(--text-muted)",
+                                                        }}
+                                                    >
+                                                        {items.length} harcama · {formatMoney(groupTotal, currencySymbol)}
+                                                    </span>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {items.map((exp) => (
+                                                        <SplitExpenseItem key={exp.id} expense={exp} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
                             </div>
                         )}
                     </>
