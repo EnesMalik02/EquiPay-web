@@ -278,29 +278,103 @@ export const SettlementsPage = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {activeTab === "all" && allItemsSorted.map((item) =>
-                            item.kind === "expense"
-                                ? <SplitExpenseItem key={item.data.id} expense={item.data} />
-                                : <SettlementItem
-                                    key={item.data.id}
-                                    s={item.data}
-                                    currentUserId={currentUserId}
-                                    onAction={handleSettlementAction}
-                                    actioningId={actioningId}
-                                />
-                        )}
+                    (() => {
+                        const getMonthKey = (dateStr: string | null | undefined) => {
+                            const d = dateStr ? new Date(dateStr) : new Date(0);
+                            return {
+                                key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+                                label: d.toLocaleDateString("tr-TR", { month: "long", year: "numeric" }).toUpperCase(),
+                            };
+                        };
 
-                        {activeTab === "pending" &&
-                            unpaidExpenses.map((exp) => (
-                                <SplitExpenseItem key={exp.id} expense={exp}  />
-                            ))}
+                        if (activeTab === "all") {
+                            const groups: { key: string; label: string; items: AllItem[] }[] = [];
+                            const seen = new Map<string, AllItem[]>();
+                            for (const item of allItemsSorted) {
+                                const dateStr = item.kind === "expense"
+                                    ? (item.data.expense_date ?? item.data.created_at)
+                                    : item.data.created_at;
+                                const { key, label } = getMonthKey(dateStr);
+                                if (!seen.has(key)) {
+                                    seen.set(key, []);
+                                    groups.push({ key, label, items: seen.get(key)! });
+                                }
+                                seen.get(key)!.push(item);
+                            }
+                            return (
+                                <div className="space-y-6">
+                                    {groups.map(({ key, label, items }) => (
+                                        <div key={key}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span
+                                                    className="text-[11px] font-semibold shrink-0"
+                                                    style={{
+                                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                                        color: "var(--text-muted)",
+                                                        letterSpacing: "0.1em",
+                                                    }}
+                                                >
+                                                    {label}
+                                                </span>
+                                                <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+                                            </div>
+                                            <div className="space-y-3">
+                                                {items.map((item) =>
+                                                    item.kind === "expense"
+                                                        ? <SplitExpenseItem key={item.data.id} expense={item.data} />
+                                                        : <SettlementItem
+                                                            key={item.data.id}
+                                                            s={item.data}
+                                                            currentUserId={currentUserId}
+                                                            onAction={handleSettlementAction}
+                                                            actioningId={actioningId}
+                                                        />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        }
 
-                        {activeTab === "paid" &&
-                            paidExpenses.map((exp) => (
-                                <SplitExpenseItem key={exp.id} expense={exp}  />
-                            ))}
-                    </div>
+                        const expenseList = activeTab === "pending" ? unpaidExpenses : paidExpenses;
+                        const groups: { key: string; label: string; items: typeof expenseList }[] = [];
+                        const seen = new Map<string, typeof expenseList>();
+                        for (const exp of expenseList) {
+                            const { key, label } = getMonthKey(exp.expense_date ?? exp.created_at);
+                            if (!seen.has(key)) {
+                                seen.set(key, []);
+                                groups.push({ key, label, items: seen.get(key)! });
+                            }
+                            seen.get(key)!.push(exp);
+                        }
+                        return (
+                            <div className="space-y-6">
+                                {groups.map(({ key, label, items }) => (
+                                    <div key={key}>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span
+                                                className="text-[11px] font-semibold shrink-0"
+                                                style={{
+                                                    fontFamily: "var(--font-geist-mono, monospace)",
+                                                    color: "var(--text-muted)",
+                                                    letterSpacing: "0.1em",
+                                                }}
+                                            >
+                                                {label}
+                                            </span>
+                                            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+                                        </div>
+                                        <div className="space-y-3">
+                                            {items.map((exp) => (
+                                                <SplitExpenseItem key={exp.id} expense={exp} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()
                 )}
             </main>
             <BottomNav />
