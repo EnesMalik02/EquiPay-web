@@ -12,6 +12,7 @@ import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { ExpenseFullDetailResponse } from "@/entities/expense/model/types";
 import { useUser } from "@/shared/store/UserContext";
 import { getCurrencySymbol } from "@/shared/lib/currency";
+import { SPLIT_TYPE_LABELS } from "@/shared/config";
 
 interface ExpenseDetailPageProps {
     groupId: string;
@@ -76,11 +77,6 @@ function ActivityIcon({ type }: { type: string }) {
     );
 }
 
-const splitTypeLabel: Record<string, string> = {
-    equal: "Eşit paylaşım",
-    exact: "Tutara göre",
-    percentage: "Yüzde",
-};
 
 export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps) => {
     const router = useRouter();
@@ -602,7 +598,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                                     className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
                                                     style={{ background: "var(--primary)", color: "#fff" }}
                                                 >
-                                                    {splitTypeLabel[expense.split_type] ?? expense.split_type}
+                                                    {SPLIT_TYPE_LABELS[expense.split_type] ?? expense.split_type}
                                                 </span>
                                                 <span
                                                     className="text-[11px] font-medium px-2.5 py-1 rounded-full"
@@ -1006,7 +1002,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     {
                                         icon: <Users className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
                                         label: "Paylaşım",
-                                        value: `${splitTypeLabel[expense.split_type] ?? expense.split_type} · ${expense.splits.length} kişi`,
+                                        value: `${SPLIT_TYPE_LABELS[expense.split_type] ?? expense.split_type} · ${expense.splits.length} kişi`,
                                     },
                                     {
                                         icon: <Clock3 className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,

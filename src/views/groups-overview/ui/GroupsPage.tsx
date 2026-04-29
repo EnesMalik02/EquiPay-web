@@ -7,37 +7,10 @@ import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
 import { CreateGroupModal } from "@/features/create-group";
-
-const GROUP_TINTS = [
-    { bg: "#1F8A4C", ink: "#FFFFFF" },
-    { bg: "#E0A32A", ink: "#FFFFFF" },
-    { bg: "#2E7BC9", ink: "#FFFFFF" },
-    { bg: "#D7456B", ink: "#FFFFFF" },
-    { bg: "#7C5AD9", ink: "#FFFFFF" },
-    { bg: "#D46A3A", ink: "#FFFFFF" },
-];
-
-function getTint(name: string) {
-    let hash = 0;
-    for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) & 0xffff;
-    return GROUP_TINTS[hash % GROUP_TINTS.length];
-}
-
-function formatTimeAgo(dateStr: string): string {
-    const date = new Date(dateStr);
-    const diffDays = Math.floor(
-        (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diffDays === 0) return "bugün";
-    if (diffDays === 1) return "dün";
-    if (diffDays < 7) return `${diffDays} gün önce`;
-    const w = Math.floor(diffDays / 7);
-    if (w < 5) return `${w} hafta önce`;
-    return `${Math.floor(diffDays / 30)} ay önce`;
-}
+import { groupTint, relativeTime } from "@/shared/lib/ui";
 
 function GroupRow({ group, onClick }: { group: GroupWithStatsResponse; onClick: () => void }) {
-    const tint = getTint(group.name);
+    const tint = groupTint(group.name);
     return (
         <div
             onClick={onClick}
@@ -77,7 +50,7 @@ function GroupRow({ group, onClick }: { group: GroupWithStatsResponse; onClick: 
                                     color: "var(--text-muted)",
                                 }}
                             >
-                                {formatTimeAgo(group.updated_at ?? group.created_at)}
+                                {relativeTime(group.updated_at ?? group.created_at)}
                             </span>
                         </>
                     )}

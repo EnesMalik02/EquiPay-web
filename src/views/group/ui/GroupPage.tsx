@@ -21,6 +21,7 @@ import { AddMemberModal } from "@/features/add-member/ui/AddMemberModal";
 import { GroupSettingsModal } from "@/features/manage-group/ui/GroupSettingsModal";
 import { useUser } from "@/shared/store/UserContext";
 import { getCurrencySymbol } from "@/shared/lib/currency";
+import { formatMoney } from "@/shared/lib/ui";
 
 type Tab = "expenses" | "members";
 
@@ -76,10 +77,6 @@ function toSplitExpense(
     };
 }
 
-function formatMoney(val: number | string, symbol: string): string {
-    const n = typeof val === "string" ? parseFloat(val) : val;
-    return `${symbol}${Math.abs(n).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
-}
 
 interface GroupPageProps {
     groupId: string;

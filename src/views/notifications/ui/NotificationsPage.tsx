@@ -6,21 +6,7 @@ import { notificationApi } from "@/entities/notification/api/notificationApi";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupInvitationData, NotificationResponse } from "@/entities/notification/model/types";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
-
-function formatRelativeTime(dateStr: string): string {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMin = Math.floor(diffMs / 60_000);
-    if (diffMin < 1) return "Az önce";
-    if (diffMin < 60) return `${diffMin} dk önce`;
-    const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr} sa önce`;
-    const diffDay = Math.floor(diffHr / 24);
-    if (diffDay === 1) return "Dün";
-    if (diffDay < 7) return `${diffDay} gün önce`;
-    return date.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
-}
+import { relativeTime } from "@/shared/lib/ui";
 
 function GroupInvitationCard({
     notification,
@@ -62,7 +48,7 @@ function GroupInvitationCard({
                         <div className="flex items-center gap-1" style={{ color: "var(--text-muted)" }}>
                             <Clock className="w-3 h-3" />
                             <span className="text-[11px]" style={{ fontFamily: "var(--font-geist-mono, monospace)" }}>
-                                {formatRelativeTime(notification.created_at)}
+                                {relativeTime(notification.created_at)}
                             </span>
                         </div>
                     </div>
@@ -287,7 +273,7 @@ export const NotificationsPage = () => {
                                                         color: "var(--text-muted)",
                                                     }}
                                                 >
-                                                    {formatRelativeTime(n.created_at)}
+                                                    {relativeTime(n.created_at)}
                                                 </span>
                                             </div>
                                         </div>

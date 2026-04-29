@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    ArrowLeft, AlertCircle, ShoppingBag, UtensilsCrossed,
-    FileText, Navigation, Home, Globe, Plus, Camera,
+    ArrowLeft, AlertCircle, Camera,
 } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
@@ -12,22 +11,8 @@ import { expenseApi } from "@/entities/expense/api/expenseApi";
 import { GroupMemberResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
 import { Skeleton } from "@/shared/ui";
 import { getCurrencySymbol } from "@/shared/lib/currency";
-
-type SplitType = "equal" | "exact" | "percentage";
-
-const CATEGORIES = [
-    { id: "market",    label: "Market",    icon: ShoppingBag },
-    { id: "yemek",     label: "Yemek",     icon: UtensilsCrossed },
-    { id: "fatura",    label: "Fatura",    icon: FileText },
-    { id: "ulasim",    label: "Ulaşım",    icon: Navigation },
-    { id: "konaklama", label: "Konaklama", icon: Home },
-    { id: "eglence",   label: "Eğlence",   icon: Globe },
-    { id: "diğer",     label: "Diğer",     icon: Plus },
-];
-
-const AVATAR_COLORS = [
-    "#1F8A4C", "#D97706", "#DC2626", "#7C3AED", "#2563EB", "#0891B2",
-];
+import { avatarColor } from "@/shared/lib/ui";
+import { type SplitType, CATEGORIES, SPLIT_TYPE_OPTIONS } from "@/shared/config";
 
 interface CreateExpensePageProps {
     groupId: string;
@@ -196,11 +181,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
         );
     }
 
-    const splitTypeLabels: { value: SplitType; label: string }[] = [
-        { value: "equal",      label: "Eşit" },
-        { value: "exact",      label: "Tutara göre" },
-        { value: "percentage", label: "Yüzde" },
-    ];
+
 
     const splitDiff = splitType === "percentage"
         ? parseFloat((100 - splitSum).toFixed(2))
@@ -391,7 +372,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                                 {/* Split tabs */}
                                 <div className="flex rounded-xl p-1 gap-1 mb-5" style={{ background: "var(--surface-muted)" }}>
-                                    {splitTypeLabels.map((opt) => (
+                                    {SPLIT_TYPE_OPTIONS.map((opt) => (
                                         <button
                                             key={opt.value}
                                             type="button"
@@ -413,7 +394,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                 <div className="space-y-3">
                                     {members.map((m, idx) => {
                                         const memberName = m.display_name ?? m.username ?? "—";
-                                        const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+                                        const memberColor = avatarColor(m.user_id, idx);
                                         const initial = memberName.charAt(0).toUpperCase();
                                         const isSelected = selectedMemberIds.has(m.user_id);
                                         const activeCnt = selectedMemberIds.size;
@@ -443,7 +424,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                                 <div key={m.user_id} className="flex items-center gap-3" style={{ opacity: isSelected ? 1 : 0.4 }}>
                                                     <Checkbox />
                                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                                                        style={{ background: avatarColor }}>
+                                                        style={{ background: memberColor }}>
                                                         {initial}
                                                     </div>
                                                     <span className="flex-1 text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
@@ -465,7 +446,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                             <div key={m.user_id} className="flex items-center gap-3" style={{ opacity: isSelected ? 1 : 0.4 }}>
                                                 <Checkbox />
                                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                                                    style={{ background: avatarColor }}>
+                                                    style={{ background: memberColor }}>
                                                     {initial}
                                                 </div>
                                                 <span className="flex-1 text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
@@ -533,7 +514,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                 <div className="space-y-2">
                                     {members.map((m, idx) => {
                                         const memberName = m.display_name ?? m.username ?? "—";
-                                        const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+                                        const memberColor = avatarColor(m.user_id, idx);
                                         const initial = memberName.charAt(0).toUpperCase();
                                         const isSelected = paidById === m.user_id;
                                         return (
@@ -552,7 +533,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                                             >
                                                 <div
                                                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                                                    style={{ background: avatarColor }}
+                                                    style={{ background: memberColor }}
                                                 >
                                                     {initial}
                                                 </div>

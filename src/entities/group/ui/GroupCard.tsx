@@ -3,21 +3,7 @@
 import Image from "next/image";
 import { Users } from "lucide-react";
 import { GroupResponse } from "../model/types";
-
-const COVER_PALETTE: [string, string][] = [
-    ["#d1fae5", "#6ee7b7"],
-    ["#dbeafe", "#93c5fd"],
-    ["#fef3c7", "#fcd34d"],
-    ["#fce7f3", "#f9a8d4"],
-    ["#ede9fe", "#c4b5fd"],
-    ["#fee2e2", "#fca5a5"],
-];
-
-function coverColors(name: string): [string, string] {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return COVER_PALETTE[Math.abs(hash) % COVER_PALETTE.length];
-}
+import { coverColors } from "@/shared/lib/ui";
 
 interface GroupCardProps {
     group: GroupResponse;
