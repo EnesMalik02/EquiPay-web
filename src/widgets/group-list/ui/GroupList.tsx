@@ -11,9 +11,10 @@ interface GroupListProps {
     /** Header (title + new button) ve sona eklenen "Yeni Grup" kartını gizler.
      *  Parent kendi başlığını ve oluşturma butonunu yönetiyorsa false geçin. */
     showHeader?: boolean;
+    limit?: number;
 }
 
-export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => {
+export const GroupList = ({ onNewGroup, showHeader = true, limit = 6 }: GroupListProps) => {
     const router = useRouter();
     const [groups, setGroups] = useState<GroupWithStatsResponse[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,11 +43,11 @@ export const GroupList = ({ onNewGroup, showHeader = true }: GroupListProps) => 
 
     useEffect(() => {
         groupApi
-            .list()
-            .then(setGroups)
+            .list({ limit })
+            .then((page) => setGroups(page.items))
             .catch(() => {})
             .finally(() => setLoading(false));
-    }, []);
+    }, [limit]);
 
     const handleGroupCreated = (group: GroupResponse) => {
         setShowCreateModal(false);

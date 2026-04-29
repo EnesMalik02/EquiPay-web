@@ -1,5 +1,6 @@
 import { apiClient } from "@/shared/api/apiClient";
 import {
+    CursorPage,
     GroupCreate,
     GroupInvitationRespond,
     GroupMemberAdd,
@@ -11,8 +12,8 @@ import {
 } from "../model/types";
 
 export const groupApi = {
-    async list(): Promise<GroupWithStatsResponse[]> {
-        const { data } = await apiClient.get<GroupWithStatsResponse[]>("/groups");
+    async list(params?: { limit?: number; cursor?: string }): Promise<CursorPage<GroupWithStatsResponse>> {
+        const { data } = await apiClient.get<CursorPage<GroupWithStatsResponse>>("/groups", { params });
         return data;
     },
 

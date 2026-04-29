@@ -20,8 +20,8 @@ export const SelectGroupModal = ({ onClose }: SelectGroupModalProps) => {
     useEffect(() => {
         setVisible(true);
         groupApi
-            .list()
-            .then(setGroups)
+            .list({ limit: 30 })
+            .then((page) => setGroups(page.items))
             .catch(() => {})
             .finally(() => setLoading(false));
     }, []);

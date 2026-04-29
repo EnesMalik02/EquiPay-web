@@ -160,7 +160,7 @@ export const HomePage = () => {
                             Tümü →
                         </button>
                     </div>
-                    <GroupList onNewGroup={() => setShowCreate(true)} showHeader={false} />
+                    <GroupList onNewGroup={() => setShowCreate(true)} showHeader={false} limit={6} />
                 </div>
 
                 {/* ── Recent Activity ──────────────────────────── */}

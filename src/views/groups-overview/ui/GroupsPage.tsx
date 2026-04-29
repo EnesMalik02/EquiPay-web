@@ -80,16 +80,37 @@ export const GroupsPage = () => {
     const router = useRouter();
     const [groups, setGroups] = useState<GroupWithStatsResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [nextCursor, setNextCursor] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(false);
     const [query, setQuery] = useState("");
     const [showCreate, setShowCreate] = useState(false);
 
     useEffect(() => {
         groupApi
-            .list()
-            .then(setGroups)
+            .list({ limit: 30 })
+            .then((page) => {
+                setGroups(page.items);
+                setNextCursor(page.next_cursor);
+                setHasMore(page.has_more);
+            })
             .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
+
+    const loadMore = () => {
+        if (!nextCursor || loadingMore) return;
+        setLoadingMore(true);
+        groupApi
+            .list({ limit: 30, cursor: nextCursor })
+            .then((page) => {
+                setGroups((prev) => [...prev, ...page.items]);
+                setNextCursor(page.next_cursor);
+                setHasMore(page.has_more);
+            })
+            .catch(() => {})
+            .finally(() => setLoadingMore(false));
+    };
 
     const handleCreated = (group: GroupResponse) => {
         setShowCreate(false);
@@ -288,32 +309,49 @@ export const GroupsPage = () => {
                         </div>
                     ) : (
                         /* Group list */
-                        <div
-                            className="rounded-[var(--radius-lg)] overflow-hidden"
-                            style={{
-                                background: "var(--surface)",
-                                border: "1px solid var(--border)",
-                            }}
-                        >
-                            {filtered.map((group, i) => (
-                                <div
-                                    key={group.id}
+                        <>
+                            <div
+                                className="rounded-[var(--radius-lg)] overflow-hidden"
+                                style={{
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border)",
+                                }}
+                            >
+                                {filtered.map((group, i) => (
+                                    <div
+                                        key={group.id}
+                                        style={{
+                                            borderBottom:
+                                                i < filtered.length - 1
+                                                    ? "1px solid var(--border-light)"
+                                                    : "none",
+                                        }}
+                                    >
+                                        <GroupRow
+                                            group={group}
+                                            onClick={() =>
+                                                router.push(`/groups/${group.id}`)
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                            {hasMore && !query && (
+                                <button
+                                    onClick={loadMore}
+                                    disabled={loadingMore}
+                                    className="w-full mt-3 py-3 rounded-[var(--radius-lg)] text-[13px] font-medium transition-opacity active:opacity-70 cursor-pointer"
                                     style={{
-                                        borderBottom:
-                                            i < filtered.length - 1
-                                                ? "1px solid var(--border-light)"
-                                                : "none",
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--border)",
+                                        color: "var(--text-secondary)",
+                                        opacity: loadingMore ? 0.5 : 1,
                                     }}
                                 >
-                                    <GroupRow
-                                        group={group}
-                                        onClick={() =>
-                                            router.push(`/groups/${group.id}`)
-                                        }
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                                    {loadingMore ? "Yükleniyor…" : "Daha Fazla"}
+                                </button>
+                            )}
+                        </>
                     )}
 
                 </main>
