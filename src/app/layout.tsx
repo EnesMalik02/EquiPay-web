@@ -4,6 +4,9 @@ import "./globals.css";
 import { UserProvider } from "@/shared/store/UserContext";
 import { getUser } from "@/shared/lib/getUser";
 import { Providers } from "./providers";
+import { getLocale, getMessages } from 'next-intl/server';
+import { LocaleProvider } from '@/i18n/LocaleProvider';
+import { type Locale } from '@/i18n/config';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,15 +29,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getUser();
+  const locale = await getLocale() as Locale;
+  const messages = await getMessages();
 
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          <UserProvider user={user}>{children}</UserProvider>
-        </Providers>
+        <LocaleProvider initialLocale={locale} initialMessages={messages as Record<string, unknown>}>
+          <Providers>
+            <UserProvider user={user}>{children}</UserProvider>
+          </Providers>
+        </LocaleProvider>
       </body>
     </html>
   );

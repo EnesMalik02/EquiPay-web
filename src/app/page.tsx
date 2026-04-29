@@ -5,36 +5,10 @@ import Image from "next/image";
 import { Receipt, Users, Zap, ArrowRight, TrendingUp, Wallet, Split } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, animate } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { LocaleSwitcher } from "@/i18n/LocaleSwitcher";
 
-// ── Mock data ────────────────────────────────────────────
-const monthlyData = [
-  { month: "Oca", amount: 450 },
-  { month: "Şub", amount: 680 },
-  { month: "Mar", amount: 320 },
-  { month: "Nis", amount: 890 },
-  { month: "May", amount: 560 },
-  { month: "Haz", amount: 740 },
-];
-
-const groups = [
-  { name: "Ev Arkadaşları", total: 1240, members: 4, you: 310, color: "var(--primary)" },
-  { name: "Tatil Grubu",    total: 3800, members: 6, you: 633, color: "#6c63ff" },
-  { name: "Kampüs",         total: 580,  members: 3, you: 193, color: "#f59e0b" },
-];
-
-const stats = [
-  { label: "Toplam Harcama",     value: 5620, suffix: "₺", icon: Wallet },
-  { label: "Aktif Grup",         value: 3,    suffix: "",  icon: Users  },
-  { label: "Kişi Başı Tasarruf", value: 420,  suffix: "₺", icon: Split  },
-];
-
-const features = [
-  { icon: Users,   label: "Grup Harcamaları", desc: "Arkadaş grupları oluştur, harcamaları kolayca böl." },
-  { icon: Receipt, label: "Anlık Takip",       desc: "Kimin ne kadar borçlu olduğunu anında gör." },
-  { icon: Zap,     label: "Hızlı Hesaplama",   desc: "Karmaşık bölüşmeler saniyeler içinde çözülür." },
-];
-
-const maxAmount = Math.max(...monthlyData.map((d) => d.amount));
+const maxAmount = 890;
 
 // ── Animated counter ─────────────────────────────────────
 function AnimatedNumber({ value }: { value: number }) {
@@ -57,6 +31,7 @@ function AnimatedNumber({ value }: { value: number }) {
 
 // ── Page ─────────────────────────────────────────────────
 export default function LandingPage() {
+  const t = useTranslations("Landing");
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -64,6 +39,35 @@ export default function LandingPage() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const months = t.raw("months") as string[];
+
+  const monthlyData = [
+    { month: months[0], amount: 450 },
+    { month: months[1], amount: 680 },
+    { month: months[2], amount: 320 },
+    { month: months[3], amount: 890 },
+    { month: months[4], amount: 560 },
+    { month: months[5], amount: 740 },
+  ];
+
+  const groups = [
+    { name: t("group1Name"), total: 1240, members: 4, you: 310, color: "var(--primary)" },
+    { name: t("group2Name"), total: 3800, members: 6, you: 633, color: "#6c63ff" },
+    { name: t("group3Name"), total: 580,  members: 3, you: 193, color: "#f59e0b" },
+  ];
+
+  const stats = [
+    { label: t("statTotalExpense"), value: 5620, suffix: "₺", icon: Wallet },
+    { label: t("statActiveGroup"),  value: 3,    suffix: "",  icon: Users  },
+    { label: t("statSaving"),       value: 420,  suffix: "₺", icon: Split  },
+  ];
+
+  const features = [
+    { icon: Users,   label: t("feat1Label"), desc: t("feat1Desc") },
+    { icon: Receipt, label: t("feat2Label"), desc: t("feat2Desc") },
+    { icon: Zap,     label: t("feat3Label"), desc: t("feat3Desc") },
+  ];
 
   return (
     <div
@@ -91,17 +95,20 @@ export default function LandingPage() {
               EquiPay
             </span>
           </div>
-          <Link
-            href="/auth/register"
-            className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer"
-            style={{
-              background: "var(--primary)",
-              color: "#fff",
-              boxShadow: "0 1px 4px rgba(31,138,76,0.25)",
-            }}
-          >
-            Başla
-          </Link>
+          <div className="flex items-center gap-3">
+            <LocaleSwitcher />
+            <Link
+              href="/auth/register"
+              className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer"
+              style={{
+                background: "var(--primary)",
+                color: "#fff",
+                boxShadow: "0 1px 4px rgba(31,138,76,0.25)",
+              }}
+            >
+              {t("navbarCta")}
+            </Link>
+          </div>
         </div>
       </motion.nav>
 
@@ -142,19 +149,24 @@ export default function LandingPage() {
           </div>
         </div>
 
+        {/* Language switcher — top right of hero */}
+        <div className="absolute top-6 right-6">
+          <LocaleSwitcher />
+        </div>
+
         {/* Headline */}
         <div className="text-center mb-6">
           <h1
             className="text-[42px] sm:text-[58px] font-black leading-[1.08] tracking-tight mb-3 animate-slide-up"
             style={{ animationDelay: "160ms", color: "var(--foreground)" }}
           >
-            Harcamaları Kolayca
+            {t("heroLine1")}
           </h1>
           <h1
             className="text-[42px] sm:text-[58px] font-black leading-[1.08] tracking-tight animate-slide-up"
             style={{ animationDelay: "200ms", color: "var(--primary)" }}
           >
-            Böl & Takip Et
+            {t("heroLine2")}
           </h1>
           <div className="flex justify-center mt-4 animate-slide-up" style={{ animationDelay: "240ms" }}>
             <div className="flex items-center gap-1.5">
@@ -170,7 +182,7 @@ export default function LandingPage() {
           className="text-base sm:text-lg text-center max-w-md leading-relaxed mb-9 animate-slide-up"
           style={{ animationDelay: "280ms", color: "var(--text-secondary)" }}
         >
-          Arkadaşlarınla hesaplaşmanın en akıllı yolu. Grup oluştur, harcama ekle, bakiyeni gör.
+          {t("subtitle")}
         </p>
 
         {/* CTA buttons */}
@@ -184,7 +196,7 @@ export default function LandingPage() {
               boxShadow: "0 2px 12px rgba(31,138,76,0.30), 0 1px 3px rgba(31,138,76,0.20)",
             }}
           >
-            Hesap Oluştur
+            {t("ctaRegister")}
             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
@@ -197,7 +209,7 @@ export default function LandingPage() {
               boxShadow: "0 1px 3px rgba(18,21,18,0.06)",
             }}
           >
-            Giriş Yap
+            {t("ctaLogin")}
           </Link>
         </div>
       </main>
@@ -240,10 +252,10 @@ export default function LandingPage() {
           className="text-center mb-8"
         >
           <h2 className="text-xl sm:text-2xl font-black mb-1.5" style={{ color: "var(--foreground)" }}>
-            Harcamalarını Görsel Takip Et
+            {t("sectionTitle")}
           </h2>
           <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-            Aylık grafikler ve grup bakiyeleri tek ekranda
+            {t("sectionSub")}
           </p>
         </motion.div>
 
@@ -260,8 +272,8 @@ export default function LandingPage() {
           >
             <div className="flex items-center justify-between mb-5">
               <div>
-                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>Aylık Harcamalar</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Son 6 ay · Nis en yüksek</p>
+                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{t("chartTitle")}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{t("chartSubtitle")}</p>
               </div>
               <motion.div
                 initial={{ scale: 0 }}
@@ -314,7 +326,7 @@ export default function LandingPage() {
             </div>
 
             <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>Bu ay toplam</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t("chartThisMonth")}</p>
               <motion.p
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -350,14 +362,16 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{name}</p>
-                      <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{members} kişi</p>
+                      <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                        {t("groupPeople", { count: members })}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-black" style={{ color: "var(--foreground)" }}>
                       {total.toLocaleString("tr-TR")} ₺
                     </p>
-                    <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>toplam</p>
+                    <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{t("groupTotal")}</p>
                   </div>
                 </div>
 
@@ -372,7 +386,7 @@ export default function LandingPage() {
                   />
                 </div>
                 <p className="text-[11px] mt-1.5" style={{ color: "var(--text-muted)" }}>
-                  Senin payın: <span className="font-semibold" style={{ color }}>{you} ₺</span>
+                  {t("groupYourShare")} <span className="font-semibold" style={{ color }}>{you} ₺</span>
                 </p>
               </motion.div>
             ))}
@@ -409,7 +423,7 @@ export default function LandingPage() {
       {/* ── Footer ────────────────────────────────────────── */}
       <footer className="relative z-10 text-center pt-8 pb-10">
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-          © 2025 EquiPay · Harcamalarını kolayca böl ve takip et
+          {t("footer")}
         </p>
       </footer>
     </div>

@@ -1,5 +1,6 @@
 import { RegisterForm } from "@/features/auth/ui/RegisterForm";
 import Link from "next/link";
+import { LocaleSwitcher } from "@/i18n/LocaleSwitcher";
 
 export const RegisterPage = () => {
     return (
@@ -24,6 +25,11 @@ export const RegisterPage = () => {
                 <Link href="/" className="text-xl font-bold tracking-tight cursor-pointer" style={{ color: "var(--foreground)" }}>
                     EquiPay
                 </Link>
+            </div>
+
+            {/* Locale switcher */}
+            <div className="absolute top-8 right-8">
+                <LocaleSwitcher />
             </div>
 
             <RegisterForm />

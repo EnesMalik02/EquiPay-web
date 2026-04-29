@@ -5,20 +5,36 @@ import { useUser } from "@/shared/store/UserContext";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { logoutAction } from "@/features/auth/actions/authActions";
 import { EditProfileModal } from "@/features/edit-profile/ui/EditProfileModal";
+import { useLocaleSwitch } from "@/i18n/LocaleProvider";
+import { locales, type Locale } from "@/i18n/config";
 import {
-    User, Bell,
+    User, Bell, Globe,
     ChevronRight, LogOut,
 } from "lucide-react";
 
+const localeLabels: Record<Locale, string> = {
+    tr: "Türkçe",
+    en: "English",
+};
+
 export const ProfilePage = () => {
     const user = useUser();
+    const { setLocale } = useLocaleSwitch();
     const [editOpen, setEditOpen] = useState(false);
+    const [currentLocale, setCurrentLocale] = useState<Locale>(
+        () => (document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1] as Locale) ?? "tr"
+    );
 
     const displayName = user?.display_name ?? user?.username ?? "—";
 
     const initials = displayName !== "—"
         ? displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
         : "?";
+
+    const handleLocaleChange = (locale: Locale) => {
+        setCurrentLocale(locale);
+        setLocale(locale);
+    };
 
     const handleLogout = async () => {
         await logoutAction();
@@ -32,6 +48,7 @@ export const ProfilePage = () => {
     }[] = [
         { icon: User, label: "Kişisel bilgiler", sub: "Ad, telefon, e-posta", onClick: () => setEditOpen(true) },
         { icon: Bell, label: "Bildirimler", sub: "E-posta ve push" },
+        { icon: Globe, label: "Dil / Language", sub: localeLabels[currentLocale] },
     ];
 
     const cardStyle = {
@@ -120,16 +137,21 @@ export const ProfilePage = () => {
                             </p>
                             {settingsItems.map((item, idx) => {
                                 const Icon = item.icon;
+                                const isLocale = item.icon === Globe;
                                 return (
-                                    <button
+                                    <div
                                         key={item.label}
-                                        onClick={item.onClick}
-                                        className="w-full flex items-center gap-4 px-5 py-3.5 transition-colors text-left"
+                                        className="w-full flex items-center gap-4 px-5 py-3.5 transition-colors"
                                         style={{
                                             borderTop: idx > 0 ? "1px solid var(--border-light)" : "none",
                                         }}
-                                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-alt)")}
-                                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                        {...(!isLocale && item.onClick && {
+                                            onClick: item.onClick,
+                                            role: "button",
+                                            tabIndex: 0,
+                                            onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = "var(--surface-alt)"),
+                                            onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = "transparent"),
+                                        })}
                                     >
                                         <div
                                             className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -141,14 +163,32 @@ export const ProfilePage = () => {
                                             <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                                                 {item.label}
                                             </p>
-                                            {item.sub && (
+                                            {item.sub && !isLocale && (
                                                 <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                                                     {item.sub}
                                                 </p>
                                             )}
                                         </div>
-                                        <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
-                                    </button>
+                                        {isLocale ? (
+                                            <div className="flex gap-1.5 shrink-0">
+                                                {locales.map((loc) => (
+                                                    <button
+                                                        key={loc}
+                                                        onClick={() => handleLocaleChange(loc)}
+                                                        className="px-3 py-1 rounded-lg text-xs font-bold transition-all"
+                                                        style={{
+                                                            background: currentLocale === loc ? "var(--primary)" : "var(--surface-muted)",
+                                                            color: currentLocale === loc ? "#fff" : "var(--text-secondary)",
+                                                        }}
+                                                    >
+                                                        {loc.toUpperCase()}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+                                        )}
+                                    </div>
                                 );
                             })}
                         </div>

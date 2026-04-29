@@ -1,5 +1,6 @@
 import { LoginForm } from "@/features/auth/ui/LoginForm";
 import Link from "next/link";
+import { LocaleSwitcher } from "@/i18n/LocaleSwitcher";
 
 export const LoginPage = () => {
     return (
@@ -24,6 +25,11 @@ export const LoginPage = () => {
                 <Link href="/" className="text-xl font-bold tracking-tight cursor-pointer" style={{ color: "var(--foreground)" }}>
                     EquiPay
                 </Link>
+            </div>
+
+            {/* Locale switcher */}
+            <div className="absolute top-8 right-8">
+                <LocaleSwitcher />
             </div>
 
             <LoginForm />
