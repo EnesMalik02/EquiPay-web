@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Receipt, Users, Zap, ArrowRight, TrendingUp, Wallet, Split } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, animate } from "framer-motion";
@@ -54,16 +55,6 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span ref={ref}>{display.toLocaleString("tr-TR")}</span>;
 }
 
-// ── Logo SVG ──────────────────────────────────────────────
-function LogoIcon({ size = 18, stroke = "white" }: { size?: number; stroke?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="18" height="18" x="3" y="3" rx="4" />
-      <path d="M8 12h8" /><path d="M12 8v8" />
-    </svg>
-  );
-}
-
 // ── Page ─────────────────────────────────────────────────
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -95,14 +86,9 @@ export default function LandingPage() {
       >
         <div className="flex items-center gap-2 max-w-5xl mx-auto w-full justify-between">
           <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: "var(--primary)" }}
-            >
-              <LogoIcon size={14} />
-            </div>
+            <Image src="/logo.png" alt="EquiPay" width={28} height={28} style={{ borderRadius: 8 }} />
             <span className="text-base font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
-              Paylaş
+              EquiPay
             </span>
           </div>
           <Link
@@ -145,14 +131,14 @@ export default function LandingPage() {
         {/* Floating logo */}
         <div className="animate-scale-in animate-float mb-7" style={{ animationDelay: "80ms" }}>
           <div
-            className="w-20 h-20 rounded-3xl flex items-center justify-center"
+            className="w-24 h-24 rounded-3xl flex items-center justify-center p-2"
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border-light)",
-              boxShadow: "0 8px 32px rgba(0,209,134,0.18), var(--shadow-md)",
+              boxShadow: "0 8px 32px rgba(0,209,134,0.22), var(--shadow-md)",
             }}
           >
-            <LogoIcon size={38} stroke="var(--primary)" />
+            <Image src="/logo.png" alt="EquiPay" width={72} height={72} style={{ borderRadius: 12 }} />
           </div>
         </div>
 
@@ -423,7 +409,7 @@ export default function LandingPage() {
       {/* ── Footer ────────────────────────────────────────── */}
       <footer className="relative z-10 text-center pt-8 pb-10">
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-          © 2025 Paylaş · Kampüs harcamalarını yönetmenin en kolay yolu
+          © 2025 EquiPay · Harcamalarını kolayca böl ve takip et
         </p>
       </footer>
     </div>

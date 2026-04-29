@@ -2,14 +2,14 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
     LayoutDashboard,
     Users,
     CreditCard,
     User,
     Settings,
-    ChevronLeft,
-    ChevronRight,
+    PanelLeft,
 } from "lucide-react";
 import { useUser } from "@/shared/store/UserContext";
 import { NotificationBell } from "@/widgets/notification-bell/ui/NotificationBell";
@@ -36,6 +36,7 @@ export const Navbar = () => {
 
     const [open, setOpen] = useState(true);
     const [mounted, setMounted] = useState(false);
+    const [brandHovered, setBrandHovered] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -62,100 +63,132 @@ export const Navbar = () => {
         <aside
             className="hidden md:flex flex-col shrink-0 sticky top-0 h-screen"
             style={{
-                width: expanded ? 232 : 60,
+                width: expanded ? 240 : 64,
                 background: "var(--surface)",
                 borderRight: "1px solid var(--border)",
-                transition: "width 200ms cubic-bezier(0.4,0,0.2,1)",
+                transition: "width 220ms cubic-bezier(0.4,0,0.2,1)",
                 overflow: "hidden",
+                boxShadow: "1px 0 0 var(--border-light)",
             }}
         >
             {/* ── Brand row ───────────────────────────── */}
             <div
-                className="flex items-center shrink-0"
+                className="flex items-center shrink-0 relative"
                 style={{
-                    height: 56,
-                    padding: expanded ? "0 12px 0 16px" : "0 12px",
+                    height: 60,
+                    padding: expanded ? "0 12px 0 14px" : "0 12px",
                     justifyContent: expanded ? "space-between" : "center",
                     borderBottom: "1px solid var(--border)",
                 }}
             >
+                {/* Expanded: logo + wordmark */}
                 <div
                     className="flex items-center gap-2.5 overflow-hidden"
-                    style={{ opacity: expanded ? 1 : 0, transition: "opacity 150ms", minWidth: 0 }}
+                    style={{ opacity: expanded ? 1 : 0, transition: "opacity 150ms", minWidth: 0, pointerEvents: expanded ? "auto" : "none" }}
                 >
-                    <LogoMark />
+                    <Image
+                        src="/logo.png"
+                        alt="EquiPay"
+                        width={30}
+                        height={30}
+                        style={{ borderRadius: 8, flexShrink: 0 }}
+                    />
                     <span
-                        className="text-[15px] font-semibold whitespace-nowrap"
-                        style={{ color: "var(--foreground)", letterSpacing: "-0.3px" }}
+                        className="text-[15px] font-bold whitespace-nowrap"
+                        style={{ color: "var(--foreground)", letterSpacing: "-0.4px" }}
                     >
                         EquiPay
                     </span>
                 </div>
 
+                {/* Collapsed: logo (fade out on hover) + expand button (fade in on hover) */}
                 {!expanded && (
-                    <div style={{ position: "absolute" }}>
-                        <LogoMark />
+                    <div
+                        className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                        onMouseEnter={() => setBrandHovered(true)}
+                        onMouseLeave={() => setBrandHovered(false)}
+                        onClick={toggle}
+                        aria-label="Genişlet"
+                        role="button"
+                    >
+                        {/* Logo */}
+                        <div style={{
+                            position: "absolute",
+                            opacity: brandHovered ? 0 : 1,
+                            transition: "opacity 180ms ease",
+                        }}>
+                            <Image
+                                src="/logo.png"
+                                alt="EquiPay"
+                                width={30}
+                                height={30}
+                                style={{ borderRadius: 8, display: "block" }}
+                            />
+                        </div>
+                        {/* Expand icon */}
+                        <div
+                            className="w-8 h-8 rounded-[10px] flex items-center justify-center"
+                            style={{
+                                opacity: brandHovered ? 1 : 0,
+                                transition: "opacity 180ms ease",
+                                background: "var(--background)",
+                                border: "1px solid var(--border)",
+                                color: "var(--text-secondary)",
+                                boxShadow: "var(--shadow-sm)",
+                            }}
+                        >
+                            <PanelLeft className="w-[15px] h-[15px]" />
+                        </div>
                     </div>
                 )}
 
+                {/* Expanded collapse button */}
                 <button
                     onClick={toggle}
-                    className="w-7 h-7 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                    className="w-8 h-8 rounded-[10px] flex items-center justify-center cursor-pointer shrink-0"
                     style={{
-                        color: "var(--text-muted)",
-                        marginLeft: expanded ? 0 : "auto",
-                        marginRight: expanded ? 0 : "auto",
-                        position: expanded ? "relative" : "absolute",
-                        right: expanded ? "auto" : 16,
+                        color: "var(--text-secondary)",
                         opacity: expanded ? 1 : 0,
                         pointerEvents: expanded ? "auto" : "none",
-                        transition: "opacity 150ms, background 150ms",
+                        background: "var(--background)",
+                        border: "1px solid var(--border)",
+                        boxShadow: "var(--shadow-sm)",
+                        transition: "opacity 150ms, background 150ms, border-color 150ms",
                     }}
-                    aria-label={expanded ? "Kapat" : "Aç"}
-                    onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                    aria-label="Kapat"
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = "var(--surface-muted)";
+                        e.currentTarget.style.borderColor = "var(--border)";
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = "var(--background)";
+                        e.currentTarget.style.borderColor = "var(--border)";
+                    }}
                 >
-                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <PanelLeft className="w-[15px] h-[15px]" />
                 </button>
-
-                {/* Collapsed toggle */}
-                {!expanded && (
-                    <button
-                        onClick={toggle}
-                        className="w-7 h-7 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer transition-colors shrink-0 absolute"
-                        style={{ right: 10, color: "var(--text-muted)" }}
-                        aria-label="Aç"
-                        onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                    >
-                        <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                )}
             </div>
 
             {/* ── Nav section ─────────────────────────── */}
             <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar" style={{ padding: "8px 0" }}>
 
                 {/* Section label */}
-                <div style={{ height: 28, display: "flex", alignItems: "center", padding: expanded ? "0 16px" : "0 12px" }}>
-                    <span
-                        className="text-[10px] uppercase font-semibold tracking-widest whitespace-nowrap"
-                        style={{
-                            color: "var(--text-placeholder)",
-                            opacity: expanded ? 1 : 0,
-                            transition: "opacity 150ms",
-                            fontFamily: "var(--font-geist-mono, monospace)",
-                        }}
-                    >
-                        Menü
-                    </span>
-                    {!expanded && (
-                        <div style={{ width: 28, height: 1, background: "var(--border)", margin: "0 auto" }} />
-                    )}
-                </div>
+                {expanded && (
+                    <div style={{ height: 28, display: "flex", alignItems: "center", padding: "0 16px" }}>
+                        <span
+                            className="text-[10px] uppercase font-semibold tracking-widest whitespace-nowrap"
+                            style={{
+                                color: "var(--text-placeholder)",
+                                fontFamily: "var(--font-geist-mono, monospace)",
+                            }}
+                        >
+                            Menü
+                        </span>
+                    </div>
+                )}
 
                 {/* Nav items */}
-                <nav className="flex flex-col" style={{ gap: 2, padding: "0 8px" }}>
+                <nav className="flex flex-col" style={{ gap: 2, padding: expanded ? "0 8px" : "0 6px" }}>
                     {NAV_ITEMS.map((item) => {
                         const active = isActive(item.href);
                         const Icon = item.icon;
@@ -246,12 +279,12 @@ function NavItem({ active, expanded, label, icon, onClick }: NavItemProps) {
         <button
             onClick={onClick}
             title={!expanded ? label : undefined}
-            className="flex items-center w-full cursor-pointer rounded-[var(--radius-sm)] relative transition-colors group"
+            className="flex items-center w-full cursor-pointer rounded-[var(--radius-sm)] relative transition-colors"
             style={{
                 height: 36,
                 gap: 10,
-                padding: expanded ? "0 10px" : "0",
-                justifyContent: expanded ? "flex-start" : "center",
+                padding: "0 10px",
+                justifyContent: "flex-start",
                 background: active ? "var(--primary-light)" : "transparent",
                 boxShadow: active && expanded ? "inset 2px 0 0 var(--primary)" : "none",
             }}
@@ -262,23 +295,14 @@ function NavItem({ active, expanded, label, icon, onClick }: NavItemProps) {
                 if (!active) e.currentTarget.style.background = "transparent";
             }}
         >
-            {/* Collapsed active dot */}
-            {!expanded && active && (
-                <div
-                    style={{
-                        position: "absolute",
-                        left: 4,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        width: 3,
-                        height: 16,
-                        borderRadius: 2,
-                        background: "var(--primary)",
-                    }}
-                />
-            )}
-
-            <span style={{ color: active ? "var(--primary)" : "var(--text-muted)", display: "flex" }}>
+            {/* Icon — always at same left position */}
+            <span
+                className="flex items-center justify-center shrink-0"
+                style={{
+                    width: 20,
+                    color: active ? "var(--primary)" : "var(--text-muted)",
+                }}
+            >
                 {icon}
             </span>
 
@@ -299,15 +323,3 @@ function NavItem({ active, expanded, label, icon, onClick }: NavItemProps) {
     );
 }
 
-/* ── LogoMark ─────────────────────────────────────── */
-function LogoMark() {
-    return (
-        <div
-            className="w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 relative"
-            style={{ background: "var(--primary)" }}
-        >
-            <div className="w-2.5 h-2.5 rounded-full" style={{ border: "1.5px solid #fff" }} />
-            <div className="absolute right-[4px] top-[4px] w-1.5 h-1.5 rounded-full bg-white" />
-        </div>
-    );
-}
