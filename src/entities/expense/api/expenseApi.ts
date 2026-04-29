@@ -31,7 +31,7 @@ export const expenseApi = {
         return data;
     },
 
-    async getMySplits(params?: { limit?: number; offset?: number; status?: "all" | "pending" | "paid"; group_id?: string }): Promise<ExpenseWithMySplitResponse[]> {
+    async getMySplits(params?: { limit?: number; offset?: number; status?: "all" | "paid" | "unpaid"; group_id?: string }): Promise<ExpenseWithMySplitResponse[]> {
         const { data } = await apiClient.get<ExpenseWithMySplitResponse[]>("/expenses/me/splits", {
             params: { limit: 20, offset: 0, status: "all", ...params },
         });

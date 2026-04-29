@@ -4,7 +4,7 @@ import { expenseApi } from "../api/expenseApi";
 interface Params {
     limit?: number;
     offset?: number;
-    status?: "all" | "pending" | "paid";
+    status?: "all" | "paid" | "unpaid";
     group_id?: string;
 }
 

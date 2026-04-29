@@ -11,7 +11,7 @@ import {
     Check,
     Receipt,
 } from "lucide-react";
-import { UserAvatar, SplitExpenseItem } from "@/shared/ui";
+import { UserAvatar, SplitExpenseItem, SkeletonSettlementItem } from "@/shared/ui";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse, GroupWithStatsResponse } from "@/entities/group/model/types";
@@ -23,6 +23,7 @@ import { getCurrencySymbol } from "@/shared/lib/currency";
 import { formatMoney } from "@/shared/lib/ui";
 
 type Tab = "expenses" | "members";
+type ExpenseTab = "all" | "paid" | "unpaid";
 
 
 
@@ -38,11 +39,16 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("expenses");
+    const [expenseTab, setExpenseTab] = useState<ExpenseTab>("all");
     const [showAddMember, setShowAddMember] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [pendingInviteMsg, setPendingInviteMsg] = useState<string | null>(null);
 
-    const { data: expenses = [], isLoading: expensesLoading } = useMySplitExpenses({ group_id: groupId, limit: 50 });
+    const { data: expenses = [], isLoading: expensesLoading } = useMySplitExpenses({
+        group_id: groupId,
+        status: expenseTab,
+        limit: 50,
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -63,7 +69,7 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
     }, [groupId]);
 
     /* ── Loading ─────────────────────────────────────── */
-    if (loading || expensesLoading) {
+    if (loading) {
         return (
             <div className="min-h-screen" style={{ background: "var(--background)" }}>
                 <div className="flex items-center justify-between px-4 pt-14 pb-3">
@@ -387,7 +393,41 @@ export const GroupPage = ({ groupId }: GroupPageProps) => {
                 {/* ── Expenses tab ─────────────────────────── */}
                 {activeTab === "expenses" && (
                     <>
-                        {expenses.length === 0 ? (
+                        {/* Expense filter tabs */}
+                        <div
+                            className="flex gap-1 p-1 rounded-[var(--radius-lg)] mb-4"
+                            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                        >
+                            {(
+                                [
+                                    { id: "all", label: "Hepsi" },
+                                    { id: "unpaid", label: "Ödemediklerim" },
+                                    { id: "paid", label: "Ödediklerim" },
+                                ] as { id: ExpenseTab; label: string }[]
+                            ).map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setExpenseTab(tab.id)}
+                                    className="flex-1 py-2 rounded-[var(--radius-md)] text-[12px] font-semibold transition-all cursor-pointer"
+                                    style={{
+                                        background: expenseTab === tab.id ? "var(--background)" : "transparent",
+                                        color: expenseTab === tab.id ? "var(--foreground)" : "var(--text-muted)",
+                                        boxShadow: expenseTab === tab.id ? "var(--shadow-sm)" : "none",
+                                        border: expenseTab === tab.id ? "1px solid var(--border)" : "1px solid transparent",
+                                    }}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {expensesLoading ? (
+                            <div className="space-y-3">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <SkeletonSettlementItem key={i} />
+                                ))}
+                            </div>
+                        ) : expenses.length === 0 ? (
                             <div className="py-14 text-center">
                                 <Receipt
                                     className="w-8 h-8 mx-auto mb-3"

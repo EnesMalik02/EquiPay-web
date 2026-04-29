@@ -315,6 +315,7 @@ export const GroupsPage = () => {
                             ))}
                         </div>
                     )}
+
                 </main>
 
                 <BottomNav />
