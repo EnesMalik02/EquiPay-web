@@ -1,5 +1,5 @@
 import { apiClient } from "@/shared/api/apiClient";
-import { SettlementCreate, SettlementResponse, SettlementUpdateStatus } from "../model/types";
+import { CursorPage, SettlementCreate, SettlementResponse, SettlementUpdateStatus } from "../model/types";
 
 export const settlementApi = {
     async create(payload: SettlementCreate): Promise<SettlementResponse> {
@@ -7,13 +7,13 @@ export const settlementApi = {
         return data;
     },
 
-    async listMine(): Promise<SettlementResponse[]> {
-        const { data } = await apiClient.get<SettlementResponse[]>("/settlements/me");
+    async listMine(params?: { cursor?: string; limit?: number }): Promise<CursorPage<SettlementResponse>> {
+        const { data } = await apiClient.get<CursorPage<SettlementResponse>>("/settlements/me", { params });
         return data;
     },
 
-    async listByGroup(groupId: string): Promise<SettlementResponse[]> {
-        const { data } = await apiClient.get<SettlementResponse[]>(`/settlements/group/${groupId}`);
+    async listByGroup(groupId: string, params?: { cursor?: string; limit?: number }): Promise<CursorPage<SettlementResponse>> {
+        const { data } = await apiClient.get<CursorPage<SettlementResponse>>(`/settlements/group/${groupId}`, { params });
         return data;
     },
 

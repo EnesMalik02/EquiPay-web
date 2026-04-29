@@ -1,5 +1,6 @@
 import { apiClient } from "@/shared/api/apiClient";
 import {
+    CursorPage,
     ExpenseCreate,
     ExpenseUpdate,
     ExpenseResponse,
@@ -18,8 +19,8 @@ export const expenseApi = {
     async listByGroup(
         groupId: string,
         params?: ListExpensesParams,
-    ): Promise<ExpenseResponse[]> {
-        const { data } = await apiClient.get<ExpenseResponse[]>(
+    ): Promise<CursorPage<ExpenseResponse>> {
+        const { data } = await apiClient.get<CursorPage<ExpenseResponse>>(
             `/expenses/group/${groupId}`,
             { params },
         );
@@ -31,9 +32,9 @@ export const expenseApi = {
         return data;
     },
 
-    async getMySplits(params?: { limit?: number; offset?: number; status?: "all" | "paid" | "unpaid"; group_id?: string }): Promise<ExpenseWithMySplitResponse[]> {
-        const { data } = await apiClient.get<ExpenseWithMySplitResponse[]>("/expenses/me/splits", {
-            params: { limit: 20, offset: 0, status: "all", ...params },
+    async getMySplits(params?: { limit?: number; cursor?: string; status?: "all" | "paid" | "unpaid"; group_id?: string }): Promise<CursorPage<ExpenseWithMySplitResponse>> {
+        const { data } = await apiClient.get<CursorPage<ExpenseWithMySplitResponse>>("/expenses/me/splits", {
+            params: { limit: 20, status: "all", ...params },
         });
         return data;
     },

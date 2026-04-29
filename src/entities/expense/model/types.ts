@@ -121,7 +121,13 @@ export interface ExpenseFullDetailResponse {
     splits: SplitDetailItem[];
 }
 
+export interface CursorPage<T> {
+    items: T[];
+    next_cursor: string | null;
+    has_more: boolean;
+}
+
 export interface ListExpensesParams {
     limit?: number;
-    offset?: number;
+    cursor?: string;
 }

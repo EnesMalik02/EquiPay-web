@@ -146,7 +146,7 @@ export const SettlementsPage = () => {
     const { data: allSplitExpenses = [], isLoading: expensesLoading } = useMySplitExpenses();
     const { data: settlements = [], isLoading: settlementsLoading } = useQuery({
         queryKey: ["settlements", "mine"],
-        queryFn: () => settlementApi.listMine(),
+        queryFn: () => settlementApi.listMine().then((p) => p.items),
     });
 
     const isLoading = expensesLoading || settlementsLoading;

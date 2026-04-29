@@ -1,5 +1,11 @@
 export type SettlementStatus = "pending" | "confirmed" | "rejected" | "cancelled";
 
+export interface CursorPage<T> {
+    items: T[];
+    next_cursor: string | null;
+    has_more: boolean;
+}
+
 export interface SettlementCreate {
     group_id?: string;
     receiver_id: string;
