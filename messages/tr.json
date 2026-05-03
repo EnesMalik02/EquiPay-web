@@ -118,15 +118,6 @@
     "paidTo": "Ödenen Kişi",
     "paidBy": "Ödeyen"
   },
-  "Friends": {
-    "title": "Arkadaşlar",
-    "addFriend": "Arkadaş Ekle",
-    "noFriends": "Henüz arkadaşın yok",
-    "sendRequest": "İstek Gönder",
-    "pendingRequests": "Bekleyen İstekler",
-    "accept": "Kabul Et",
-    "decline": "Reddet"
-  },
   "Notifications": {
     "title": "Bildirimler",
     "noNotifications": "Bildirim yok",

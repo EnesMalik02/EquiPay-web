@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PROTECTED_ROUTES = ['/home', '/groups', '/profile', '/settlements', '/friends']
+const PROTECTED_ROUTES = ['/home', '/groups', '/profile', '/settlements']
 const AUTH_ROUTES = ['/', '/auth/login', '/auth/register']
 
 export function middleware(request: NextRequest) {

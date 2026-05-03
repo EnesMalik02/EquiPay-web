@@ -118,15 +118,6 @@
     "paidTo": "Paid To",
     "paidBy": "Paid By"
   },
-  "Friends": {
-    "title": "Friends",
-    "addFriend": "Add Friend",
-    "noFriends": "No friends yet",
-    "sendRequest": "Send Request",
-    "pendingRequests": "Pending Requests",
-    "accept": "Accept",
-    "decline": "Decline"
-  },
   "Notifications": {
     "title": "Notifications",
     "noNotifications": "No notifications",
