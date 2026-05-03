@@ -31,7 +31,7 @@ export interface ExpenseSplitResponse {
     paid_amount: string;
 }
 
-/** Temel expense bilgisi — grup expense listesi için (listByGroup). */
+/** Temel expense bilgisi — create/update response için. */
 export interface ExpenseResponse {
     id: string;
     group_id: string | null;

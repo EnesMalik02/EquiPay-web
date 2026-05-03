@@ -19,8 +19,8 @@ export const expenseApi = {
     async listByGroup(
         groupId: string,
         params?: ListExpensesParams,
-    ): Promise<CursorPage<ExpenseResponse>> {
-        const { data } = await apiClient.get<CursorPage<ExpenseResponse>>(
+    ): Promise<CursorPage<ExpenseWithMySplitResponse>> {
+        const { data } = await apiClient.get<CursorPage<ExpenseWithMySplitResponse>>(
             `/expenses/group/${groupId}`,
             { params },
         );
