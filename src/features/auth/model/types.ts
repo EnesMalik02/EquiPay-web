@@ -10,5 +10,4 @@ export interface User {
     display_name?: string;
     avatar_url?: string;
     username?: string;
-    phone?: string;
 }

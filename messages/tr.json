@@ -48,10 +48,8 @@
   "LoginForm": {
     "title": "Giriş Yap",
     "subtitle": "Devam etmek için bilgilerini gir.",
-    "labelIdentifier": "Email veya Telefon Numarası",
-    "labelIdentifierPhone": "Telefon Numarası",
-    "switchToEmail": "Email ile giriş yap",
-    "placeholderIdentifier": "ornek@email.com veya +90 555...",
+    "labelIdentifier": "Email veya Kullanıcı Adı",
+    "placeholderIdentifier": "ornek@email.com veya kullanici_adi",
     "labelPassword": "Şifre",
     "submit": "Giriş Yap",
     "submitting": "Giriş yapılıyor...",
@@ -65,14 +63,11 @@
     "placeholderUsername": "Örn. ahmet42",
     "labelEmail": "Email",
     "placeholderEmail": "ornek@email.com",
-    "labelPhone": "Telefon Numarası",
-    "placeholderPhone": "555 123 45 67",
     "labelPassword": "Şifre",
     "submit": "Kayıt Ol",
     "submitting": "Hesap Oluşturuluyor...",
     "hasAccount": "Zaten hesabın var mı?",
-    "loginLink": "Giriş Yap",
-    "phoneRequired": "Telefon numarası zorunludur."
+    "loginLink": "Giriş Yap"
   },
   "Navbar": {
     "home": "Ana Sayfa",
@@ -146,7 +141,7 @@
     "username": "Kullanıcı Adı",
     "logout": "Çıkış yap",
     "personalInfo": "Kişisel bilgiler",
-    "personalInfoSub": "Ad, telefon, e-posta",
+    "personalInfoSub": "Ad, e-posta, kullanıcı adı",
     "notifications": "Bildirimler",
     "notificationsSub": "E-posta ve push",
     "language": "Dil / Language",

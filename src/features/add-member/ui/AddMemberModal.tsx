@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
 import { groupApi } from "@/entities/group/api/groupApi";
 import { GroupMemberResponse } from "@/entities/group/model/types";
 
@@ -13,23 +11,21 @@ interface AddMemberModalProps {
     onAdded: (member: GroupMemberResponse) => void;
 }
 
-type SearchMode = "phone" | "email" | "username";
+type SearchMode = "email" | "username";
 
 const MODES: { id: SearchMode; label: string }[] = [
-    { id: "phone", label: "Telefon" },
     { id: "email", label: "Email" },
     { id: "username", label: "Kullanıcı Adı" },
 ];
 
 export const AddMemberModal = ({ groupId, onClose, onAdded }: AddMemberModalProps) => {
-    const [mode, setMode] = useState<SearchMode>("phone");
-    const [phone, setPhone] = useState("");
+    const [mode, setMode] = useState<SearchMode>("email");
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const currentValue = mode === "phone" ? phone.trim() : mode === "email" ? email.trim() : username.trim();
+    const currentValue = mode === "email" ? email.trim() : username.trim();
     const isDisabled = loading || !currentValue;
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +37,6 @@ export const AddMemberModal = ({ groupId, onClose, onAdded }: AddMemberModalProp
 
         try {
             const payload =
-                mode === "phone" ? { phone: currentValue } :
                 mode === "email" ? { email: currentValue } :
                 { username: currentValue };
 
@@ -129,32 +124,6 @@ export const AddMemberModal = ({ groupId, onClose, onAdded }: AddMemberModalProp
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {mode === "phone" && (
-                        <div>
-                            <label
-                                className="block text-[12px] font-medium mb-1.5"
-                                style={{ color: "var(--text-secondary)" }}
-                                htmlFor="member-phone"
-                            >
-                                Telefon Numarası
-                            </label>
-                            <PhoneInput
-                                id="member-phone"
-                                defaultCountry="TR"
-                                value={phone}
-                                onChange={(val) => setPhone(val || "")}
-                                className="w-full px-3.5 py-2.5 text-[13.5px] [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-2.5 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-5 [&_.PhoneInputCountryIcon]:h-4"
-                                style={{
-                                    background: "var(--surface-muted)",
-                                    border: "1px solid var(--border)",
-                                    borderRadius: "var(--radius-md)",
-                                    color: "var(--foreground)",
-                                } as React.CSSProperties}
-                                placeholder="(505) 123 45 67"
-                            />
-                        </div>
-                    )}
-
                     {mode === "email" && (
                         <div>
                             <label

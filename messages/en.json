@@ -48,10 +48,8 @@
   "LoginForm": {
     "title": "Sign In",
     "subtitle": "Enter your details to continue.",
-    "labelIdentifier": "Email or Phone Number",
-    "labelIdentifierPhone": "Phone Number",
-    "switchToEmail": "Sign in with email",
-    "placeholderIdentifier": "example@email.com or +1 555...",
+    "labelIdentifier": "Email or Username",
+    "placeholderIdentifier": "example@email.com or username",
     "labelPassword": "Password",
     "submit": "Sign In",
     "submitting": "Signing in...",
@@ -65,14 +63,11 @@
     "placeholderUsername": "e.g. john42",
     "labelEmail": "Email",
     "placeholderEmail": "example@email.com",
-    "labelPhone": "Phone Number",
-    "placeholderPhone": "555 123 45 67",
     "labelPassword": "Password",
     "submit": "Sign Up",
     "submitting": "Creating Account...",
     "hasAccount": "Already have an account?",
-    "loginLink": "Sign In",
-    "phoneRequired": "Phone number is required."
+    "loginLink": "Sign In"
   },
   "Navbar": {
     "home": "Home",
@@ -146,7 +141,7 @@
     "username": "Username",
     "logout": "Log out",
     "personalInfo": "Personal info",
-    "personalInfoSub": "Name, phone, email",
+    "personalInfoSub": "Name, email, username",
     "notifications": "Notifications",
     "notificationsSub": "Email and push",
     "language": "Language",

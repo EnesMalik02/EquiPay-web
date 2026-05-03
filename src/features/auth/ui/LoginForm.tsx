@@ -1,16 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import PhoneInput, { getCountryCallingCode } from "react-phone-number-input";
-import type { Country } from "react-phone-number-input";
-import "react-phone-number-input/style.css";
 import { loginAction } from "../actions/authActions";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-
-type InputMode = "text" | "phone";
-
-const DEFAULT_COUNTRY: Country = "TR";
 
 const INPUT_CLASS =
     "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-[#00d186]/20 transition-all placeholder-gray-400 text-black font-medium";
@@ -18,33 +11,9 @@ const INPUT_CLASS =
 export const LoginForm = () => {
     const t = useTranslations("LoginForm");
     const [identifier, setIdentifier] = useState("");
-    const [inputMode, setInputMode] = useState<InputMode>("text");
-    const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
-    const handleTextChange = (value: string) => {
-        if (value.length === 1 && /^[+\d]/.test(value)) {
-            setInputMode("phone");
-            if (/^\d$/.test(value)) {
-                // Paketin getCountryCallingCode fonksiyonuyla dinamik ülke kodu al;
-                // rakamı bu kodla birleştir → PhoneInput "+905" alır, "5" gösterir
-                const callingCode = getCountryCallingCode(selectedCountry);
-                setIdentifier(`+${callingCode}${value}`);
-            } else {
-                // "+" yazıldıysa kullanıcı kodu kendisi girecek
-                setIdentifier("");
-            }
-            return;
-        }
-        setIdentifier(value);
-    };
-
-    const switchToEmail = () => {
-        setIdentifier("");
-        setInputMode("text");
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,47 +40,18 @@ export const LoginForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                    <div className="flex items-center justify-between mb-1">
-                        <label className="block text-sm font-bold text-gray-700" htmlFor="identifier">
-                            {inputMode === "phone" ? t("labelIdentifierPhone") : t("labelIdentifier")}
-                        </label>
-                        {inputMode === "phone" && (
-                            <button
-                                type="button"
-                                onClick={switchToEmail}
-                                className="text-xs text-[#00d186] font-semibold hover:text-[#00b070] transition-colors"
-                            >
-                                {t("switchToEmail")}
-                            </button>
-                        )}
-                    </div>
-
-                    {inputMode === "phone" ? (
-                        <PhoneInput
-                            id="identifier"
-                            defaultCountry={DEFAULT_COUNTRY}
-                            international
-                            countryCallingCodeEditable={false}
-                            value={identifier}
-                            onChange={(val) => setIdentifier(val ?? "")}
-                            onCountryChange={(country) =>
-                                setSelectedCountry(country ?? DEFAULT_COUNTRY)
-                            }
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus-within:bg-white focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-[#00d186]/20 transition-all text-black font-medium [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:border-none [&_.PhoneInputCountry]:mr-3 [&_.PhoneInputInput]:placeholder-gray-400 [&_.PhoneInputCountrySelect]:outline-none [&_.PhoneInputCountryIcon]:w-6 [&_.PhoneInputCountryIcon]:h-4"
-                            placeholder="555 123 45 67"
-                            autoFocus
-                        />
-                    ) : (
-                        <input
-                            id="identifier"
-                            type="text"
-                            value={identifier}
-                            onChange={(e) => handleTextChange(e.target.value)}
-                            className={INPUT_CLASS}
-                            placeholder={t("placeholderIdentifier")}
-                            required
-                        />
-                    )}
+                    <label className="block text-sm font-bold text-gray-700 mb-1" htmlFor="identifier">
+                        {t("labelIdentifier")}
+                    </label>
+                    <input
+                        id="identifier"
+                        type="text"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        className={INPUT_CLASS}
+                        placeholder={t("placeholderIdentifier")}
+                        required
+                    />
                 </div>
 
                 <div>

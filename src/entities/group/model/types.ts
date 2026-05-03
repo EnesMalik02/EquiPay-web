@@ -32,7 +32,6 @@ export interface GroupUpdate {
 }
 
 export interface GroupMemberAdd {
-    phone?: string;
     email?: string;
     username?: string;
 }

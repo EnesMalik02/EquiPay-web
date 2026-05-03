@@ -12,7 +12,7 @@ export const friendApi = {
         return data;
     },
 
-    async send(payload: { email?: string; phone?: string }): Promise<{ id: string; status: string }> {
+    async send(payload: { email: string }): Promise<{ id: string; status: string }> {
         const { data } = await apiClient.post<{ id: string; status: string }>("/friendships", payload);
         return data;
     },

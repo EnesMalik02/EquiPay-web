@@ -115,13 +115,6 @@ export const ProfilePage = () => {
                                     </p>
                                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap text-sm" style={{ color: "var(--text-muted)" }}>
                                         {user?.email && <span>{user.email}</span>}
-
-                                        {user?.phone && !user.phone && (
-                                            <>
-                                                <span>·</span>
-                                                <span>{user.phone}</span>
-                                            </>
-                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -71,7 +71,6 @@ export async function registerAction(payload: {
     email: string;
     password: string;
     username: string;
-    phone: string;
 }): Promise<{ error: string } | void> {
     let res: Response;
     try {

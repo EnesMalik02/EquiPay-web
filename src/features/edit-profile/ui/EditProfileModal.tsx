@@ -17,7 +17,6 @@ export const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
         display_name: user.display_name ?? "",
         email: user.email ?? "",
         username: user.username ?? "",
-        phone: user.phone ?? "",
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -31,7 +30,6 @@ export const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
         if (form.display_name !== (user.display_name ?? "")) payload.display_name = form.display_name;
         if (form.email !== (user.email ?? "")) payload.email = form.email;
         if (form.username !== (user.username ?? "")) payload.username = form.username;
-        if (form.phone !== (user.phone ?? "")) payload.phone = form.phone;
 
         if (Object.keys(payload).length === 0) {
             onClose();
@@ -109,20 +107,6 @@ export const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
                             value={form.username}
                             onChange={(e) => setForm((f) => ({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") }))}
                             placeholder="kullaniciadi"
-                            className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none"
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                            Telefon
-                        </label>
-                        <input
-                            type="tel"
-                            value={form.phone}
-                            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                            placeholder="+90 555 555 55 55"
                             className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none"
                             style={inputStyle}
                         />
