@@ -12,6 +12,7 @@ export interface ExpenseCreate {
     notes?: string;
     expense_date?: string;
     split_type?: "equal" | "exact" | "percentage";
+    category?: string;
     splits: ExpenseSplitCreate[];
 }
 
@@ -21,6 +22,7 @@ export interface ExpenseUpdate {
     currency?: string;
     notes?: string;
     expense_date?: string;
+    category?: string;
 }
 
 export interface ExpenseSplitResponse {
@@ -42,6 +44,7 @@ export interface ExpenseResponse {
     notes?: string | null;
     expense_date: string;
     split_type: string;
+    category?: string | null;
     created_at: string;
     is_fully_paid: boolean;
     splits: ExpenseSplitResponse[];
@@ -75,6 +78,7 @@ export interface ExpenseWithMySplitResponse {
     split_id: string | null;
     group: GroupBrief | null;
     paid_by: PaidByBrief;
+    category?: string | null;
     created_at: string | null;
     updated_at?: string | null;
     user_amount: UserAmount;
@@ -117,6 +121,7 @@ export interface ExpenseFullDetailResponse {
     notes?: string | null;
     expense_date: string | null;
     split_type: string;
+    category?: string | null;
     created_at: string | null;
     splits: SplitDetailItem[];
 }

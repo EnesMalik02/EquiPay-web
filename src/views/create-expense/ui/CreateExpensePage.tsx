@@ -150,6 +150,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                 notes: notes.trim() || undefined,
                 expense_date: expenseDate || undefined,
                 split_type: splitType,
+                category: category || undefined,
                 splits: splitPayload,
             });
             router.push(`/groups/${groupId}`);
