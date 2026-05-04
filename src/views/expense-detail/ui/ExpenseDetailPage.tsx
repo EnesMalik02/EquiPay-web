@@ -13,6 +13,7 @@ import { ExpenseFullDetailResponse } from "@/entities/expense/model/types";
 import { useUser } from "@/shared/store/UserContext";
 import { getCurrencySymbol } from "@/shared/lib/currency";
 import { SPLIT_TYPE_LABELS } from "@/shared/config";
+import { getCategoryMeta, getCategoryMetaWithFallback } from "@/shared/lib/categoryIcons";
 
 interface ExpenseDetailPageProps {
     groupId: string;
@@ -591,88 +592,139 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                         className="rounded-[var(--radius-lg)] p-5"
                                         style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                                     >
-                                        {/* Tags row + total */}
-                                        <div className="flex items-start justify-between gap-3 mb-4">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span
-                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                                                    style={{ background: "var(--primary)", color: "#fff" }}
-                                                >
-                                                    {SPLIT_TYPE_LABELS[expense.split_type] ?? expense.split_type}
-                                                </span>
-                                                <span
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full"
-                                                    style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
-                                                >
-                                                    {expense.currency}
-                                                </span>
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-0.5" style={{ color: "var(--text-muted)" }}>
-                                                    TOPLAM
-                                                </p>
-                                                <p
-                                                    className="text-[26px] font-bold leading-none"
-                                                    style={{
-                                                        fontFamily: "var(--font-geist-mono, monospace)",
-                                                        color: "var(--foreground)",
-                                                        letterSpacing: "-1px",
-                                                    }}
-                                                >
-                                                    {currencySymbol}{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                                                </p>
-                                            </div>
-                                        </div>
+                                        {/* Header: icon + content + total */}
+                                        {(() => {
+                                            const catMeta = getCategoryMetaWithFallback(expense.category);
+                                            const CatIcon = catMeta.icon;
+                                            const perPerson = expense.splits.length > 0
+                                                ? parseFloat(expense.amount) / expense.splits.length
+                                                : null;
 
-                                        {/* Title + date */}
-                                        <div className="mb-5">
-                                            <h2 className="text-[20px] font-semibold mb-1" style={{ color: "var(--foreground)" }}>
-                                                {expense.title}
-                                            </h2>
-                                            <p className="text-[13px]" style={{ color: "var(--text-muted)" }}>
-                                                {formatDate(expense.expense_date)}
-                                            </p>
-                                        </div>
+                                            return (
+                                                <>
+                                                    <div className="flex items-start gap-4 mb-5">
+                                                        {/* Category icon square */}
+                                                        <div
+                                                            className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                                                            style={{ background: catMeta.bg }}
+                                                        >
+                                                            <CatIcon className="w-6 h-6" style={{ color: catMeta.color }} />
+                                                        </div>
 
-                                        {/* Info boxes */}
-                                        <div
-                                            className="grid grid-cols-2 rounded-[var(--radius-md)] overflow-hidden"
-                                            style={{ border: "1px solid var(--border-light)" }}
-                                        >
-                                            <div className="px-3.5 py-3" style={{ borderRight: "1px solid var(--border-light)" }}>
-                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
-                                                    ÖDEYEN
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <div
-                                                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                                                        style={{ background: "var(--primary)", color: "#fff" }}
-                                                    >
-                                                        {expense.paid_by.name.charAt(0).toUpperCase()}
+                                                        {/* Middle: badges + title + date */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                                                                {expense.category && (
+                                                                    <span
+                                                                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                                                                        style={{ background: catMeta.bg, color: catMeta.color }}
+                                                                    >
+                                                                        {catMeta.label}
+                                                                    </span>
+                                                                )}
+                                                                <span
+                                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+                                                                    style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
+                                                                >
+                                                                    {SPLIT_TYPE_LABELS[expense.split_type] ?? expense.split_type}
+                                                                </span>
+                                                                <span
+                                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+                                                                    style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
+                                                                >
+                                                                    {expense.currency}
+                                                                </span>
+                                                            </div>
+                                                            <h2 className="text-[20px] font-semibold mb-0.5" style={{ color: "var(--foreground)" }}>
+                                                                {expense.title}
+                                                            </h2>
+                                                            <p className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                                                                {formatDate(expense.expense_date)}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Total */}
+                                                        <div className="text-right shrink-0">
+                                                            <p className="text-[10px] uppercase tracking-wider font-medium mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                                                TOPLAM
+                                                            </p>
+                                                            <p
+                                                                className="text-[26px] font-bold leading-none"
+                                                                style={{
+                                                                    fontFamily: "var(--font-geist-mono, monospace)",
+                                                                    color: "var(--foreground)",
+                                                                    letterSpacing: "-1px",
+                                                                }}
+                                                            >
+                                                                {currencySymbol}{parseFloat(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-[12px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
-                                                        {expense.paid_by.name}
-                                                        {String(expense.paid_by.id) === String(currentUserId) && (
-                                                            <span className="ml-1 text-[11px] font-normal" style={{ color: "var(--text-muted)" }}>(sen)</span>
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="px-3.5 py-3" style={{ borderRight: "1px solid var(--border-light)" }}>
-                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
-                                                    GRUP
-                                                </p>
-                                                <div className="flex items-center gap-2">
+
+                                                    {/* Info boxes */}
                                                     <div
-                                                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                                                        style={{ background: "var(--primary)" }}
-                                                    />
-                                                    <p className="text-[12px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
-                                                        {expense.group?.name ?? "—"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                        className="grid rounded-[var(--radius-md)] overflow-hidden"
+                                                        style={{
+                                                            gridTemplateColumns: perPerson !== null ? "1fr 1fr 1fr" : "1fr 1fr",
+                                                            border: "1px solid var(--border-light)",
+                                                        }}
+                                                    >
+                                                        <div className="px-3.5 py-3" style={{ borderRight: "1px solid var(--border-light)" }}>
+                                                            <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
+                                                                ÖDEYEN
+                                                            </p>
+                                                            <div className="flex items-center gap-2">
+                                                                <div
+                                                                    className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0"
+                                                                    style={{ background: catMeta.bg, color: catMeta.color }}
+                                                                >
+                                                                    {expense.paid_by.name.charAt(0).toUpperCase()}
+                                                                </div>
+                                                                <p className="text-[12px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                                                                    {expense.paid_by.name}
+                                                                    {String(expense.paid_by.id) === String(currentUserId) && (
+                                                                        <span className="ml-1 text-[11px] font-normal" style={{ color: "var(--text-muted)" }}>(sen)</span>
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            className="px-3.5 py-3"
+                                                            style={{ borderRight: perPerson !== null ? "1px solid var(--border-light)" : "none" }}
+                                                        >
+                                                            <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
+                                                                GRUP
+                                                            </p>
+                                                            <div className="flex items-center gap-2">
+                                                                <div
+                                                                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                                                                    style={{ background: "var(--primary)" }}
+                                                                />
+                                                                <p className="text-[12px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                                                                    {expense.group?.name ?? "—"}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {perPerson !== null && (
+                                                            <div className="px-3.5 py-3">
+                                                                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
+                                                                    KİŞİ BAŞI
+                                                                </p>
+                                                                <p
+                                                                    className="text-[12px] font-semibold"
+                                                                    style={{
+                                                                        fontFamily: "var(--font-geist-mono, monospace)",
+                                                                        color: "var(--foreground)",
+                                                                    }}
+                                                                >
+                                                                    {currencySymbol}{perPerson.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
 
                                         {/* Pay button for non-owners */}
                                         {mySplit && myOwed > 0 && !isOwner && (
@@ -1002,7 +1054,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     {
                                         icon: <Users className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
                                         label: "Paylaşım",
-                                        value: `${SPLIT_TYPE_LABELS[expense.split_type] ?? expense.split_type} · ${expense.splits.length} kişi`,
+                                        value: `${SPLIT_TYPE_LABELS[expense.split_type] ?? expense.split_type}`,
                                     },
                                     {
                                         icon: <Clock3 className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />,
@@ -1022,7 +1074,7 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                     <div
                                         key={row.label}
                                         className="flex items-center gap-3 px-4 py-3"
-                                        style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border-light)" : "none" }}
+                                        style={{ borderBottom: i < arr.length - 1 || expense.category ? "1px solid var(--border-light)" : "none" }}
                                     >
                                         {row.icon}
                                         <span className="text-[12px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>
@@ -1039,6 +1091,33 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                         </span>
                                     </div>
                                 ))}
+                                {expense.category && (() => {
+                                    const meta = getCategoryMeta(expense.category);
+                                    if (!meta) return null;
+                                    const Icon = meta.icon;
+                                    return (
+                                        <div
+                                            className="flex items-center gap-3 px-4 py-3"
+                                            style={{ borderBottom: "none" }}
+                                        >
+                                            <div
+                                                className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+                                                style={{ background: meta.bg }}
+                                            >
+                                                <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                                            </div>
+                                            <span className="text-[12px] w-24 shrink-0" style={{ color: "var(--text-muted)" }}>
+                                                Kategori
+                                            </span>
+                                            <span
+                                                className="text-[12px] font-medium text-right flex-1"
+                                                style={{ color: meta.color }}
+                                            >
+                                                {meta.label}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Fiş */}

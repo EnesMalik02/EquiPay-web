@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Receipt } from "lucide-react";
 import { ExpenseWithMySplitResponse } from "@/entities/expense/model/types";
 import { getCurrencySymbol } from "@/shared/lib/currency";
+import { getCategoryMetaWithFallback } from "@/shared/lib/categoryIcons";
 
 interface SplitExpenseItemProps {
     expense: ExpenseWithMySplitResponse;
@@ -30,6 +30,8 @@ export function SplitExpenseItem({ expense }: SplitExpenseItemProps) {
     };
 
     const amountColor = isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)";
+    const catMeta = getCategoryMetaWithFallback(expense.category);
+    const CatIcon = catMeta.icon;
 
     return (
         <div
@@ -42,13 +44,10 @@ export function SplitExpenseItem({ expense }: SplitExpenseItemProps) {
             }}
         >
             <div
-                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: isPaid ? "var(--primary-light)" : isPayer ? "var(--primary-light)" : "rgba(239,68,68,0.08)" }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: catMeta.bg }}
             >
-                <Receipt
-                    className="w-5 h-5"
-                    style={{ color: isPaid ? "var(--primary)" : isPayer ? "var(--primary)" : "var(--danger)" }}
-                />
+                <CatIcon className="w-5 h-5" style={{ color: catMeta.color }} />
             </div>
 
             <div className="flex-1 min-w-0">
