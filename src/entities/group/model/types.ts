@@ -51,3 +51,35 @@ export interface GroupMemberResponse {
 export interface GroupInvitationRespond {
     action: "accept" | "decline";
 }
+
+export interface GroupStatsMember {
+    user_id: string;
+    name: string;
+    avatar_url: string | null;
+    total_paid: string;
+    total_owed: string;
+    net_balance: string;
+    outstanding_debt?: string;
+    outstanding_receivable?: string;
+}
+
+export interface GroupStatsCategory {
+    category: string | null;
+    total: string;
+    count: number;
+}
+
+export interface GroupStatsMonthlyTrend {
+    year_month: string;
+    total: string;
+    count: number;
+}
+
+export interface GroupStatsResponse {
+    total_amount: string;
+    total_expense_count: number;
+    currency: string;
+    member_stats: GroupStatsMember[];
+    category_breakdown: GroupStatsCategory[];
+    monthly_trend?: GroupStatsMonthlyTrend[];
+}

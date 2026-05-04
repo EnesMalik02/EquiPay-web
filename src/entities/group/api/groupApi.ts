@@ -7,6 +7,7 @@ import {
     GroupMemberResponse,
     GroupMemberRoleUpdate,
     GroupResponse,
+    GroupStatsResponse,
     GroupUpdate,
     GroupWithStatsResponse,
 } from "../model/types";
@@ -57,6 +58,11 @@ export const groupApi = {
 
     async respondToInvitation(groupId: string, payload: GroupInvitationRespond): Promise<{ detail: string }> {
         const { data } = await apiClient.post<{ detail: string }>(`/groups/${groupId}/invitations/respond`, payload);
+        return data;
+    },
+
+    async getStats(groupId: string): Promise<GroupStatsResponse> {
+        const { data } = await apiClient.get<GroupStatsResponse>(`/groups/${groupId}/stats`);
         return data;
     },
 };
