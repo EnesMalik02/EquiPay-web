@@ -13,6 +13,7 @@ export interface ExpenseCreate {
     expense_date?: string;
     split_type?: "equal" | "exact" | "percentage";
     category?: string;
+    receipt_key?: string;
     splits: ExpenseSplitCreate[];
 }
 
@@ -45,6 +46,7 @@ export interface ExpenseResponse {
     expense_date: string;
     split_type: string;
     category?: string | null;
+    receipt_url?: string | null;
     created_at: string;
     is_fully_paid: boolean;
     splits: ExpenseSplitResponse[];
@@ -122,6 +124,7 @@ export interface ExpenseFullDetailResponse {
     expense_date: string | null;
     split_type: string;
     category?: string | null;
+    receipt_url?: string | null;
     created_at: string | null;
     splits: SplitDetailItem[];
 }

@@ -55,4 +55,30 @@ export const expenseApi = {
         );
         return data;
     },
+
+    async uploadTempReceipt(file: File): Promise<{ receipt_url: string; receipt_key: string }> {
+        const form = new FormData();
+        form.append("file", file);
+        const { data } = await apiClient.post<{ receipt_url: string; receipt_key: string }>(
+            "/expenses/receipt/upload-temp",
+            form,
+            { headers: { "Content-Type": "multipart/form-data" } },
+        );
+        return data;
+    },
+
+    async uploadReceipt(expenseId: string, file: File): Promise<{ receipt_url: string }> {
+        const form = new FormData();
+        form.append("file", file);
+        const { data } = await apiClient.put<{ receipt_url: string }>(
+            `/expenses/${expenseId}/receipt`,
+            form,
+            { headers: { "Content-Type": "multipart/form-data" } },
+        );
+        return data;
+    },
+
+    async deleteReceipt(expenseId: string): Promise<void> {
+        await apiClient.delete(`/expenses/${expenseId}/receipt`);
+    },
 };

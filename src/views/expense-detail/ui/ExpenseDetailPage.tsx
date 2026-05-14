@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     ChevronLeft, Receipt, CalendarDays, FileText, Wallet, Users,
     CheckCircle2, Clock3, Pencil, X, AlertTriangle,
-    Bell, Settings2, Plus, ChevronRight, Hash, History,
+    Bell, Settings2, Plus, ChevronRight, Hash, History, Camera, Trash2,
 } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { expenseApi } from "@/entities/expense/api/expenseApi";
@@ -101,6 +101,13 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState("");
 
+    const receiptInputRef = useRef<HTMLInputElement>(null);
+    const [uploadingReceipt, setUploadingReceipt] = useState(false);
+    const [deletingReceipt, setDeletingReceipt] = useState(false);
+    const [receiptError, setReceiptError] = useState("");
+    const [receiptIsImage, setReceiptIsImage] = useState(true);
+    const [showLightbox, setShowLightbox] = useState(false);
+
     useEffect(() => {
         expenseApi.getById(expenseId).then((exp) => {
             setExpense(exp);
@@ -167,6 +174,39 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
             const e = err as { response?: { data?: { detail?: string } }; message?: string };
             setDeleteError(e.response?.data?.detail ?? e.message ?? "Bir hata oluştu.");
             setDeleting(false);
+        }
+    };
+
+    const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !expense) return;
+        setUploadingReceipt(true);
+        setReceiptError("");
+        try {
+            const { receipt_url } = await expenseApi.uploadReceipt(expense.id, file);
+            setExpense((prev) => prev ? { ...prev, receipt_url } : prev);
+            setReceiptIsImage(true);
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { detail?: string } }; message?: string };
+            setReceiptError(e.response?.data?.detail ?? e.message ?? "Yükleme başarısız.");
+        } finally {
+            setUploadingReceipt(false);
+            if (receiptInputRef.current) receiptInputRef.current.value = "";
+        }
+    };
+
+    const handleReceiptDelete = async () => {
+        if (!expense) return;
+        setDeletingReceipt(true);
+        setReceiptError("");
+        try {
+            await expenseApi.deleteReceipt(expense.id);
+            setExpense((prev) => prev ? { ...prev, receipt_url: null } : prev);
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { detail?: string } }; message?: string };
+            setReceiptError(e.response?.data?.detail ?? e.message ?? "Silme başarısız.");
+        } finally {
+            setDeletingReceipt(false);
         }
     };
 
@@ -319,6 +359,31 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* ── Receipt Lightbox ── */}
+            {showLightbox && expense?.receipt_url && (
+                <div
+                    className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+                    onClick={() => setShowLightbox(false)}
+                >
+                    <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)" }} />
+                    <button
+                        className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
+                        style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+                        onClick={() => setShowLightbox(false)}
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={expense.receipt_url}
+                        alt="Fiş"
+                        className="relative z-10 max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ userSelect: "none" }}
+                    />
                 </div>
             )}
 
@@ -498,18 +563,23 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                     </h1>
                     {expense && (
                         <div className="flex items-center gap-2">
-                            <button
-                                className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium transition-all active:scale-95"
-                                style={{
-                                    background: "var(--surface)",
-                                    border: "1px solid var(--border)",
-                                    borderRadius: "var(--radius-md)",
-                                    color: "var(--text-secondary)",
-                                }}
-                            >
-                                <Receipt className="w-3.5 h-3.5" />
-                                <span>Fişi gör</span>
-                            </button>
+                            {expense.receipt_url && (
+                                <a
+                                    href={expense.receipt_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium transition-all active:scale-95"
+                                    style={{
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--border)",
+                                        borderRadius: "var(--radius-md)",
+                                        color: "var(--text-secondary)",
+                                    }}
+                                >
+                                    <Receipt className="w-3.5 h-3.5" />
+                                    <span>Fişi gör</span>
+                                </a>
+                            )}
                             {isOwner && (
                                 <>
                                     <button
@@ -1133,45 +1203,115 @@ export const ExpenseDetailPage = ({ groupId, expenseId }: ExpenseDetailPageProps
                                         <Receipt className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
                                         <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>Fiş</span>
                                     </div>
-                                    <span
-                                        className="text-[10px] font-semibold px-2 py-0.5 rounded"
-                                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
-                                    >
-                                        PDF
-                                    </span>
+                                    {expense?.receipt_url && (
+                                        <span
+                                            className="text-[10px] font-semibold px-2 py-0.5 rounded"
+                                            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+                                        >
+                                            Yüklendi
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="p-4">
-                                    <div
-                                        className="flex flex-col items-center justify-center py-6 rounded-[var(--radius-md)]"
-                                        style={{ background: "var(--surface-muted)" }}
-                                    >
-                                        <FileText className="w-8 h-8 mb-2" style={{ color: "var(--border)" }} />
-                                        <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>
-                                            Fiş yüklenmemiş
+                                <div className="p-4 space-y-3">
+                                    {receiptError && (
+                                        <p className="text-[12px] px-3 py-2 rounded-[var(--radius-md)]"
+                                            style={{ background: "var(--danger-light)", color: "var(--danger)" }}>
+                                            {receiptError}
                                         </p>
-                                    </div>
-                                    <div className="flex gap-2 mt-3">
-                                        <button
-                                            className="flex-1 py-2 text-[12px] font-medium transition-all active:scale-95"
-                                            style={{
-                                                background: "var(--surface-muted)",
-                                                borderRadius: "var(--radius-md)",
-                                                color: "var(--text-secondary)",
-                                            }}
-                                        >
-                                            Görüntüle
-                                        </button>
-                                        <button
-                                            className="flex-1 py-2 text-[12px] font-medium transition-all active:scale-95"
-                                            style={{
-                                                background: "var(--surface-muted)",
-                                                borderRadius: "var(--radius-md)",
-                                                color: "var(--text-secondary)",
-                                            }}
-                                        >
-                                            İndir
-                                        </button>
-                                    </div>
+                                    )}
+                                    <input
+                                        ref={receiptInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                                        className="hidden"
+                                        onChange={handleReceiptUpload}
+                                    />
+                                    {expense?.receipt_url ? (
+                                        <>
+                                            {receiptIsImage ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowLightbox(true)}
+                                                    className="w-full rounded-[var(--radius-md)] overflow-hidden transition-opacity hover:opacity-90 active:opacity-70 block"
+                                                    style={{ cursor: "zoom-in" }}
+                                                >
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={expense.receipt_url}
+                                                        alt="Fiş"
+                                                        className="w-full object-cover"
+                                                        style={{ maxHeight: "220px", display: "block" }}
+                                                        onError={() => setReceiptIsImage(false)}
+                                                    />
+                                                </button>
+                                            ) : (
+                                                <a
+                                                    href={expense.receipt_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-3 px-3 py-3 rounded-[var(--radius-md)] transition-opacity hover:opacity-70"
+                                                    style={{ background: "var(--surface-muted)" }}
+                                                >
+                                                    <FileText className="w-5 h-5 shrink-0" style={{ color: "var(--text-muted)" }} />
+                                                    <span className="text-[12px] font-medium" style={{ color: "var(--text-secondary)" }}>
+                                                        PDF Görüntüle
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {isOwner && (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => receiptInputRef.current?.click()}
+                                                        disabled={uploadingReceipt || deletingReceipt}
+                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[12px] font-medium transition-all active:scale-95 disabled:opacity-50"
+                                                        style={{
+                                                            background: "var(--surface-muted)",
+                                                            borderRadius: "var(--radius-md)",
+                                                            color: "var(--text-secondary)",
+                                                        }}
+                                                    >
+                                                        <Camera className="w-3.5 h-3.5" />
+                                                        {uploadingReceipt ? "Yükleniyor..." : "Değiştir"}
+                                                    </button>
+                                                    <button
+                                                        onClick={handleReceiptDelete}
+                                                        disabled={uploadingReceipt || deletingReceipt}
+                                                        className="w-9 h-9 flex items-center justify-center rounded-[var(--radius-md)] transition-all active:scale-95 disabled:opacity-50"
+                                                        style={{ background: "var(--danger-light)", color: "var(--danger)" }}
+                                                    >
+                                                        {deletingReceipt ? "..." : <Trash2 className="w-3.5 h-3.5" />}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div
+                                                className="flex flex-col items-center justify-center py-6 rounded-[var(--radius-md)]"
+                                                style={{ background: "var(--surface-muted)" }}
+                                            >
+                                                <FileText className="w-8 h-8 mb-2" style={{ color: "var(--border)" }} />
+                                                <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>
+                                                    Fiş yüklenmemiş
+                                                </p>
+                                            </div>
+                                            {isOwner && (
+                                                <button
+                                                    onClick={() => receiptInputRef.current?.click()}
+                                                    disabled={uploadingReceipt}
+                                                    className="w-full flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                                                    style={{
+                                                        background: "var(--primary-light)",
+                                                        borderRadius: "var(--radius-md)",
+                                                        color: "var(--primary)",
+                                                    }}
+                                                >
+                                                    <Camera className="w-3.5 h-3.5" />
+                                                    {uploadingReceipt ? "Yükleniyor..." : "Fiş Yükle"}
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             </div>
 

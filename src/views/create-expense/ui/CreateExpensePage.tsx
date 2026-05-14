@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    ArrowLeft, AlertCircle, Camera,
+    ArrowLeft, AlertCircle, Camera, X,
 } from "lucide-react";
 import { BottomNav } from "@/widgets/bottom-nav/ui/BottomNav";
 import { groupApi } from "@/entities/group/api/groupApi";
@@ -34,6 +34,10 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
     const [splitType, setSplitType] = useState<SplitType>("equal");
     const [splits, setSplits] = useState<Record<string, string>>({});
     const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
+
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+    const receiptInputRef = useRef<HTMLInputElement>(null);
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
@@ -122,6 +126,23 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
         setSplits((prev) => ({ ...prev, [userId]: "" }));
     };
 
+    const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setReceiptFile(file);
+        if (file.type.startsWith("image/")) {
+            setReceiptPreview(URL.createObjectURL(file));
+        } else {
+            setReceiptPreview(null);
+        }
+    };
+
+    const clearReceipt = () => {
+        setReceiptFile(null);
+        setReceiptPreview(null);
+        if (receiptInputRef.current) receiptInputRef.current.value = "";
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!formValid) return;
@@ -141,6 +162,11 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                 }
                 return { user_id: m.user_id, owed_amount: parseFloat(splits[m.user_id] || "0") };
             });
+            let receiptKey: string | undefined;
+            if (receiptFile) {
+                const { receipt_key } = await expenseApi.uploadTempReceipt(receiptFile);
+                receiptKey = receipt_key;
+            }
             await expenseApi.create({
                 group_id: groupId,
                 paid_by: paidById,
@@ -151,6 +177,7 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
                 expense_date: expenseDate || undefined,
                 split_type: splitType,
                 category: category || undefined,
+                receipt_key: receiptKey,
                 splits: splitPayload,
             });
             router.push(`/groups/${groupId}`);
@@ -606,25 +633,69 @@ export const CreateExpensePage = ({ groupId }: CreateExpensePageProps) => {
 
                             {/* Fiş ekle */}
                             <div className="rounded-2xl border p-4" style={cardStyle}>
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                                        style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
-                                    >
-                                        <Camera className="w-5 h-5" />
+                                <input
+                                    ref={receiptInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                                    className="hidden"
+                                    onChange={handleReceiptChange}
+                                />
+                                {receiptFile ? (
+                                    <div className="space-y-3">
+                                        {receiptPreview ? (
+                                            <div className="relative rounded-xl overflow-hidden" style={{ maxHeight: "140px" }}>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={receiptPreview} alt="Fiş önizleme" className="w-full object-cover" style={{ maxHeight: "140px" }} />
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: "var(--surface-muted)" }}>
+                                                <Camera className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+                                                <span className="text-xs font-medium truncate flex-1" style={{ color: "var(--text-secondary)" }}>
+                                                    {receiptFile.name}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => receiptInputRef.current?.click()}
+                                                className="flex-1 py-2 text-xs font-semibold rounded-xl transition-opacity hover:opacity-70"
+                                                style={{ background: "var(--surface-muted)", color: "var(--text-secondary)" }}
+                                            >
+                                                Değiştir
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={clearReceipt}
+                                                className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity hover:opacity-70"
+                                                style={{ background: "var(--danger-light)", color: "var(--danger)" }}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Fiş ekle</p>
-                                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Resim veya PDF · 10MB</p>
+                                ) : (
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                            style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}
+                                        >
+                                            <Camera className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Fiş ekle</p>
+                                            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Resim veya PDF · 10MB</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => receiptInputRef.current?.click()}
+                                            className="text-sm font-bold transition-opacity hover:opacity-70"
+                                            style={{ color: "var(--primary)" }}
+                                        >
+                                            Yükle
+                                        </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="text-sm font-bold transition-opacity hover:opacity-70"
-                                        style={{ color: "var(--primary)" }}
-                                    >
-                                        Yükle
-                                    </button>
-                                </div>
+                                )}
                             </div>
 
                             {/* ── Desktop Kaydet butonu (sadece lg+) ── */}
