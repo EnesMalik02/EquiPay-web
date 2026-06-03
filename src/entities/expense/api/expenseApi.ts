@@ -56,10 +56,10 @@ export const expenseApi = {
         return data;
     },
 
-    async uploadTempReceipt(file: File): Promise<{ receipt_url: string; receipt_key: string }> {
+    async uploadTempReceipt(file: File): Promise<{ receipt_key: string }> {
         const form = new FormData();
         form.append("file", file);
-        const { data } = await apiClient.post<{ receipt_url: string; receipt_key: string }>(
+        const { data } = await apiClient.post<{ receipt_key: string }>(
             "/expenses/receipt/upload-temp",
             form,
             { headers: { "Content-Type": "multipart/form-data" } },
