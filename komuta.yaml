@@ -1,0 +1,43 @@
+version: 1
+name: equipay-web
+target:
+  project: EquiPay
+  region: Germany-East
+  envGroup: production
+  deploymentTarget: paas
+  connections:
+    git: github-app-EnesMalik02
+    registry: komuta
+apply:
+  prune: false
+  createMissingProject: false
+services:
+  - name: equipay-web
+    workload: service
+    source:
+      repository: https://github.com/EnesMalik02/EquiPay-web.git
+      branch: main
+    build:
+      strategy: dockerfile
+      dockerfile: Dockerfile
+      context: .
+    compute:
+      plan: dz-dev
+      replicas:
+        mode: fixed
+        count: 1
+    ports:
+      - name: http
+        containerPort: 3000
+        primary: true
+    network:
+      public: true
+    health:
+      readiness:
+        type: tcpSocket
+        port: 3000
+      liveness:
+        type: tcpSocket
+        port: 3000
+    autoDeploy:
+      enabled: true
